@@ -23,8 +23,17 @@ import {
   Chip,
   Typography,
   Alert,
+  Divider,
 } from '@mui/material';
-import { Plus, Save, Play, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
+import {
+  Plus,
+  Save,
+  Play,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  GripVertical,
+} from 'lucide-react';
 import PhaseNode from './PhaseNode';
 import PhaseConfigPanel from './PhaseConfigPanel';
 import * as workflowBuilderService from '../services/workflowBuilderService';
@@ -141,6 +150,8 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [availableModels, setAvailableModels] = useState([]);
+  const [draggedNodeId, setDraggedNodeId] = useState(null);
+  const [dragOverNodeId, setDragOverNodeId] = useState(null);
 
   const isPersistedWorkflow = Boolean(workflow?.isPersisted && workflow?.id);
   const isTemplateWorkflow = Boolean(workflow?.is_template);
@@ -291,6 +302,53 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
     reordered.splice(targetIndex, 0, moved);
 
     rebuildGraphFromPhases(reordered, moved?.name || null);
+  };
+
+  const clearDragState = () => {
+    setDraggedNodeId(null);
+    setDragOverNodeId(null);
+  };
+
+  const handlePhaseDragStart = (event, nodeId) => {
+    setDraggedNodeId(nodeId);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', nodeId);
+  };
+
+  const handlePhaseDragOver = (event, nodeId) => {
+    event.preventDefault();
+    if (nodeId !== draggedNodeId) {
+      setDragOverNodeId(nodeId);
+    }
+    event.dataTransfer.dropEffect = 'move';
+  };
+
+  const handlePhaseDrop = (event, targetNodeId) => {
+    event.preventDefault();
+
+    const sourceNodeId =
+      draggedNodeId || event.dataTransfer.getData('text/plain');
+
+    if (!sourceNodeId || sourceNodeId === targetNodeId) {
+      clearDragState();
+      return;
+    }
+
+    const sourceIndex = nodes.findIndex((node) => node.id === sourceNodeId);
+    const targetIndex = nodes.findIndex((node) => node.id === targetNodeId);
+
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+      clearDragState();
+      return;
+    }
+
+    const phaseConfigs = nodes.map((node) => node.data.phase);
+    const reordered = [...phaseConfigs];
+    const [moved] = reordered.splice(sourceIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+
+    rebuildGraphFromPhases(reordered, moved?.name || null);
+    clearDragState();
   };
 
   const buildWorkflowDefinition = () => {
@@ -542,6 +600,15 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
                   {nodes.map((node, index) => (
                     <Box
                       key={node.id}
+                      draggable
+                      onDragStart={(event) =>
+                        handlePhaseDragStart(event, node.id)
+                      }
+                      onDragOver={(event) =>
+                        handlePhaseDragOver(event, node.id)
+                      }
+                      onDrop={(event) => handlePhaseDrop(event, node.id)}
+                      onDragEnd={clearDragState}
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -550,10 +617,13 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
                         borderRadius: 1,
                         px: 1,
                         py: 0.5,
+                        cursor: 'grab',
                         backgroundColor:
-                          node.id === selectedNode.id
-                            ? '#f3f8ff'
-                            : 'transparent',
+                          node.id === dragOverNodeId
+                            ? '#e8f4ff'
+                            : node.id === selectedNode.id
+                              ? '#f3f8ff'
+                              : 'transparent',
                       }}
                     >
                       <Button
@@ -562,9 +632,11 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
                         sx={{
                           textTransform: 'none',
                           justifyContent: 'flex-start',
+                          gap: 0.5,
                           flex: 1,
                         }}
                       >
+                        <GripVertical size={14} color="#9e9e9e" />
                         {index + 1}. {node.data.phase.name}
                       </Button>
                       <Box>
@@ -625,6 +697,15 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
                     {nodes.map((node, index) => (
                       <Box
                         key={node.id}
+                        draggable
+                        onDragStart={(event) =>
+                          handlePhaseDragStart(event, node.id)
+                        }
+                        onDragOver={(event) =>
+                          handlePhaseDragOver(event, node.id)
+                        }
+                        onDrop={(event) => handlePhaseDrop(event, node.id)}
+                        onDragEnd={clearDragState}
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
@@ -633,6 +714,11 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
                           borderRadius: 1,
                           px: 1,
                           py: 0.5,
+                          cursor: 'grab',
+                          backgroundColor:
+                            node.id === dragOverNodeId
+                              ? '#e8f4ff'
+                              : 'transparent',
                         }}
                       >
                         <Button
@@ -641,9 +727,11 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
                           sx={{
                             textTransform: 'none',
                             justifyContent: 'flex-start',
+                            gap: 0.5,
                             flex: 1,
                           }}
                         >
+                          <GripVertical size={14} color="#9e9e9e" />
                           {index + 1}. {node.data.phase.name}
                         </Button>
                         <Box>
