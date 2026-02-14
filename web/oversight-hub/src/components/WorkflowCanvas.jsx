@@ -26,10 +26,68 @@ import {
 import { Plus, Save, Play } from 'lucide-react';
 import PhaseNode from './PhaseNode';
 import PhaseConfigPanel from './PhaseConfigPanel';
-import { makeRequest } from '../services/cofounderAgentClient';
+import * as workflowBuilderService from '../services/workflowBuilderService';
 
 const nodeTypes = {
   phase: PhaseNode,
+};
+
+const normalizePhaseName = (name) =>
+  typeof name === 'string' ? name.trim() : '';
+
+const inferBasePhaseType = (phase = {}) => {
+  const explicitType = normalizePhaseName(phase?.metadata?.phase_type);
+  if (explicitType) {
+    return explicitType;
+  }
+
+  const explicitAgent = normalizePhaseName(phase?.agent);
+  if (explicitAgent) {
+    return explicitAgent;
+  }
+
+  const phaseName = normalizePhaseName(phase?.name);
+  if (!phaseName) {
+    return 'phase';
+  }
+
+  return phaseName.replace(/_\d+$/, '');
+};
+
+const getUniquePhaseName = (baseName, existingNames) => {
+  const normalizedBase = normalizePhaseName(baseName) || 'phase';
+  if (!existingNames.has(normalizedBase)) {
+    return normalizedBase;
+  }
+
+  let index = 2;
+  while (existingNames.has(`${normalizedBase}_${index}`)) {
+    index += 1;
+  }
+  return `${normalizedBase}_${index}`;
+};
+
+const ensureUniqueWorkflowPhases = (phases = []) => {
+  const usedNames = new Set();
+
+  return phases.map((phase) => {
+    const baseType = inferBasePhaseType(phase);
+    const uniqueName = getUniquePhaseName(
+      normalizePhaseName(phase?.name) || baseType,
+      usedNames
+    );
+    usedNames.add(uniqueName);
+
+    return {
+      ...phase,
+      name: uniqueName,
+      agent: baseType,
+      metadata: {
+        ...(phase?.metadata || {}),
+        phase_type: baseType,
+      },
+    };
+  });
 };
 
 const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
@@ -42,11 +100,23 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
   );
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const isPersistedWorkflow = Boolean(workflow?.isPersisted && workflow?.id);
+  const isTemplateWorkflow = Boolean(workflow?.is_template);
 
   // Initialize with workflow if provided
   React.useEffect(() => {
-    if (workflow && workflow.phases) {
-      const newNodes = workflow.phases.map((phase, index) => ({
+    setWorkflowName(workflow?.name || '');
+    setWorkflowDescription(workflow?.description || '');
+
+    if (
+      workflow &&
+      Array.isArray(workflow.phases) &&
+      workflow.phases.length > 0
+    ) {
+      const normalizedPhases = ensureUniqueWorkflowPhases(workflow.phases);
+
+      const newNodes = normalizedPhases.map((phase, index) => ({
         id: `phase-${index}`,
         data: { label: phase.name, phase },
         position: { x: index * 250, y: 0 },
@@ -61,7 +131,12 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
 
       setNodes(newNodes);
       setEdges(newEdges);
+    } else {
+      setNodes([]);
+      setEdges([]);
     }
+
+    setSelectedNode(null);
   }, [workflow, setNodes, setEdges]);
 
   const onConnect = useCallback(
@@ -72,10 +147,30 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
   );
 
   const addPhase = (phase) => {
+    const existingNames = new Set(
+      nodes
+        .map((node) => normalizePhaseName(node?.data?.phase?.name))
+        .filter(Boolean)
+    );
+    const baseType = inferBasePhaseType(phase);
+    const uniqueName = getUniquePhaseName(
+      phase?.name || baseType,
+      existingNames
+    );
+    const phaseConfig = {
+      ...phase,
+      name: uniqueName,
+      agent: baseType,
+      metadata: {
+        ...(phase?.metadata || {}),
+        phase_type: baseType,
+      },
+    };
+
     const newNodeId = `phase-${nodes.length}`;
     const newNode = {
       id: newNodeId,
-      data: { label: phase.name, phase },
+      data: { label: uniqueName, phase: phaseConfig },
       position: { x: nodes.length * 250, y: 0 },
       type: 'phase',
     };
@@ -130,20 +225,49 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
       return null;
     }
 
+    const phases = nodes.map((node) => ({
+      name: normalizePhaseName(node?.data?.phase?.name),
+      agent: inferBasePhaseType(node?.data?.phase),
+      description: node?.data?.phase?.description,
+      timeout_seconds: node?.data?.phase?.timeout_seconds || 300,
+      max_retries: node?.data?.phase?.max_retries || 3,
+      skip_on_error: node?.data?.phase?.skip_on_error || false,
+      required: node?.data?.phase?.required !== false,
+      quality_threshold: node?.data?.phase?.quality_threshold,
+      metadata: {
+        ...(node?.data?.phase?.metadata || {}),
+        phase_type: inferBasePhaseType(node?.data?.phase),
+      },
+    }));
+
+    const hasEmptyPhaseName = phases.some((phase) => !phase.name);
+    if (hasEmptyPhaseName) {
+      setError('Every workflow phase must have a name');
+      return null;
+    }
+
+    const phaseNameCounts = phases.reduce((counts, phase) => {
+      counts.set(phase.name, (counts.get(phase.name) || 0) + 1);
+      return counts;
+    }, new Map());
+
+    const duplicatePhaseNames = Array.from(phaseNameCounts.entries())
+      .filter(([, count]) => count > 1)
+      .map(([name]) => name);
+
+    if (duplicatePhaseNames.length > 0) {
+      setError(
+        `Duplicate phase names are not allowed: ${duplicatePhaseNames.join(', ')}`
+      );
+      return null;
+    }
+
     return {
       name: workflowName,
       description: workflowDescription,
-      phases: nodes.map((node) => ({
-        name: node.data.phase.name,
-        agent: node.data.phase.agent || node.data.phase.name,
-        description: node.data.phase.description,
-        timeout_seconds: node.data.phase.timeout_seconds || 300,
-        max_retries: node.data.phase.max_retries || 3,
-        skip_on_error: node.data.phase.skip_on_error || false,
-        required: node.data.phase.required !== false,
-        quality_threshold: node.data.phase.quality_threshold,
-        metadata: node.data.phase.metadata || {},
-      })),
+      is_template: isTemplateWorkflow,
+      tags: workflow?.tags || [],
+      phases,
     };
   };
 
@@ -151,12 +275,16 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
     const definition = buildWorkflowDefinition();
     if (definition) {
       try {
-        const response = await makeRequest(
-          'POST',
-          '/api/workflows/custom',
-          definition
-        );
+        const response = workflow?.id
+          ? isPersistedWorkflow
+            ? await workflowBuilderService.updateWorkflow(
+                workflow.id,
+                definition
+              )
+            : await workflowBuilderService.createWorkflow(definition)
+          : await workflowBuilderService.createWorkflow(definition);
         onSave(response);
+        setSuccessMessage('Workflow saved successfully');
         setSaveDialogOpen(false);
       } catch (err) {
         setError(err.message);
@@ -164,18 +292,50 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
     }
   };
 
-  const handleExecute = () => {
+  const handleExecute = async () => {
     const definition = buildWorkflowDefinition();
     if (definition) {
-      // TODO: Execute workflow
-      console.log('Execute workflow:', definition);
+      try {
+        const persistedWorkflow = workflow?.id
+          ? isPersistedWorkflow
+            ? await workflowBuilderService.updateWorkflow(
+                workflow.id,
+                definition
+              )
+            : await workflowBuilderService.createWorkflow(definition)
+          : await workflowBuilderService.createWorkflow(definition);
+
+        const execution = await workflowBuilderService.executeWorkflow(
+          persistedWorkflow.id,
+          {
+            topic: definition.name,
+            source: 'workflow_canvas',
+          }
+        );
+
+        setSuccessMessage(
+          `Workflow execution started (${execution.execution_id || 'queued'})`
+        );
+        setError(null);
+      } catch (err) {
+        setError(err.message || 'Failed to execute workflow');
+      }
     }
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', gap: 2, p: 2 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        overflowX: 'auto',
+        height: 'calc(100vh - 220px)',
+        minHeight: 640,
+        gap: 2,
+        p: 2,
+      }}
+    >
       {/* Sidebar: Available Phases */}
-      <Card sx={{ width: 280, overflow: 'auto' }}>
+      <Card sx={{ width: 280, minWidth: 280, flexShrink: 0, overflow: 'auto' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
             Available Phases
@@ -201,6 +361,10 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
       <Box
         sx={{
           flex: 1,
+          minWidth: 420,
+          height: '100%',
+          minHeight: 600,
+          position: 'relative',
           borderRadius: 1,
           overflow: 'hidden',
           border: '1px solid #ddd',
@@ -228,10 +392,20 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
             {error}
           </Alert>
         )}
+
+        {successMessage && (
+          <Alert
+            severity="success"
+            onClose={() => setSuccessMessage('')}
+            sx={{ position: 'absolute', top: error ? 76 : 16, left: 16 }}
+          >
+            {successMessage}
+          </Alert>
+        )}
       </Box>
 
       {/* Right Panel: Phase Config or Workflow Info */}
-      <Card sx={{ width: 350, overflow: 'auto' }}>
+      <Card sx={{ width: 350, minWidth: 350, flexShrink: 0, overflow: 'auto' }}>
         <CardContent>
           {selectedNode ? (
             <PhaseConfigPanel
@@ -245,6 +419,11 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
               <Typography variant="h6" gutterBottom>
                 Workflow Details
               </Typography>
+              {isTemplateWorkflow && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Editing template mode (persists as reusable template)
+                </Alert>
+              )}
               <Stack spacing={2}>
                 <TextField
                   label="Workflow Name"
@@ -312,7 +491,9 @@ const WorkflowCanvas = ({ onSave, availablePhases, workflow = null }) => {
         <DialogTitle>Save Workflow</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="textSecondary" gutterBottom>
-            Saving this workflow as a reusable template
+            {isTemplateWorkflow
+              ? 'Saving this template as a reusable workflow template'
+              : 'Saving this workflow definition'}
           </Typography>
           <TextField
             label="Workflow Name"

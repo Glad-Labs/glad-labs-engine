@@ -7,6 +7,84 @@ import { createMockJWTToken } from '../utils/mockTokenGenerator';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+const PERSIST_KEY = 'oversight-hub-storage';
+
+export const clearPersistedAuthState = () => {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+
+  const persistedData = localStorage.getItem(PERSIST_KEY);
+  if (!persistedData) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(persistedData);
+    const currentState = parsed.state || {};
+
+    const updated = {
+      ...parsed,
+      state: {
+        ...currentState,
+        accessToken: null,
+        auth_token: null,
+        refreshToken: null,
+        isAuthenticated: false,
+        user: null,
+      },
+    };
+
+    localStorage.setItem(PERSIST_KEY, JSON.stringify(updated));
+  } catch (error) {
+    console.warn(
+      '[authService] Failed to clear persisted Zustand auth state:',
+      error
+    );
+  }
+};
+
+const requestBackendDevToken = async () => {
+  const response = await fetch(`${API_BASE_URL}/api/auth/github/callback`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      code: `mock_auth_code_${Date.now()}`,
+      state: `dev_state_${Date.now()}`,
+    }),
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Backend dev token request failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (!data?.token) {
+    throw new Error('Backend dev token response missing token');
+  }
+
+  return data;
+};
+
+const validateTokenWithBackend = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Generate GitHub OAuth authorization URL
  * @param {string} clientId - GitHub OAuth Client ID
@@ -115,8 +193,7 @@ export const verifySession = async () => {
             const payload = JSON.parse(atob(parts[1]));
             if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
               // Token expired
-              localStorage.removeItem('auth_token');
-              localStorage.removeItem('user');
+              clearPersistedAuthState();
               return null;
             }
           } catch {
@@ -130,8 +207,7 @@ export const verifySession = async () => {
     }
 
     // Token format is invalid, clear it
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
+    clearPersistedAuthState();
     return null;
   } catch (error) {
     console.error('Error verifying session:', error);
@@ -159,14 +235,12 @@ export const logout = async () => {
     }
 
     // Clear local storage regardless of API response
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
+    clearPersistedAuthState();
     sessionStorage.removeItem('oauth_state');
   } catch (error) {
     console.error('Error during logout:', error);
     // Still clear local storage even if API call fails
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
+    clearPersistedAuthState();
   }
 };
 
@@ -253,7 +327,7 @@ export const getAuthToken = () => {
   let token = null;
 
   // Try to get token from Zustand persist storage first
-  const persistedData = localStorage.getItem('oversight-hub-storage');
+  const persistedData = localStorage.getItem(PERSIST_KEY);
   if (persistedData) {
     try {
       const parsed = JSON.parse(persistedData);
@@ -286,8 +360,7 @@ export const getAuthToken = () => {
   if (isTokenExpired(token)) {
     console.log('[authService.getAuthToken] Token is expired, removing');
     // Token is expired, remove it
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
+    clearPersistedAuthState();
     return null;
   }
 
@@ -301,10 +374,61 @@ export const getAuthToken = () => {
  * Automatically refreshes token every 14 minutes to prevent expiry (tokens last 15 min)
  * @returns {Promise<string>} - Mock development token
  */
-export const initializeDevToken = async () => {
+export const initializeDevToken = async (options = {}) => {
   try {
+    const { forceRefresh = false, validateWithBackend = true } = options;
+
     // Check if token exists and is still valid
     const existingToken = localStorage.getItem('auth_token');
+
+    if (!forceRefresh && existingToken && !isTokenExpired(existingToken)) {
+      if (validateWithBackend) {
+        const isValid = await validateTokenWithBackend(existingToken);
+        if (!isValid) {
+          console.warn(
+            '[authService] Existing token failed backend validation, clearing and regenerating'
+          );
+          clearPersistedAuthState();
+        } else {
+          console.log('[authService] Using existing backend-validated token');
+          return existingToken;
+        }
+      } else {
+        console.log('[authService] Using existing valid token');
+        return existingToken;
+      }
+    }
+
+    if (forceRefresh) {
+      clearPersistedAuthState();
+    }
+
+    try {
+      const backendAuth = await requestBackendDevToken();
+      const backendToken = backendAuth.token;
+      const backendUser = backendAuth.user || {
+        id: 'dev_user_local',
+        email: 'dev@localhost',
+        username: 'dev-user',
+        login: 'dev-user',
+        name: 'Development User',
+        avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
+        auth_provider: 'mock',
+      };
+
+      localStorage.setItem('auth_token', backendToken);
+      localStorage.setItem('user', JSON.stringify(backendUser));
+
+      console.log(
+        '[authService] Development token initialized from backend signer'
+      );
+      return backendToken;
+    } catch (backendError) {
+      console.warn(
+        '[authService] Backend dev token generation failed, using local mock token fallback:',
+        backendError
+      );
+    }
 
     if (existingToken && !isTokenExpired(existingToken)) {
       // Token is still valid
@@ -353,7 +477,7 @@ export const initializeDevToken = async () => {
       );
       // Try to check if it's in Zustand store instead
       try {
-        const zustandData = localStorage.getItem('oversight-hub-storage');
+        const zustandData = localStorage.getItem(PERSIST_KEY);
         if (zustandData) {
           const parsed = JSON.parse(zustandData);
           console.log(
@@ -414,6 +538,7 @@ export const authenticatedFetch = async (endpoint, options = {}) => {
 
   if (response.status === 401) {
     // Token expired or invalid
+    clearPersistedAuthState();
     await logout();
     window.location.href = '/login';
     throw new Error('Session expired');

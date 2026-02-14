@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getPosts, updatePost, deletePost } from '../lib/apiClient';
 import PostEditor from '../components/modals/PostEditor';
 import './Content.css';
 
 function Content() {
+  const navigate = useNavigate();
   const [contentItems, setContentItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,7 +21,7 @@ function Content() {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await getPosts();
+      const response = await getPosts(0, 100, false);
 
       // Handle various response formats from backend
       let posts = [];
@@ -77,15 +79,22 @@ function Content() {
 
   const handleViewPost = (post) => {
     // Open post in new tab on public site
-    const publicUrl = `http://localhost:3000/posts/${post.slug}`;
+    const publicUrl = post.slug
+      ? `http://localhost:3000/posts/${post.slug}`
+      : `http://localhost:3000/posts`;
     window.open(publicUrl, '_blank');
   };
 
   // Filter and search content
   const filteredContent = contentItems.filter((item) => {
+    const normalizedStatus = (item.status || '')
+      .toLowerCase()
+      .replace(/_/g, ' ')
+      .trim();
+
     // Status filter
     const statusMatch =
-      selectedTab === 'all' || item.status?.toLowerCase() === selectedTab;
+      selectedTab === 'all' || normalizedStatus === selectedTab;
 
     // Search filter
     const searchMatch =
@@ -119,9 +128,18 @@ function Content() {
 
       {/* Action Buttons */}
       <div className="content-actions">
-        <button className="btn btn-primary">➕ Create New Content</button>
-        <button className="btn btn-secondary">📤 Upload Files</button>
-        <button className="btn btn-secondary">⚙️ Content Settings</button>
+        <button className="btn btn-primary" onClick={() => navigate('/tasks')}>
+          ➕ Create New Content
+        </button>
+        <button className="btn btn-secondary" onClick={fetchPosts}>
+          📤 Refresh Content
+        </button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => navigate('/settings')}
+        >
+          ⚙️ Content Settings
+        </button>
       </div>
 
       {/* Stats Cards */}

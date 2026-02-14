@@ -9,6 +9,7 @@
  * Use getAuthToken() to read current token from localStorage.
  */
 import { getAuthToken } from './authService';
+import { clearPersistedAuthState } from './authService';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -72,7 +73,11 @@ export async function makeRequest(
         if (process.env.NODE_ENV === 'development') {
           try {
             const { initializeDevToken } = await import('./authService');
-            await initializeDevToken();
+            clearPersistedAuthState();
+            await initializeDevToken({
+              forceRefresh: true,
+              validateWithBackend: false,
+            });
             // Retry the request with new token
             return makeRequest(
               endpoint,
@@ -86,6 +91,8 @@ export async function makeRequest(
             console.error('Failed to refresh token:', refreshError);
           }
         }
+
+        clearPersistedAuthState();
 
         // Call the onUnauthorized callback if provided
         if (onUnauthorized) {

@@ -257,17 +257,59 @@ export const ValidationFailureUI = ({ taskId, limit = 50 }) => {
  * StatusDashboardMetrics Component
  * Real-time status distribution and KPI metrics
  */
-export const StatusDashboardMetrics = () => {
+export const StatusDashboardMetrics = ({ tasks = [] }) => {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const parseNumber = (value, fallback = 0) => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+    return fallback;
+  };
+
+  const normalizeMetricsData = (rawMetrics) => {
+    const raw = rawMetrics || {};
+    const totalTasks = parseNumber(raw.total_tasks, 0);
+    const completedTasks = parseNumber(raw.completed_tasks, 0);
+    const failedTasks = parseNumber(raw.failed_tasks, 0);
+    const pendingTasks = parseNumber(raw.pending_tasks, 0);
+
+    const statusDistribution = raw.status_distribution || {
+      completed: completedTasks,
+      failed: failedTasks,
+      pending: pendingTasks,
+    };
+
+    const rawSuccessRate = parseNumber(raw.success_rate, 0);
+    const normalizedSuccessRate =
+      rawSuccessRate > 1 ? rawSuccessRate : rawSuccessRate * 100;
+
+    return {
+      ...raw,
+      total_tasks: totalTasks,
+      completed_tasks: completedTasks,
+      failed_tasks: failedTasks,
+      pending_tasks: pendingTasks,
+      status_distribution: statusDistribution,
+      success_rate: normalizedSuccessRate,
+      average_processing_time: parseNumber(
+        raw.average_processing_time,
+        parseNumber(raw.avg_execution_time, 0)
+      ),
+    };
+  };
 
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
         setLoading(true);
         const data = await unifiedStatusService.getMetrics();
-        setMetrics(data);
+        setMetrics(normalizeMetricsData(data));
+        setError('');
       } catch (err) {
         setError(err.message || 'Failed to load metrics');
       } finally {
@@ -275,8 +317,34 @@ export const StatusDashboardMetrics = () => {
       }
     };
 
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      const completed = tasks.filter(
+        (t) => t.status?.toLowerCase() === 'completed'
+      ).length;
+      const failed = tasks.filter(
+        (t) => t.status?.toLowerCase() === 'failed'
+      ).length;
+      const pending = Math.max(tasks.length - completed - failed, 0);
+      const successRate =
+        tasks.length > 0 ? (completed / tasks.length) * 100 : 0;
+
+      setMetrics(
+        normalizeMetricsData({
+          total_tasks: tasks.length,
+          completed_tasks: completed,
+          failed_tasks: failed,
+          pending_tasks: pending,
+          success_rate: successRate,
+          avg_execution_time: 0,
+        })
+      );
+      setLoading(false);
+      setError('');
+      return;
+    }
+
     fetchMetrics();
-  }, []);
+  }, [tasks]);
 
   if (loading) return <CircularProgress size={24} />;
   if (error) return <Typography color="error">⚠️ {error}</Typography>;
@@ -333,7 +401,7 @@ export const StatusDashboardMetrics = () => {
             Average Processing Time
           </Typography>
           <Typography variant="body2">
-            {Math.round(metrics.average_processing_time / 60)} seconds
+            {Math.round(metrics.average_processing_time)} seconds
           </Typography>
         </Paper>
       )}
@@ -344,7 +412,7 @@ export const StatusDashboardMetrics = () => {
             Success Rate
           </Typography>
           <Typography variant="body2">
-            {(metrics.success_rate * 100).toFixed(1)}%
+            {metrics.success_rate.toFixed(1)}%
           </Typography>
         </Paper>
       )}

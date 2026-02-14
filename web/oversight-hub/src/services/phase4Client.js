@@ -188,7 +188,7 @@ const serviceRegistryClient = {
    * @param {object} params - Action parameters
    */
   executeServiceAction: async (serviceName, actionName, params = {}) => {
-    return makeRequest(`/api/services/${serviceName}/action/${actionName}`, {
+    return makeRequest(`/api/services/${serviceName}/actions/${actionName}`, {
       method: 'POST',
       body: params,
     });
@@ -204,7 +204,9 @@ const workflowClient = {
    * Get available workflow templates
    */
   getTemplates: async () => {
-    return makeRequest('/api/workflows/templates');
+    return makeRequest('/api/workflows/templates', {
+      method: 'POST',
+    });
   },
 
   /**
@@ -224,7 +226,7 @@ const workflowClient = {
    * @param {string} executionId - Execution ID
    */
   getWorkflowStatus: async (executionId) => {
-    return makeRequest(`/api/workflows/${executionId}/status`);
+    return makeRequest(`/api/workflows/status/${executionId}`);
   },
 
   /**
@@ -241,7 +243,7 @@ const workflowClient = {
    * @param {string} executionId - Execution ID
    */
   cancelWorkflow: async (executionId) => {
-    return makeRequest(`/api/workflows/${executionId}/cancel`, {
+    return makeRequest(`/api/workflows/cancel/${executionId}`, {
       method: 'POST',
     });
   },

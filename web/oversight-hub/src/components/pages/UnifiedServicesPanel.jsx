@@ -2,16 +2,9 @@
  * Unified Services Panel
  *
  * Modern React dashboard with multiple tabs:
- * 1. Services: Displays Phase 4 unified services, metadata, capabilities, phases
- * 2. Create Workflow: Visual workflow builder with drag-drop canvas
- * 3. My Workflows: List of user-created custom workflows
- * 4. Templates: Pre-built workflow templates
- *
- * Services include:
- * - Content Service: Content generation, critique, refinement
- * - Financial Service: Cost tracking, budget optimization, analysis
- * - Market Service: Trend analysis, opportunity identification, competitive analysis
- * - Compliance Service: Legal review, auditing, risk assessment
+ * 1. WORKFLOW EDITOR: Visual workflow builder with drag-drop canvas
+ * 2. My Workflows: List of user-created custom workflows
+ * 3. Templates: Persistent CRUD for reusable workflow templates
  *
  * @component
  */
@@ -19,13 +12,13 @@
 import React, { useState, useEffect } from 'react';
 import phase4Client from '../../services/phase4Client';
 import WorkflowCanvas from '../WorkflowCanvas';
-import CapabilityComposer from '../CapabilityComposer';
 import * as workflowBuilderService from '../../services/workflowBuilderService';
 import {
   Box,
   Tabs,
   Tab,
   CircularProgress,
+  LinearProgress,
   Alert,
   Table,
   TableBody,
@@ -43,205 +36,78 @@ import {
 import { Play, Trash, FileText } from 'lucide-react';
 import '../../styles/UnifiedServicesPanel.css';
 
-/**
- * Service Card Component
- * Displays metadata and actions for a single service
- */
-const ServiceCard = ({ service, onExecuteAction }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+const normalizePhaseName = (value) => {
+  if (!value || typeof value !== 'string') return '';
 
-  const handleExpandToggle = () => {
-    setExpanded(!expanded);
-  };
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+};
 
-  const getCategoryBadgeColor = (category) => {
-    const colors = {
-      content: '#4CAF50',
-      financial: '#2196F3',
-      market: '#FF9800',
-      compliance: '#E91E63',
-    };
-    return colors[category] || '#757575';
-  };
+const formatPhaseLabel = (phaseName) => {
+  if (!phaseName) return '';
 
-  const handleExecuteAction = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await onExecuteAction(service.name);
-    } catch (err) {
-      setError(err.message || 'Failed to execute action');
-    } finally {
-      setLoading(false);
-    }
-  };
+  return phaseName
+    .split('_')
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
+};
 
-  return (
-    <div
-      className="service-card"
-      style={{ borderLeftColor: getCategoryBadgeColor(service.category) }}
-    >
-      <div className="service-header" onClick={handleExpandToggle}>
-        <div className="service-header-content">
-          <div className="service-title-section">
-            <h3 className="service-name">{service.name}</h3>
-            <span
-              className="service-category-badge"
-              style={{
-                backgroundColor: getCategoryBadgeColor(service.category),
-              }}
-            >
-              {service.category}
-            </span>
-          </div>
-          <p className="service-description">{service.description}</p>
-        </div>
-        <div className="service-expand-icon">{expanded ? '▼' : '▶'}</div>
-      </div>
+const getGranularPhasesForService = (service) => {
+  const phases = Array.isArray(service?.phases) ? service.phases : [];
+  const capabilities = Array.isArray(service?.capabilities)
+    ? service.capabilities
+    : [];
 
-      {expanded && (
-        <div className="service-details">
-          {/* Phases Section */}
-          <div className="details-section">
-            <h4>Phases</h4>
-            <div className="phases-grid">
-              {service.phases && service.phases.length > 0 ? (
-                service.phases.map((phase) => (
-                  <span key={phase} className="phase-badge">
-                    {phase}
-                  </span>
-                ))
-              ) : (
-                <p className="no-data">No phases defined</p>
-              )}
-            </div>
-          </div>
-
-          {/* Capabilities Section */}
-          <div className="details-section">
-            <h4>Capabilities</h4>
-            <div className="capabilities-list">
-              {service.capabilities && service.capabilities.length > 0 ? (
-                <ul>
-                  {service.capabilities.map((capability) => (
-                    <li key={capability} className="capability-item">
-                      {capability}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="no-data">No capabilities defined</p>
-              )}
-            </div>
-          </div>
-
-          {/* Metadata Section */}
-          <div className="details-section">
-            <h4>Details</h4>
-            <div className="metadata-grid">
-              <div className="metadata-item">
-                <span className="label">Version:</span>
-                <span className="value">{service.version || 'N/A'}</span>
-              </div>
-              <div className="metadata-item">
-                <span className="label">Status:</span>
-                <span className="value status-active">Active</span>
-              </div>
-            </div>
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          <div className="service-actions">
-            <button
-              className="btn btn-primary"
-              onClick={handleExecuteAction}
-              disabled={loading}
-            >
-              {loading ? 'Executing...' : 'Execute Action'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+  return Array.from(
+    new Set(
+      [...phases, ...capabilities]
+        .map((value) => normalizePhaseName(value))
+        .filter(Boolean)
+    )
   );
 };
 
-/**
- * Capability Filter Component
- * Allows filtering services by capability
- */
-const CapabilityFilter = ({
-  allCapabilities,
-  selectedCapabilities,
-  onFilterChange,
-}) => {
-  return (
-    <div className="filter-section">
-      <h4>Filter by Capability</h4>
-      <div className="filter-tags">
-        {allCapabilities.map((capability) => (
-          <button
-            key={capability}
-            className={`filter-tag ${selectedCapabilities.includes(capability) ? 'active' : ''}`}
-            onClick={() => {
-              const updated = selectedCapabilities.includes(capability)
-                ? selectedCapabilities.filter((c) => c !== capability)
-                : [...selectedCapabilities, capability];
-              onFilterChange(updated);
-            }}
-          >
-            {capability}
-          </button>
-        ))}
-        {selectedCapabilities.length > 0 && (
-          <button
-            className="filter-tag clear"
-            onClick={() => onFilterChange([])}
-          >
-            Clear All
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
+const buildCapabilityDerivedPhases = (services = []) => {
+  const phaseMap = new Map();
 
-/**
- * Phase Filter Component
- */
-const PhaseFilter = ({ allPhases, selectedPhases, onFilterChange }) => {
-  return (
-    <div className="filter-section">
-      <h4>Filter by Phase</h4>
-      <div className="filter-tags">
-        {allPhases.map((phase) => (
-          <button
-            key={phase}
-            className={`filter-tag phase ${selectedPhases.includes(phase) ? 'active' : ''}`}
-            onClick={() => {
-              const updated = selectedPhases.includes(phase)
-                ? selectedPhases.filter((p) => p !== phase)
-                : [...selectedPhases, phase];
-              onFilterChange(updated);
-            }}
-          >
-            {phase}
-          </button>
-        ))}
-        {selectedPhases.length > 0 && (
-          <button
-            className="filter-tag clear"
-            onClick={() => onFilterChange([])}
-          >
-            Clear All
-          </button>
-        )}
-      </div>
-    </div>
-  );
+  services.forEach((service) => {
+    const capabilities = Array.isArray(service?.capabilities)
+      ? service.capabilities
+      : [];
+
+    capabilities.forEach((capability) => {
+      const phaseName = normalizePhaseName(capability);
+      if (!phaseName) return;
+
+      const existing = phaseMap.get(phaseName) || {
+        name: phaseName,
+        description: `Capability-derived phase: ${formatPhaseLabel(phaseName)}`,
+        category: service?.category || 'general',
+        default_timeout_seconds: 180,
+        compatible_agents: [],
+        capabilities: [],
+        default_retries: 2,
+        version: 'derived',
+      };
+
+      existing.compatible_agents = Array.from(
+        new Set(
+          [...(existing.compatible_agents || []), service?.name].filter(Boolean)
+        )
+      );
+      existing.capabilities = Array.from(
+        new Set([...(existing.capabilities || []), capability].filter(Boolean))
+      );
+
+      phaseMap.set(phaseName, existing);
+    });
+  });
+
+  return Array.from(phaseMap.values());
 };
 
 /**
@@ -253,11 +119,7 @@ const UnifiedServicesPanel = () => {
 
   // Services tab state
   const [services, setServices] = useState([]);
-  const [loadingServices, setLoadingServices] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCapabilities, setSelectedCapabilities] = useState([]);
-  const [selectedPhases, setSelectedPhases] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [healthStatus, setHealthStatus] = useState(null);
 
   // Workflow builder state
@@ -266,12 +128,13 @@ const UnifiedServicesPanel = () => {
   const [templates, setTemplates] = useState([]);
   const [loadingWorkflows, setLoadingWorkflows] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+  const [operationStatus, setOperationStatus] = useState(null);
+  const [executionMonitor, setExecutionMonitor] = useState(null);
 
   // Fetch services on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoadingServices(true);
         setError(null);
 
         // Get health check
@@ -286,75 +149,80 @@ const UnifiedServicesPanel = () => {
         const agentsList = response.agents || [];
 
         // Transform agent data to service format
-        const transformedServices = agentsList.map((agent) => ({
-          id: agent.name,
-          name: agent.name,
-          category: agent.category || 'general',
-          description: agent.description || 'No description',
-          phases: agent.phases || [],
-          capabilities: agent.capabilities || [],
-          version: agent.version || '1.0.0',
-          actions: agent.actions || [],
-        }));
+        const transformedServices = agentsList.map((agent) => {
+          const baseService = {
+            id: agent.name,
+            name: agent.name,
+            category: agent.category || 'general',
+            description: agent.description || 'No description',
+            phases: agent.phases || [],
+            capabilities: agent.capabilities || [],
+            version: agent.version || '1.0.0',
+            actions: agent.actions || [],
+          };
+
+          return {
+            ...baseService,
+            granularPhases: getGranularPhasesForService(baseService),
+          };
+        });
 
         setServices(transformedServices);
       } catch (err) {
         const errorMessage = err.message || 'Failed to load services';
         setError(`Error loading services: ${errorMessage}`);
         console.error('UnifiedServicesPanel error:', err);
-      } finally {
-        setLoadingServices(false);
       }
     };
 
     fetchData();
   }, []);
 
-  // Load workflow data when tab changes to workflow tabs
+  // Load workflow data when tab changes
   useEffect(() => {
-    if (currentTab >= 1) {
+    if (currentTab >= 0 && currentTab <= 2) {
       loadWorkflowData();
     }
-  }, [currentTab]);
+  }, [currentTab, services]);
 
   const loadWorkflowData = async () => {
     setLoadingWorkflows(true);
     try {
       // Load available phases
       const phasesRes = await workflowBuilderService.getAvailablePhases();
-      setAvailablePhases(phasesRes.phases || []);
+      const backendPhases = Array.isArray(phasesRes.phases)
+        ? phasesRes.phases
+        : [];
+      const capabilityDerivedPhases = buildCapabilityDerivedPhases(services);
 
-      // Load user workflows
+      const backendPhaseNames = new Set(
+        backendPhases
+          .map((phase) => normalizePhaseName(phase.name))
+          .filter(Boolean)
+      );
+      const mergedPhases = [
+        ...backendPhases,
+        ...capabilityDerivedPhases.filter(
+          (phase) => !backendPhaseNames.has(normalizePhaseName(phase.name))
+        ),
+      ];
+
+      setAvailablePhases(mergedPhases);
+
+      // Load user workflows + templates (persisted)
       const workflowsRes = await workflowBuilderService.listWorkflows({
         limit: 100,
+        include_templates: true,
       });
-      setWorkflows(workflowsRes.workflows || []);
-
-      // Load templates
-      setTemplates([
-        {
-          id: 'blog_post',
-          name: 'Blog Post',
-          description:
-            'Full blog post generation with research, drafting, assessment, refinement',
-          phase_count: 7,
-          is_template: true,
-        },
-        {
-          id: 'social_media',
-          name: 'Social Media',
-          description: 'Quick social media content generation',
-          phase_count: 5,
-          is_template: true,
-        },
-        {
-          id: 'email',
-          name: 'Email',
-          description: 'Email content generation with assessment',
-          phase_count: 4,
-          is_template: true,
-        },
-      ]);
+      const allPersistedWorkflows = Array.isArray(workflowsRes.workflows)
+        ? workflowsRes.workflows
+        : [];
+      setWorkflows(
+        allPersistedWorkflows.filter((workflow) => !workflow.is_template)
+      );
+      setTemplates(
+        allPersistedWorkflows.filter((workflow) => workflow.is_template)
+      );
 
       setError(null);
     } catch (err) {
@@ -364,38 +232,247 @@ const UnifiedServicesPanel = () => {
     }
   };
 
-  // Get all unique capabilities and phases for filtering
-  const allCapabilities = Array.from(
-    new Set(services.flatMap((s) => s.capabilities))
-  ).sort();
+  const toCanvasWorkflow = (workflowLike) => {
+    const getPhaseDefinition = (phaseInput) => {
+      const phaseName =
+        typeof phaseInput === 'string' ? phaseInput : phaseInput?.name;
 
-  const allPhases = Array.from(
-    new Set(services.flatMap((s) => s.phases))
-  ).sort();
+      const phaseMeta = availablePhases.find(
+        (phase) => phase.name === phaseName
+      );
 
-  // Filter services based on selected filters and search
-  const filteredServices = services.filter((service) => {
-    const matchesSearch =
-      searchQuery === '' ||
-      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return {
+        name: phaseName,
+        agent:
+          phaseInput?.agent || phaseMeta?.compatible_agents?.[0] || phaseName,
+        description:
+          phaseInput?.description ||
+          phaseMeta?.description ||
+          `${phaseName} phase`,
+        timeout_seconds:
+          phaseInput?.timeout_seconds ||
+          phaseMeta?.default_timeout_seconds ||
+          300,
+        max_retries: phaseInput?.max_retries || phaseMeta?.default_retries || 3,
+        skip_on_error: phaseInput?.skip_on_error || false,
+        required: phaseInput?.required !== false,
+        quality_threshold: phaseInput?.quality_threshold,
+        metadata: phaseInput?.metadata || {},
+      };
+    };
 
-    const matchesCapabilities =
-      selectedCapabilities.length === 0 ||
-      selectedCapabilities.some((cap) => service.capabilities.includes(cap));
+    const phases = Array.isArray(workflowLike?.phases)
+      ? workflowLike.phases.map((phase) =>
+          getPhaseDefinition(
+            typeof phase === 'string' ? { name: phase } : phase
+          )
+        )
+      : [];
 
-    const matchesPhases =
-      selectedPhases.length === 0 ||
-      selectedPhases.some((phase) => service.phases.includes(phase));
+    return {
+      ...workflowLike,
+      phases,
+      isPersisted: Boolean(
+        workflowLike?.isPersisted ||
+        workflowLike?.created_at ||
+        workflowLike?.updated_at
+      ),
+    };
+  };
 
-    return matchesSearch && matchesCapabilities && matchesPhases;
-  });
+  const handleEditWorkflow = async (workflow) => {
+    try {
+      const fullWorkflow = await workflowBuilderService.getWorkflow(
+        workflow.id
+      );
+      setSelectedWorkflow(toCanvasWorkflow(fullWorkflow));
+      setCurrentTab(1);
+    } catch (err) {
+      setOperationStatus({
+        severity: 'error',
+        message: err.message || 'Failed to load workflow details',
+      });
+    }
+  };
 
-  // Handle action execution
-  const handleExecuteAction = async (serviceName) => {
-    console.log(`Execute action for service: ${serviceName}`);
-    // This would open a modal or panel for selecting and executing specific actions
-    // For now, just log it
+  const waitForExecutionTerminalStatus = async (executionId, workflowLabel) => {
+    const terminalStatuses = new Set(['completed', 'failed', 'cancelled']);
+    const maxAttempts = 120;
+    const intervalMs = 2000;
+
+    setExecutionMonitor({
+      executionId,
+      workflowLabel,
+      status: 'pending',
+      progressPercent: 0,
+      completedPhases: 0,
+      totalPhases: 0,
+      currentPhase: null,
+      phaseResults: {},
+      lastUpdatedAt: null,
+      errorMessage: null,
+    });
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        const statusResponse = await workflowBuilderService.getExecutionStatus(
+          executionId
+        );
+        const status = String(statusResponse?.status || '').toLowerCase();
+
+        setExecutionMonitor({
+          executionId,
+          workflowLabel,
+          status,
+          progressPercent: statusResponse?.progress_percent || 0,
+          completedPhases: statusResponse?.completed_phases || 0,
+          totalPhases: statusResponse?.total_phases || 0,
+          currentPhase: statusResponse?.current_phase || null,
+          phaseResults: statusResponse?.phase_results || {},
+          lastUpdatedAt: statusResponse?.last_updated_at || null,
+          errorMessage: statusResponse?.error_message || null,
+        });
+
+        if (terminalStatuses.has(status)) {
+          if (status === 'completed') {
+            setOperationStatus({
+              severity: 'success',
+              message: `${workflowLabel} completed successfully.`,
+            });
+          } else {
+            const errorMessage = statusResponse?.error_message
+              ? ` (${statusResponse.error_message})`
+              : '';
+            setOperationStatus({
+              severity: 'error',
+              message: `${workflowLabel} ${status}.${errorMessage}`,
+            });
+          }
+          return;
+        }
+      } catch (pollError) {
+        if (attempt >= 3) {
+          break;
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+
+    setOperationStatus({
+      severity: 'info',
+      message: `${workflowLabel} is still running. Execution ID: ${executionId}`,
+    });
+  };
+
+  const handleExecuteWorkflow = async (workflow) => {
+    try {
+      const response = await workflowBuilderService.executeWorkflow(
+        workflow.id,
+        {
+          topic: workflow.name,
+          source: 'oversight_hub',
+        }
+      );
+
+      setOperationStatus({
+        severity: 'success',
+        message: `Workflow execution started (${response.execution_id || 'queued'})`,
+      });
+
+      if (response.execution_id) {
+        void waitForExecutionTerminalStatus(
+          response.execution_id,
+          `Workflow \"${workflow.name}\"`
+        );
+      }
+    } catch (err) {
+      setOperationStatus({
+        severity: 'error',
+        message: err.message || 'Failed to execute workflow',
+      });
+    }
+  };
+
+  const handleViewTemplate = (template) => {
+    setSelectedWorkflow(
+      toCanvasWorkflow({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        phases: template.phases || [],
+        is_template: true,
+        tags: template.tags || [],
+        isPersisted: Boolean(template.created_at || template.updated_at),
+      })
+    );
+    setCurrentTab(0);
+  };
+
+  const handleExecuteTemplate = async (template) => {
+    try {
+      const execution = await workflowBuilderService.executeWorkflow(
+        template.id,
+        {
+          topic: template.name,
+          source_template: template.id,
+        }
+      );
+
+      setOperationStatus({
+        severity: 'success',
+        message: `Template execution started (${execution.execution_id || 'queued'})`,
+      });
+
+      if (execution.execution_id) {
+        void waitForExecutionTerminalStatus(
+          execution.execution_id,
+          `Template \"${template.name}\"`
+        );
+      }
+
+      await loadWorkflowData();
+      setCurrentTab(1);
+    } catch (err) {
+      setOperationStatus({
+        severity: 'error',
+        message: err.message || `Failed to execute template ${template.name}`,
+      });
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId) => {
+    if (!window.confirm('Are you sure you want to delete this template?'))
+      return;
+
+    try {
+      await workflowBuilderService.deleteWorkflow(templateId);
+      setTemplates((existing) =>
+        existing.filter((template) => template.id !== templateId)
+      );
+      setOperationStatus({
+        severity: 'success',
+        message: 'Template deleted successfully',
+      });
+    } catch (err) {
+      setOperationStatus({
+        severity: 'error',
+        message: err.message || 'Failed to delete template',
+      });
+    }
+  };
+
+  const handleCreateTemplate = () => {
+    setSelectedWorkflow(
+      toCanvasWorkflow({
+        name: '',
+        description: '',
+        phases: [],
+        tags: ['template'],
+        is_template: true,
+      })
+    );
+    setCurrentTab(0);
   };
 
   const handleDeleteWorkflow = async (workflowId) => {
@@ -411,24 +488,51 @@ const UnifiedServicesPanel = () => {
   };
 
   const handleWorkflowSaved = (newWorkflow) => {
-    setWorkflows((w) => [...w, newWorkflow]);
-    setCurrentTab(2); // Switch to My Workflows tab
+    loadWorkflowData();
+    setCurrentTab(newWorkflow?.is_template ? 2 : 1);
   };
+
+  const recoverActiveExecution = async (workflowId, workflowLabel) => {
+    try {
+      const response = await workflowBuilderService.listExecutions(workflowId, {
+        limit: 10,
+        offset: 0,
+      });
+
+      const executions = Array.isArray(response?.executions)
+        ? response.executions
+        : [];
+
+      const activeExecution = executions.find((execution) =>
+        ['pending', 'running'].includes(
+          String(execution?.execution_status || '').toLowerCase()
+        )
+      );
+
+      if (activeExecution?.id) {
+        void waitForExecutionTerminalStatus(activeExecution.id, workflowLabel);
+      }
+    } catch (error) {
+      // best-effort recovery only
+    }
+  };
+
+  useEffect(() => {
+    if (executionMonitor) return;
+    if (!Array.isArray(workflows) || workflows.length === 0) return;
+
+    const persistedWorkflow = workflows.find((workflow) => workflow?.id);
+    if (!persistedWorkflow?.id) return;
+
+    void recoverActiveExecution(
+      persistedWorkflow.id,
+      `Workflow \"${persistedWorkflow.name || persistedWorkflow.id}\"`
+    );
+  }, [workflows, executionMonitor]);
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
   };
-
-  if (loadingServices && currentTab === 0) {
-    return (
-      <div className="unified-services-panel">
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading unified services...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="unified-services-panel">
@@ -440,11 +544,9 @@ const UnifiedServicesPanel = () => {
           aria-label="unified panel tabs"
           sx={{ borderBottom: '1px solid #e0e0e0' }}
         >
-          <Tab label="Phase 4 Services" id="tab-0" />
-          <Tab label="Create Custom Workflow" id="tab-1" />
-          <Tab label="My Workflows" id="tab-2" />
-          <Tab label="Templates" id="tab-3" />
-          <Tab label="Capability Composer" id="tab-4" />
+          <Tab label="WORKFLOW EDITOR" id="tab-0" />
+          <Tab label="My Workflows" id="tab-1" />
+          <Tab label="Templates" id="tab-2" />
         </Tabs>
       </div>
 
@@ -454,118 +556,115 @@ const UnifiedServicesPanel = () => {
         </Alert>
       )}
 
-      {/* Tab 0: Phase 4 Services */}
-      {currentTab === 0 && (
-        <>
-          {/* Header */}
-          <div className="panel-header">
-            <h1>Unified Services</h1>
-            <p className="panel-subtitle">
-              Phase 4 Architecture - Integrated service discovery and execution
-            </p>
-
-            {healthStatus && (
-              <div
-                className={`health-status ${healthStatus.healthy ? 'healthy' : 'unhealthy'}`}
-              >
-                <span className="health-indicator"></span>
-                <span>
-                  {healthStatus.healthy
-                    ? 'All systems operational'
-                    : 'Service issues detected'}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Error Display */}
-          {error && (
-            <div className="error-banner">
-              <span className="error-icon">⚠️</span>
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Controls Section */}
-          <div className="controls-section">
-            {/* Search */}
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Search services by name or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-              <span className="search-icon">🔍</span>
-            </div>
-
-            {/* Filters */}
-            <div className="filters-container">
-              <CapabilityFilter
-                allCapabilities={allCapabilities}
-                selectedCapabilities={selectedCapabilities}
-                onFilterChange={setSelectedCapabilities}
-              />
-              <PhaseFilter
-                allPhases={allPhases}
-                selectedPhases={selectedPhases}
-                onFilterChange={setSelectedPhases}
-              />
-            </div>
-          </div>
-
-          {/* Services Display */}
-          <div className="services-section">
-            {filteredServices.length > 0 ? (
-              <>
-                <div className="services-count">
-                  Showing {filteredServices.length} of {services.length}{' '}
-                  services
-                </div>
-                <div className="services-grid">
-                  {filteredServices.map((service) => (
-                    <ServiceCard
-                      key={service.id}
-                      service={service}
-                      onExecuteAction={handleExecuteAction}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="no-results">
-                <span className="no-results-icon">🔭</span>
-                <h3>No services found</h3>
-                <p>Try adjusting your search or filters</p>
-              </div>
-            )}
-          </div>
-
-          {/* Footer Info */}
-          <div className="panel-footer">
-            <div className="footer-info">
-              <div className="info-item">
-                <strong>{services.length}</strong> Total Services
-              </div>
-              <div className="info-item">
-                <strong>{allCapabilities.length}</strong> Capabilities
-              </div>
-              <div className="info-item">
-                <strong>{allPhases.length}</strong> Processing Phases
-              </div>
-            </div>
-            <p className="footer-text">
-              Phase 4 unified architecture | Real-time service discovery |
-              Dynamic capability matching
-            </p>
-          </div>
-        </>
+      {operationStatus && (
+        <Alert
+          severity={operationStatus.severity}
+          onClose={() => setOperationStatus(null)}
+          sx={{ m: 2 }}
+        >
+          {operationStatus.message}
+        </Alert>
       )}
 
-      {/* Tab 1: Create Custom Workflow */}
-      {currentTab === 1 && (
+      {executionMonitor && (
+        <Paper sx={{ m: 2, p: 2, borderRadius: 2 }}>
+          <Stack spacing={1.5}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                {executionMonitor.workflowLabel}
+              </Typography>
+              <Chip
+                size="small"
+                color={
+                  executionMonitor.status === 'completed'
+                    ? 'success'
+                    : executionMonitor.status === 'failed' ||
+                        executionMonitor.status === 'cancelled'
+                      ? 'error'
+                      : 'warning'
+                }
+                label={executionMonitor.status || 'pending'}
+              />
+            </Stack>
+
+            <Box>
+              <LinearProgress
+                variant="determinate"
+                value={Math.min(
+                  100,
+                  Math.max(0, executionMonitor.progressPercent || 0)
+                )}
+                sx={{ height: 8, borderRadius: 8 }}
+              />
+              <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.75 }}>
+                <Typography variant="caption" color="textSecondary">
+                  {executionMonitor.completedPhases || 0}/
+                  {executionMonitor.totalPhases || 0} phases completed
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {executionMonitor.progressPercent || 0}%
+                </Typography>
+              </Stack>
+            </Box>
+
+            {executionMonitor.currentPhase && (
+              <Typography variant="body2" color="textSecondary">
+                Current phase: {executionMonitor.currentPhase}
+              </Typography>
+            )}
+
+            {executionMonitor.errorMessage && (
+              <Alert severity="error" sx={{ mt: 0.5 }}>
+                {executionMonitor.errorMessage}
+              </Alert>
+            )}
+
+            {Object.keys(executionMonitor.phaseResults || {}).length > 0 && (
+              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                {Object.entries(executionMonitor.phaseResults).map(
+                  ([phaseName, phaseDetails]) => {
+                    const phaseStatus = String(
+                      phaseDetails?.status || 'pending'
+                    ).toLowerCase();
+                    const phaseColor =
+                      phaseStatus === 'completed'
+                        ? 'success'
+                        : phaseStatus === 'failed'
+                          ? 'error'
+                          : phaseStatus === 'running'
+                            ? 'warning'
+                            : 'default';
+
+                    return (
+                      <Chip
+                        key={phaseName}
+                        size="small"
+                        color={phaseColor}
+                        label={`${phaseName}: ${phaseStatus}`}
+                        sx={{ mt: 0.5 }}
+                      />
+                    );
+                  }
+                )}
+              </Stack>
+            )}
+          </Stack>
+        </Paper>
+      )}
+
+      {/* Tab 0: Workflow Editor */}
+      {currentTab === 0 && (
         <Box sx={{ p: 3 }}>
+          {healthStatus && !healthStatus.healthy && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              Service issues detected. Saving and executing workflows may be
+              degraded.
+            </Alert>
+          )}
           {loadingWorkflows ? (
             <Box
               sx={{
@@ -589,13 +688,13 @@ const UnifiedServicesPanel = () => {
         </Box>
       )}
 
-      {/* Tab 2: My Workflows */}
-      {currentTab === 2 && (
+      {/* Tab 1: My Workflows */}
+      {currentTab === 1 && (
         <Box sx={{ p: 3 }}>
           {workflows.length === 0 ? (
             <Typography color="textSecondary" align="center" sx={{ py: 4 }}>
-              No custom workflows yet. Create one in the &quot;Create Custom
-              Workflow&quot; tab.
+              No custom workflows yet. Create one in the &quot;WORKFLOW EDITOR&quot;
+              tab.
             </Typography>
           ) : (
             <TableContainer>
@@ -647,14 +746,15 @@ const UnifiedServicesPanel = () => {
                           <IconButton
                             size="small"
                             title="Edit"
-                            onClick={() => {
-                              setSelectedWorkflow(workflow);
-                              setCurrentTab(1);
-                            }}
+                            onClick={() => handleEditWorkflow(workflow)}
                           >
                             <FileText size={18} />
                           </IconButton>
-                          <IconButton size="small" title="Execute">
+                          <IconButton
+                            size="small"
+                            title="Execute"
+                            onClick={() => handleExecuteWorkflow(workflow)}
+                          >
                             <Play size={18} />
                           </IconButton>
                           <IconButton
@@ -676,10 +776,23 @@ const UnifiedServicesPanel = () => {
         </Box>
       )}
 
-      {/* Tab 3: Templates */}
-      {currentTab === 3 && (
+      {/* Tab 2: Templates */}
+      {currentTab === 2 && (
         <Box sx={{ p: 3 }}>
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="h6">Template Library</Typography>
+            <Button variant="contained" onClick={handleCreateTemplate}>
+              Create Template
+            </Button>
+          </Box>
           <Stack spacing={2}>
+            {templates.length === 0 && (
+              <Alert severity="info">
+                No persisted templates yet. Use "Create Template" to build one
+                in the editor.
+              </Alert>
+            )}
+
             {templates.map((template) => (
               <Paper
                 key={template.id}
@@ -707,22 +820,25 @@ const UnifiedServicesPanel = () => {
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => {
-                      // TODO: Load and view template
-                    }}
+                    onClick={() => handleViewTemplate(template)}
                   >
-                    View
+                    Edit
                   </Button>
                   <Button
                     variant="contained"
                     color="success"
                     size="small"
-                    onClick={() => {
-                      // TODO: Implement template execution
-                      console.log('Execute template:', template);
-                    }}
+                    onClick={() => handleExecuteTemplate(template)}
                   >
                     Execute
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => handleDeleteTemplate(template.id)}
+                  >
+                    Delete
                   </Button>
                 </Stack>
               </Paper>
@@ -730,9 +846,6 @@ const UnifiedServicesPanel = () => {
           </Stack>
         </Box>
       )}
-
-      {/* Tab 4: Capability Composer */}
-      {currentTab === 4 && <CapabilityComposer />}
     </div>
   );
 };

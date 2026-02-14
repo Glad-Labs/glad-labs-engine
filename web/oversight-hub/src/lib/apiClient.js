@@ -32,6 +32,7 @@
  */
 
 import axios from 'axios';
+import { clearPersistedAuthState } from '../services/authService';
 
 // ============================================================================
 // API CLIENT CONFIGURATION
@@ -83,7 +84,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired, clear auth
-      localStorage.removeItem('auth_token');
+      clearPersistedAuthState();
       window.location.href = '/login';
     }
     return Promise.reject(error);

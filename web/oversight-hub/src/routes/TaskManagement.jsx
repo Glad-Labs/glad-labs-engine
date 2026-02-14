@@ -42,11 +42,21 @@ function TaskManagement() {
     30000 // Auto-refresh every 30 seconds
   );
 
+  const normalizeDisplayText = (value) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed || trimmed.toLowerCase() === 'null') return null;
+      return trimmed;
+    }
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  };
+
   // Handler to open detail modal for editing
   const handleEditTask = (task) => {
     console.log('👁️ handleEditTask called with task:', task);
     setSelectedTask(task);
-    setSelectedTask(task); // Set in store so TaskDetailModal can access it
     setShowDetailModal(true);
   };
 
@@ -215,10 +225,7 @@ function TaskManagement() {
 
       {/* Metrics Dashboard */}
       <div className="metrics-section" style={{ marginBottom: '30px' }}>
-        <StatusDashboardMetrics
-          statusHistory={localTasks.flatMap((t) => t.statusHistory || [])}
-          compact={true}
-        />
+        <StatusDashboardMetrics tasks={localTasks} compact={true} />
       </div>
 
       {/* Task Filters */}
@@ -326,14 +333,14 @@ function TaskManagement() {
                     title="Click to view details"
                   >
                     <td className="task-name">
-                      {typeof task.task_name === 'object'
-                        ? JSON.stringify(task.task_name)
-                        : task.task_name || task.topic || 'Untitled'}
+                      {normalizeDisplayText(task.task_name) ||
+                        normalizeDisplayText(task.topic) ||
+                        'Untitled'}
                     </td>
                     <td className="topic">
-                      {typeof task.topic === 'object'
-                        ? JSON.stringify(task.topic)
-                        : task.topic || task.task_name || '-'}
+                      {normalizeDisplayText(task.topic) ||
+                        normalizeDisplayText(task.task_name) ||
+                        '-'}
                     </td>
                     <td>
                       <span

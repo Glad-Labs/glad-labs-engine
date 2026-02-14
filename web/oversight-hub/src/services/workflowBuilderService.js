@@ -16,6 +16,73 @@
 
 import { makeRequest } from './cofounderAgentClient';
 
+const normalizePhaseName = (name) =>
+  typeof name === 'string' ? name.trim() : '';
+
+const inferBasePhaseType = (phase = {}) => {
+  const metadataType = normalizePhaseName(phase?.metadata?.phase_type);
+  if (metadataType) {
+    return metadataType;
+  }
+
+  const explicitAgent = normalizePhaseName(phase?.agent);
+  if (explicitAgent) {
+    return explicitAgent;
+  }
+
+  const phaseName = normalizePhaseName(phase?.name);
+  if (!phaseName) {
+    return '';
+  }
+
+  return phaseName.replace(/_\d+$/, '');
+};
+
+const getDuplicatePhaseNames = (phases = []) => {
+  const counts = new Map();
+  phases.forEach((phase) => {
+    const name = normalizePhaseName(phase?.name);
+    if (!name) {
+      return;
+    }
+    counts.set(name, (counts.get(name) || 0) + 1);
+  });
+
+  return Array.from(counts.entries())
+    .filter(([, count]) => count > 1)
+    .map(([name]) => name);
+};
+
+const sanitizePhases = (phases = []) =>
+  phases.map((phase) => {
+    const normalizedName = normalizePhaseName(phase?.name);
+    const phaseType = inferBasePhaseType(phase) || normalizedName;
+
+    return {
+      ...phase,
+      name: normalizedName,
+      agent: phaseType,
+      metadata: {
+        ...(phase?.metadata || {}),
+        phase_type: phaseType,
+      },
+    };
+  });
+
+const validatePhases = (phases = []) => {
+  const hasEmptyName = phases.some((phase) => !normalizePhaseName(phase?.name));
+  if (hasEmptyName) {
+    throw new Error('Every phase must have a name');
+  }
+
+  const duplicatePhaseNames = getDuplicatePhaseNames(phases);
+  if (duplicatePhaseNames.length > 0) {
+    throw new Error(
+      `Duplicate phase names are not allowed: ${duplicatePhaseNames.join(', ')}`
+    );
+  }
+};
+
 /**
  * Get available phases for workflow building
  * @returns {Promise<Object>} Response with phases array
@@ -49,10 +116,13 @@ export const createWorkflow = async (workflowDefinition) => {
       throw new Error('At least one phase is required');
     }
 
+    const phases = sanitizePhases(workflowDefinition.phases);
+    validatePhases(phases);
+
     const payload = {
       name: workflowDefinition.name.trim(),
       description: workflowDefinition.description || '',
-      phases: workflowDefinition.phases,
+      phases,
       tags: workflowDefinition.tags || [],
       is_template: workflowDefinition.is_template || false,
     };
@@ -79,11 +149,24 @@ export const createWorkflow = async (workflowDefinition) => {
  */
 export const listWorkflows = async (options = {}) => {
   try {
-    const { skip = 0, limit = 50, include_templates = false } = options;
+    const {
+      skip = 0,
+      limit = 50,
+      page,
+      page_size,
+      include_templates = false,
+    } = options;
+
+    const resolvedPageSize =
+      Number(page_size) > 0 ? Number(page_size) : Number(limit) || 50;
+    const resolvedPage =
+      Number(page) > 0
+        ? Number(page)
+        : Math.floor(Number(skip) / resolvedPageSize) + 1;
 
     const queryParams = new URLSearchParams({
-      skip,
-      limit,
+      page: String(resolvedPage),
+      page_size: String(resolvedPageSize),
       include_templates,
     });
 
@@ -140,11 +223,18 @@ export const updateWorkflow = async (workflowId, updates) => {
       throw new Error('At least one phase is required');
     }
 
+    const phases =
+      updates.phases !== undefined ? sanitizePhases(updates.phases) : undefined;
+
+    if (phases !== undefined) {
+      validatePhases(phases);
+    }
+
     const payload = {
       name: updates.name ? updates.name.trim() : undefined,
       description:
         updates.description !== undefined ? updates.description : undefined,
-      phases: updates.phases,
+      phases,
       tags: updates.tags,
       is_template: updates.is_template,
     };
@@ -227,7 +317,6 @@ export const getExecutionStatus = async (executionId) => {
       throw new Error('Execution ID is required');
     }
 
-    // This endpoint may need to be added to the backend
     const response = await makeRequest(
       `/api/workflows/executions/${executionId}`,
       'GET'
@@ -236,6 +325,40 @@ export const getExecutionStatus = async (executionId) => {
   } catch (error) {
     console.error('Error fetching execution status:', error);
     throw new Error(`Failed to load execution status: ${error.message}`);
+  }
+};
+
+/**
+ * List executions for a specific workflow
+ * @param {string} workflowId - Workflow ID
+ * @param {Object} options - Query options
+ * @returns {Promise<Object>} Executions list payload
+ */
+export const listExecutions = async (workflowId, options = {}) => {
+  try {
+    if (!workflowId) {
+      throw new Error('Workflow ID is required');
+    }
+
+    const { limit = 20, offset = 0, status } = options;
+    const queryParams = new URLSearchParams({
+      workflow_id: workflowId,
+      limit: String(limit),
+      offset: String(offset),
+    });
+
+    if (status) {
+      queryParams.set('status', status);
+    }
+
+    const response = await makeRequest(
+      `/api/workflows/executions?${queryParams.toString()}`,
+      'GET'
+    );
+    return response;
+  } catch (error) {
+    console.error('Error listing executions:', error);
+    throw new Error(`Failed to load executions: ${error.message}`);
   }
 };
 
@@ -283,6 +406,7 @@ const workflowBuilderService = {
   deleteWorkflow,
   executeWorkflow,
   getExecutionStatus,
+  listExecutions,
   exportWorkflowToJSON,
   importWorkflowFromJSON,
 };
