@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,20 +10,129 @@ import {
   Button,
   Divider,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Trash2 } from 'lucide-react';
 
-const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
-  const [config, setConfig] = useState(phase || {});
+const normalizePhaseName = (name) =>
+  typeof name === 'string' ? name.trim() : '';
+
+const inferBasePhaseType = (phase = {}) => {
+  const explicitType = normalizePhaseName(phase?.metadata?.phase_type);
+  if (explicitType) {
+    return explicitType;
+  }
+
+  const explicitAgent = normalizePhaseName(phase?.agent);
+  if (explicitAgent) {
+    return explicitAgent;
+  }
+
+  const phaseName = normalizePhaseName(phase?.name);
+  if (!phaseName) {
+    return '';
+  }
+
+  return phaseName.replace(/_\d+$/, '');
+};
+
+const ensureInputDefaults = (config) => {
+  const metadata = config?.metadata || {};
+  const inputSchema = Array.isArray(metadata.input_schema)
+    ? metadata.input_schema
+    : [];
+
+  const existingInputs = metadata.phase_inputs || {};
+  const phaseInputs = { ...existingInputs };
+
+  inputSchema.forEach((field) => {
+    if (!field?.key || phaseInputs[field.key] !== undefined) {
+      return;
+    }
+
+    if (field.default_value !== undefined && field.default_value !== null) {
+      phaseInputs[field.key] = field.default_value;
+    } else {
+      phaseInputs[field.key] = field.input_type === 'boolean' ? false : '';
+    }
+  });
+
+  return {
+    ...config,
+    metadata: {
+      ...metadata,
+      phase_type: metadata.phase_type || inferBasePhaseType(config),
+      phase_inputs: phaseInputs,
+    },
+  };
+};
+
+const PhaseConfigPanel = ({
+  nodeId,
+  phase,
+  availableModels = [],
+  onUpdate,
+  onRemove,
+}) => {
+  const [config, setConfig] = useState(ensureInputDefaults(phase || {}));
   const [isDirty, setIsDirty] = useState(false);
 
+  useEffect(() => {
+    setConfig(ensureInputDefaults(phase || {}));
+    setIsDirty(false);
+  }, [phase]);
+
   const handleChange = (field, value) => {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+    setConfig((prev) => {
+      const next = {
+        ...prev,
+        [field]: value,
+      };
+
+      if (field === 'agent') {
+        const phaseType = normalizePhaseName(value) || inferBasePhaseType(prev);
+        next.metadata = {
+          ...(prev?.metadata || {}),
+          phase_type: phaseType,
+        };
+      }
+
+      return next;
+    });
+    setIsDirty(true);
+  };
+
+  const handleMetadataValue = (key, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      metadata: {
+        ...(prev?.metadata || {}),
+        [key]: value,
+      },
+    }));
+    setIsDirty(true);
+  };
+
+  const handlePhaseInputValue = (key, value) => {
+    setConfig((prev) => ({
+      ...prev,
+      metadata: {
+        ...(prev?.metadata || {}),
+        phase_inputs: {
+          ...((prev?.metadata || {}).phase_inputs || {}),
+          [key]: value,
+        },
+      },
+    }));
     setIsDirty(true);
   };
 
   const handleSave = () => {
-    onUpdate(nodeId, config);
+    const normalized = ensureInputDefaults(config);
+    onUpdate(nodeId, normalized);
     setIsDirty(false);
   };
 
@@ -33,22 +142,25 @@ const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
     }
   };
 
+  const phaseType = inferBasePhaseType(config);
+  const inputSchema = Array.isArray(config?.metadata?.input_schema)
+    ? config.metadata.input_schema
+    : [];
+  const phaseInputs = config?.metadata?.phase_inputs || {};
+
   return (
     <Stack spacing={2}>
-      <Typography variant="h6">
-        Phase: {config.name}
-      </Typography>
+      <Typography variant="h6">Phase: {config.name}</Typography>
 
       <Divider />
 
       <Stack spacing={2}>
-        {/* Agent Selection */}
         <Box>
           <Typography variant="subtitle2" gutterBottom>
             Agent
           </Typography>
           <TextField
-            value={config.agent || config.name}
+            value={config.agent || phaseType || config.name}
             onChange={(e) => handleChange('agent', e.target.value)}
             fullWidth
             size="small"
@@ -56,7 +168,133 @@ const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
           />
         </Box>
 
-        {/* Description */}
+        <FormControl fullWidth size="small">
+          <InputLabel id={`phase-model-label-${nodeId}`}>Model</InputLabel>
+          <Select
+            labelId={`phase-model-label-${nodeId}`}
+            label="Model"
+            value={config?.metadata?.selected_model || ''}
+            onChange={(e) =>
+              handleMetadataValue('selected_model', e.target.value)
+            }
+          >
+            <MenuItem value="">
+              <em>Use system default</em>
+            </MenuItem>
+            {availableModels.map((model) => (
+              <MenuItem
+                key={`${model.provider || 'provider'}-${model.name}`}
+                value={model.name}
+              >
+                {model.displayName || model.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {inputSchema.length > 0 && (
+          <>
+            <Divider />
+            <Typography variant="subtitle2">Phase Inputs</Typography>
+            <Stack spacing={1.5}>
+              {inputSchema.map((field) => {
+                const fieldKey = field?.key;
+                if (!fieldKey) {
+                  return null;
+                }
+
+                const fieldLabel = field.label || fieldKey;
+                const fieldValue = phaseInputs[fieldKey];
+                const fieldType = field.input_type || 'text';
+
+                if (fieldType === 'boolean') {
+                  return (
+                    <FormControlLabel
+                      key={fieldKey}
+                      control={
+                        <Switch
+                          checked={Boolean(fieldValue)}
+                          onChange={(e) =>
+                            handlePhaseInputValue(fieldKey, e.target.checked)
+                          }
+                        />
+                      }
+                      label={fieldLabel}
+                    />
+                  );
+                }
+
+                if (fieldType === 'select') {
+                  return (
+                    <FormControl fullWidth size="small" key={fieldKey}>
+                      <InputLabel id={`phase-input-${nodeId}-${fieldKey}`}>
+                        {fieldLabel}
+                      </InputLabel>
+                      <Select
+                        labelId={`phase-input-${nodeId}-${fieldKey}`}
+                        label={fieldLabel}
+                        value={fieldValue ?? ''}
+                        onChange={(e) =>
+                          handlePhaseInputValue(fieldKey, e.target.value)
+                        }
+                      >
+                        {!field.required && (
+                          <MenuItem value="">
+                            <em>None</em>
+                          </MenuItem>
+                        )}
+                        {(field.options || []).map((option) => (
+                          <MenuItem key={option} value={option}>
+                            {option}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  );
+                }
+
+                if (fieldType === 'number') {
+                  return (
+                    <TextField
+                      key={fieldKey}
+                      type="number"
+                      label={fieldLabel}
+                      value={fieldValue ?? ''}
+                      onChange={(e) =>
+                        handlePhaseInputValue(
+                          fieldKey,
+                          e.target.value === '' ? '' : Number(e.target.value)
+                        )
+                      }
+                      fullWidth
+                      size="small"
+                      required={Boolean(field.required)}
+                      placeholder={field.placeholder || ''}
+                    />
+                  );
+                }
+
+                return (
+                  <TextField
+                    key={fieldKey}
+                    label={fieldLabel}
+                    value={fieldValue ?? ''}
+                    onChange={(e) =>
+                      handlePhaseInputValue(fieldKey, e.target.value)
+                    }
+                    fullWidth
+                    size="small"
+                    required={Boolean(field.required)}
+                    placeholder={field.placeholder || ''}
+                    multiline={fieldType === 'textarea'}
+                    rows={fieldType === 'textarea' ? 3 : 1}
+                  />
+                );
+              })}
+            </Stack>
+          </>
+        )}
+
         <Box>
           <Typography variant="subtitle2" gutterBottom>
             Description
@@ -74,7 +312,6 @@ const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
 
         <Divider />
 
-        {/* Timeout */}
         <Box>
           <Typography variant="subtitle2" gutterBottom>
             Timeout: {config.timeout_seconds || 300}s
@@ -95,7 +332,6 @@ const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
           />
         </Box>
 
-        {/* Max Retries */}
         <Box>
           <Typography variant="subtitle2" gutterBottom>
             Max Retries: {config.max_retries || 3}
@@ -111,7 +347,6 @@ const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
           />
         </Box>
 
-        {/* Quality Threshold (if applicable) */}
         {config.name?.includes('assess') && (
           <Box>
             <Typography variant="subtitle2" gutterBottom>
@@ -136,7 +371,6 @@ const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
 
         <Divider />
 
-        {/* Toggles */}
         <FormControlLabel
           control={
             <Switch
@@ -159,7 +393,6 @@ const PhaseConfigPanel = ({ nodeId, phase, onUpdate, onRemove }) => {
 
         <Divider />
 
-        {/* Actions */}
         <Stack direction="row" spacing={1}>
           <Button
             variant="contained"
