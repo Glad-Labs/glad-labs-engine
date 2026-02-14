@@ -13,6 +13,41 @@ import { getAuthToken } from './authService';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 /**
+ * Initialize metrics collection on window object for performance dashboard
+ */
+function initializeMetricsCollection() {
+  if (!window.apiMetrics) {
+    window.apiMetrics = [];
+  }
+}
+
+/**
+ * Collect API request metrics for performance monitoring
+ * @param {string} endpoint - The API endpoint
+ * @param {string} method - The HTTP method
+ * @param {number} status - The HTTP status code
+ * @param {number} duration_ms - Request duration in milliseconds
+ * @param {boolean} cached - Whether result was cached
+ */
+function collectMetric(endpoint, method, status, duration_ms, cached = false) {
+  initializeMetricsCollection();
+  
+  // Keep only last 1000 metrics in memory to prevent memory leaks
+  if (window.apiMetrics.length >= 1000) {
+    window.apiMetrics = window.apiMetrics.slice(-999);
+  }
+  
+  window.apiMetrics.push({
+    endpoint,
+    method,
+    status,
+    duration_ms,
+    timestamp: new Date().toISOString(),
+    cached,
+  });
+}
+
+/**
  * Capitalize each word in a string
  * @param {string} str - The string to capitalize
  * @returns {string} - The capitalized string
@@ -47,6 +82,7 @@ export async function makeRequest(
   timeout = 30000, // 30 seconds - allows for long-running operations like Ollama generation
   requestOptions = null
 ) {
+  const startTime = performance.now();
   const shouldSuppressErrorLog =
     requestOptions &&
     typeof requestOptions.shouldSuppressErrorLog === 'function'
@@ -85,6 +121,7 @@ export async function makeRequest(
     try {
       const response = await fetch(url, config);
       clearTimeout(timeoutId);
+      const duration_ms = Math.round(performance.now() - startTime);
 
       if (response.status === 401 && !retry) {
         // Try to refresh token in development
@@ -107,6 +144,9 @@ export async function makeRequest(
           }
         }
 
+        // Collect metric for 401 error
+        collectMetric(endpoint, method, 401, duration_ms, false);
+
         // Call the onUnauthorized callback if provided
         if (onUnauthorized) {
           onUnauthorized();
@@ -116,6 +156,7 @@ export async function makeRequest(
 
       // Handle 204 No Content response (no body to parse)
       if (response.status === 204) {
+        collectMetric(endpoint, method, 204, duration_ms, false);
         return { success: true };
       }
 
@@ -151,6 +192,10 @@ export async function makeRequest(
           error,
           response: result,
         });
+        
+        // Collect metric for error response
+        collectMetric(endpoint, method, response.status, duration_ms, false);
+        
         if (!suppressErrorLog) {
           console.error('API error response:', {
             status: response.status,
@@ -159,11 +204,17 @@ export async function makeRequest(
         }
         throw error;
       }
+      
+      // Collect metric for successful response
+      collectMetric(endpoint, method, response.status, duration_ms, false);
       return result;
     } catch (fetchError) {
       clearTimeout(timeoutId);
+      const duration_ms = Math.round(performance.now() - startTime);
+      
       // Check if it's an abort error (timeout)
       if (fetchError.name === 'AbortError') {
+        collectMetric(endpoint, method, 0, duration_ms, false); // 0 for timeout
         throw new Error(
           `Request timeout after ${timeout}ms - operation took too long`
         );
@@ -171,8 +222,9 @@ export async function makeRequest(
       throw fetchError;
     }
   } catch (error) {
+    const duration_ms = Math.round(performance.now() - startTime);
     const status =
-      error?.status || error?.statusCode || error?.response?.status;
+      error?.status || error?.statusCode || error?.response?.status || 0;
     const response = error?.response;
     const suppressErrorLog = isErrorLogSuppressed({
       endpoint,
@@ -181,6 +233,10 @@ export async function makeRequest(
       error,
       response,
     });
+    
+    // Collect metric for caught error
+    collectMetric(endpoint, method, status, duration_ms, false);
+    
     if (!suppressErrorLog) {
       console.error(`API request failed: ${endpoint}`, error);
     }

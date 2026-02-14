@@ -55,6 +55,7 @@ const LayoutWrapper = ({ children }) => {
     { label: 'Services', icon: '⚡', path: 'services' },
     { label: 'AI Studio', icon: '🤖', path: 'ai' },
     { label: 'Costs', icon: '💰', path: 'costs' },
+    { label: 'Performance', icon: '⚡', path: 'performance' },
     { label: 'Settings', icon: '⚙️', path: 'settings' },
   ];
 
@@ -196,6 +197,7 @@ const LayoutWrapper = ({ children }) => {
       services: '/services',
       ai: '/ai',
       costs: '/costs',
+      performance: '/performance',
       settings: '/settings',
     };
     navigate(routeMap[page] || '/');

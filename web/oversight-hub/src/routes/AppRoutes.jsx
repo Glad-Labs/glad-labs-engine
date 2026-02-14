@@ -5,6 +5,7 @@ import ExecutiveDashboard from '../components/pages/ExecutiveDashboard';
 import UnifiedServicesPanel from '../components/pages/UnifiedServicesPanel';
 import AIStudio from './AIStudio';
 import Content from './Content';
+import PerformanceDashboard from './PerformanceDashboard';
 import Login from '../pages/Login';
 import AuthCallback from '../pages/AuthCallback';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -74,6 +75,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <LayoutWrapper>
               <CostMetricsDashboard />
+            </LayoutWrapper>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/performance"
+        element={
+          <ProtectedRoute>
+            <LayoutWrapper>
+              <PerformanceDashboard />
             </LayoutWrapper>
           </ProtectedRoute>
         }
