@@ -335,3 +335,72 @@ export const deleteContentTask = async (taskId) => {
 
   return result;
 };
+
+/**
+ * Pause a running task
+ * @param {string} taskId - Task ID to pause
+ * @returns {Promise<Object>} Updated task object
+ * @throws {Error} If pause fails
+ */
+export const pauseTask = async (taskId) => {
+  const result = await makeRequest(
+    `/api/tasks/${taskId}/pause`,
+    'POST',
+    {},
+    false,
+    null,
+    API_TIMEOUT
+  );
+
+  if (result.error) {
+    throw new Error(`Could not pause task: ${result.error}`);
+  }
+
+  return result;
+};
+
+/**
+ * Resume a paused task
+ * @param {string} taskId - Task ID to resume
+ * @returns {Promise<Object>} Updated task object
+ * @throws {Error} If resume fails
+ */
+export const resumeTask = async (taskId) => {
+  const result = await makeRequest(
+    `/api/tasks/${taskId}/resume`,
+    'POST',
+    {},
+    false,
+    null,
+    API_TIMEOUT
+  );
+
+  if (result.error) {
+    throw new Error(`Could not resume task: ${result.error}`);
+  }
+
+  return result;
+};
+
+/**
+ * Cancel a running or pending task
+ * @param {string} taskId - Task ID to cancel
+ * @returns {Promise<Object>} Updated task object
+ * @throws {Error} If cancellation fails
+ */
+export const cancelTask = async (taskId) => {
+  const result = await makeRequest(
+    `/api/tasks/${taskId}/cancel`,
+    'POST',
+    {},
+    false,
+    null,
+    API_TIMEOUT
+  );
+
+  if (result.error) {
+    throw new Error(`Could not cancel task: ${result.error}`);
+  }
+
+  return result;
+};

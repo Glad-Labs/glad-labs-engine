@@ -35,6 +35,38 @@ const useStore = create(
         set({ selectedTask: task, isModalOpen: !!task }),
       setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
 
+      // ===== TASK ACTION STATE (Phase 1.2) =====
+      taskActionLoading: {}, // { taskId: boolean }
+      taskActionError: {}, // { taskId: string|null }
+
+      setTaskActionLoading: (taskId, loading) =>
+        set((state) => ({
+          taskActionLoading: {
+            ...state.taskActionLoading,
+            [taskId]: loading,
+          },
+        })),
+
+      setTaskActionError: (taskId, error) =>
+        set((state) => ({
+          taskActionError: {
+            ...state.taskActionError,
+            [taskId]: error,
+          },
+        })),
+
+      clearTaskAction: (taskId) =>
+        set((state) => ({
+          taskActionLoading: {
+            ...state.taskActionLoading,
+            [taskId]: false,
+          },
+          taskActionError: {
+            ...state.taskActionError,
+            [taskId]: null,
+          },
+        })),
+
       // ===== METRICS STATE =====
       metrics: {
         totalTasks: 0,

@@ -30,6 +30,9 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
+  Pause as PauseIcon,
+  PlayArrow as PlayIcon,
+  Stop as StopIcon,
 } from '@mui/icons-material';
 import { getStatusColor } from '../../lib/statusConfig';
 import { tableHeaderRow, loadingContainer } from '../../lib/muiStyles';
@@ -48,6 +51,9 @@ const TaskTable = ({
   onRowsPerPageChange,
   onEditTask,
   onDeleteTask,
+  onPauseTask,
+  onResumeTask,
+  onCancelTask,
 }) => {
   if (loading && tasks.length === 0) {
     return (
@@ -130,6 +136,48 @@ const TaskTable = ({
                       <ViewIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
+
+                  {/* Pause Button - Phase 1.2 */}
+                  {(task.status === 'in_progress' ||
+                    task.status === 'pending') &&
+                    onPauseTask && (
+                      <Tooltip title="Pause">
+                        <IconButton
+                          size="small"
+                          onClick={() => onPauseTask(task.id)}
+                        >
+                          <PauseIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+
+                  {/* Resume Button - Phase 1.2 */}
+                  {task.status === 'paused' && onResumeTask && (
+                    <Tooltip title="Resume">
+                      <IconButton
+                        size="small"
+                        color="success"
+                        onClick={() => onResumeTask(task.id)}
+                      >
+                        <PlayIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+
+                  {/* Cancel Button - Phase 1.2 */}
+                  {['pending', 'in_progress', 'paused'].includes(task.status) &&
+                    onCancelTask && (
+                      <Tooltip title="Cancel">
+                        <IconButton
+                          size="small"
+                          color="warning"
+                          onClick={() => onCancelTask(task.id)}
+                        >
+                          <StopIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+
                   <Tooltip title="Edit">
                     <IconButton size="small" onClick={() => onEditTask(task)}>
                       <EditIcon fontSize="small" />
@@ -193,6 +241,9 @@ TaskTable.propTypes = {
   onRowsPerPageChange: PropTypes.func.isRequired,
   onEditTask: PropTypes.func.isRequired,
   onDeleteTask: PropTypes.func.isRequired,
+  onPauseTask: PropTypes.func,
+  onResumeTask: PropTypes.func,
+  onCancelTask: PropTypes.func,
 };
 
 export default TaskTable;

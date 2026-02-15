@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Alert, CircularProgress, Snackbar } from '@mui/material';
+import {
+  Container,
+  Alert,
+  CircularProgress,
+  Snackbar,
+  Box,
+  Divider,
+} from '@mui/material';
 import WritingStyleManager from '../components/WritingStyleManager';
+import GeneralSettings from '../components/settings/GeneralSettings';
+import ModelPreferences from '../components/settings/ModelPreferences';
+import AlertSettings from '../components/settings/AlertSettings';
 import {
   listSettings,
   createOrUpdateSetting,
@@ -144,6 +154,25 @@ function Settings() {
         <Container maxWidth="md" sx={{ py: 3 }}>
           <WritingStyleManager />
         </Container>
+      )}
+
+      {/* Phase 1.3 Settings Extensions */}
+      {!loading && (
+        <>
+          <Container maxWidth="md" sx={{ py: 3 }}>
+            <GeneralSettings />
+          </Container>
+
+          <Container maxWidth="md" sx={{ py: 3 }}>
+            <ModelPreferences />
+          </Container>
+
+          <Container maxWidth="md" sx={{ py: 3 }}>
+            <AlertSettings />
+          </Container>
+
+          <Divider sx={{ my: 4 }} />
+        </>
       )}
 
       {!loading && (

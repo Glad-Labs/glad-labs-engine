@@ -8,6 +8,7 @@ import {
   Tab,
   Box,
   Button,
+  Divider,
 } from '@mui/material';
 import useStore from '../../store/useStore';
 import {
@@ -26,6 +27,7 @@ import TaskContentPreview from './TaskContentPreview';
 import TaskImageManager from './TaskImageManager';
 import TaskApprovalForm from './TaskApprovalForm';
 import TaskMetadataDisplay from './TaskMetadataDisplay';
+import TaskControlPanel from './TaskControlPanel';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -245,6 +247,31 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
         {/* Tab 0: Content & Approval */}
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Task Control Panel (Phase 1.2) - Pause/Resume/Cancel/Delete */}
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: '#1a1a1a',
+                borderRadius: 1,
+                border: '1px solid #333',
+              }}
+            >
+              <TaskControlPanel
+                task={selectedTask}
+                onTaskUpdated={(updatedTask) => {
+                  if (updatedTask === null) {
+                    // Task was deleted
+                    setSelectedTask(null);
+                    onClose();
+                  } else {
+                    handleTaskUpdate(updatedTask);
+                  }
+                }}
+              />
+            </Box>
+
+            <Divider sx={{ borderColor: '#333' }} />
+
             {/* Content Preview Component */}
             <TaskContentPreview
               task={selectedTask}
