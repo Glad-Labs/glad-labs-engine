@@ -8,7 +8,7 @@
 class WebSocketService {
   constructor() {
     this.ws = null;
-    this.url = `ws://${window.location.hostname}:8000/ws`;
+    this.url = `ws://${window.location.hostname}:8000/api/ws`;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 3000; // 3 seconds
