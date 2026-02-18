@@ -6,7 +6,6 @@ import UnifiedServicesPanel from '../components/pages/UnifiedServicesPanel';
 import AIStudio from './AIStudio';
 import Content from './Content';
 import PerformanceDashboard from './PerformanceDashboard';
-import Marketplace from './Marketplace';
 import Login from '../pages/Login';
 import AuthCallback from '../pages/AuthCallback';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -66,16 +65,6 @@ function AppRoutes() {
           <ProtectedRoute>
             <LayoutWrapper>
               <Settings />
-            </LayoutWrapper>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/marketplace"
-        element={
-          <ProtectedRoute>
-            <LayoutWrapper>
-              <Marketplace />
             </LayoutWrapper>
           </ProtectedRoute>
         }
