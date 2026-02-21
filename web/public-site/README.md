@@ -7,6 +7,8 @@
 
 High-performance public website built with Next.js 15, featuring static site generation, SEO optimization, and seamless postgres DB integration.
 
+> **Documentation Update (Feb 21, 2026):** 12 legacy implementation and testing docs have been moved to `archive/cleanup-feb2026/` for better organization. See [archive index](archive/cleanup-feb2026/INDEX.md) for access.
+
 ## Overview
 
 The Glad Labs public site serves as the primary content distribution platform, consuming content from the postgres database and presenting it through a fast, SEO-optimized interface.

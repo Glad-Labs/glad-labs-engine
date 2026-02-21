@@ -2,6 +2,8 @@
 
 React admin dashboard for monitoring and controlling the Glad Labs AI Co-Founder system.
 
+> **Documentation Update (Feb 21, 2026):** 18 legacy audit and refactoring docs have been moved to `archive/cleanup-feb2026/` for better organization. See [archive index](archive/cleanup-feb2026/INDEX.md) for access.
+
 **Status:** ✅ Production Ready  
 **Technology:** React 18 + Material-UI + Zustand  
 **Port:** 3001
