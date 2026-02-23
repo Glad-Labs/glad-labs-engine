@@ -165,6 +165,19 @@ class WebSocketService {
   }
 
   /**
+   * Send a raw message object to the server (for control messages like subscribe/unsubscribe).
+   * Distinct from send() which wraps data in {event, ...data} format.
+   * @param {Object} message - Raw message object
+   */
+  _sendToServer(message) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(message));
+    } else {
+      this.messageQueue.push(message);
+    }
+  }
+
+  /**
    * Send a message to the server
    * @param {string} event - Event name
    * @param {Object} data - Event data
@@ -190,7 +203,13 @@ class WebSocketService {
    * @returns {Function} Unsubscribe function
    */
   subscribeToTaskProgress(taskId, callback) {
-    return this.subscribe(`task.progress.${taskId}`, callback);
+    const namespace = `task.${taskId}`;
+    this._sendToServer({ type: 'subscribe', namespace });
+    const unsubscribeLocal = this.subscribe(`task.progress.${taskId}`, callback);
+    return () => {
+      unsubscribeLocal();
+      this._sendToServer({ type: 'unsubscribe', namespace });
+    };
   }
 
   /**
@@ -200,7 +219,13 @@ class WebSocketService {
    * @returns {Function} Unsubscribe function
    */
   subscribeToWorkflowStatus(workflowId, callback) {
-    return this.subscribe(`workflow.status.${workflowId}`, callback);
+    const namespace = `workflow.${workflowId}`;
+    this._sendToServer({ type: 'subscribe', namespace });
+    const unsubscribeLocal = this.subscribe(`workflow.status.${workflowId}`, callback);
+    return () => {
+      unsubscribeLocal();
+      this._sendToServer({ type: 'unsubscribe', namespace });
+    };
   }
 
   /**
