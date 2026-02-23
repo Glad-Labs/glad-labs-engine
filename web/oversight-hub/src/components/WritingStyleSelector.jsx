@@ -30,10 +30,10 @@ import {
 export const WritingStyleSelector = ({
   value,
   onChange,
-  required,
-  variant,
-  disabled,
-  includeNone,
+  required = false,
+  variant = 'outlined',
+  disabled = false,
+  includeNone = true,
 }) => {
   const [samples, setSamples] = useState([]);
   const [activeSample, setActiveSample] = useState(null);
@@ -150,13 +150,6 @@ export const WritingStyleSelector = ({
       </FormHelperText>
     </FormControl>
   );
-};
-
-WritingStyleSelector.defaultProps = {
-  required: false,
-  variant: 'outlined',
-  disabled: false,
-  includeNone: true,
 };
 
 export default WritingStyleSelector;
