@@ -48,6 +48,13 @@ import { CheckCircle, Close, Info, Edit, Visibility } from '@mui/icons-material'
 import { cofounderAgentClient } from '../../services/cofounderAgentClient';
 
 /**
+ * Get API base URL from environment or fallback to localhost
+ */
+const getApiBaseUrl = () => {
+  return process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+};
+
+/**
  * ApprovalQueue Component
  * Main component for displaying and managing approval tasks
  */
@@ -120,7 +127,7 @@ const ApprovalQueue = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8000/api/tasks/pending-approval?${params}`,
+        `${getApiBaseUrl()}/api/tasks/pending-approval?${params}`,
         {
           method: 'GET',
           headers: {
@@ -167,11 +174,15 @@ const ApprovalQueue = () => {
     // Subscribe to task approval updates when tasks change
     const subscribeToUpdates = () => {
       // Create WebSocket connections for visible tasks
+      const apiBaseUrl = getApiBaseUrl();
+      const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss' : 'ws';
+      const wsHost = apiBaseUrl.replace(/^https?:\/\//, '');
+
       tasks.forEach((task) => {
         if (!wsConnections.has(task.task_id)) {
           try {
             const ws = new WebSocket(
-              `ws://localhost:8000/api/ws/approval/${task.task_id}`
+              `${wsProtocol}://${wsHost}/api/ws/approval/${task.task_id}`
             );
 
             ws.onopen = () => {
@@ -290,7 +301,7 @@ const ApprovalQueue = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/tasks/${selectedTask.task_id}/approve`,
+        `${getApiBaseUrl()}/api/tasks/${selectedTask.task_id}/approve`,
         {
           method: 'POST',
           headers: {
@@ -351,7 +362,7 @@ const ApprovalQueue = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/tasks/${selectedTask.task_id}/reject`,
+        `${getApiBaseUrl()}/api/tasks/${selectedTask.task_id}/reject`,
         {
           method: 'POST',
           headers: {
@@ -475,7 +486,7 @@ const ApprovalQueue = () => {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/tasks/bulk-approve',
+        `${getApiBaseUrl()}/api/tasks/bulk-approve`,
         {
           method: 'POST',
           headers: {
@@ -542,7 +553,7 @@ const ApprovalQueue = () => {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/tasks/bulk-reject',
+        `${getApiBaseUrl()}/api/tasks/bulk-reject`,
         {
           method: 'POST',
           headers: {

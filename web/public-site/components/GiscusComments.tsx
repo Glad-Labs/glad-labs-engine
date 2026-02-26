@@ -100,7 +100,7 @@ export default function GiscusComments({
         }
       }
     };
-  };, [repo, repoId, categoryId, postSlug]);
+  }, [repo, repoId, categoryId, postSlug]);
 
   // Show configuration hint if not set up
   if (!repo || !repoId || !categoryId) {

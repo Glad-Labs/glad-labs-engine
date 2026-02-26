@@ -106,7 +106,7 @@ export function useLangGraphStream(requestId) {
         ws.close();
       }
     };
-  };, [requestId]);
+  }, [requestId]);
 
   return progress;
 }

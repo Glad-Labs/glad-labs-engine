@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { subscribeToNewsletter } from '../lib/api-fastapi';
 
 /**
@@ -21,6 +21,16 @@ const NewsletterModal = ({ isOpen, onClose }) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const timeoutRef = useRef(null);
+
+  // Cleanup timeout on unmount or when modal closes
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const interestOptions = [
     'AI',
@@ -79,7 +89,7 @@ const NewsletterModal = ({ isOpen, onClose }) => {
       });
 
       // Reset form after 2 seconds and close
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setFormData({
           email: '',
           firstName: '',
