@@ -68,6 +68,24 @@ export default function GiscusComments({
     script.setAttribute('data-lang', 'en');
     script.setAttribute('data-loading', 'lazy'); // Load only when visible
 
+    // Add error and load handlers
+    script.onerror = () => {
+      console.error('❌ Failed to load Giscus comments script from CDN');
+      if (container) {
+        container.innerHTML = `
+          <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 my-8">
+            <p class="text-sm text-red-800 dark:text-red-200">
+              Comments failed to load. Please check your internet connection and refresh the page.
+            </p>
+          </div>
+        `;
+      }
+    };
+
+    script.onload = () => {
+      console.log('✅ Giscus script loaded successfully');
+    };
+
     // Append script to trigger Giscus initialization
     if (container) {
       container.appendChild(script);
@@ -82,7 +100,7 @@ export default function GiscusComments({
         }
       }
     };
-  }, [repo, repoId, categoryId, postSlug]);
+  };, [repo, repoId, categoryId, postSlug]);
 
   // Show configuration hint if not set up
   if (!repo || !repoId || !categoryId) {

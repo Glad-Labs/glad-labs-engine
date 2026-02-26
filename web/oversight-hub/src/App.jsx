@@ -55,6 +55,23 @@ const AppContent = () => {
 };
 
 const App = () => {
+  useEffect(() => {
+    // Handle unhandled promise rejections
+    const handleUnhandledRejection = (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      // You can optionally send to error tracking service here (e.g., Sentry)
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener(
+        'unhandledrejection',
+        handleUnhandledRejection
+      );
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>

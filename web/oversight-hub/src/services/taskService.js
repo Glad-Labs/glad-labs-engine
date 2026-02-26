@@ -231,7 +231,8 @@ export const publishTask = async (taskId) => {
   if (result && typeof result === 'object') {
     // Revalidate homepage and archive pages
     revalidatePublicSite(['/', '/archive']).catch((err) => {
-      console.warn('Revalidation failed silently:', err);
+      console.warn('⚠️ Public site revalidation failed:', err);
+      // Track this as a metric but don't block the response
     });
   }
 

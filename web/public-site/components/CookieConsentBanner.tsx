@@ -42,19 +42,26 @@ export default function CookieConsentBanner() {
   // Load consent from localStorage on mount
   useEffect(() => {
     setMounted(true);
-    const savedConsent = localStorage.getItem('cookieConsent');
+    try {
+      const savedConsent = localStorage.getItem('cookieConsent');
 
-    if (savedConsent) {
-      try {
-        const parsed = JSON.parse(savedConsent);
-        setConsent(parsed);
-        // Don't show banner if user has already made a choice
-        setIsVisible(false);
-      } catch {
+      if (savedConsent) {
+        try {
+          const parsed = JSON.parse(savedConsent);
+          setConsent(parsed);
+          // Don't show banner if user has already made a choice
+          setIsVisible(false);
+        } catch (parseError) {
+          console.error('Failed to parse cookie consent:', parseError);
+          setIsVisible(true);
+        }
+      } else {
+        // Show banner if no consent has been saved
         setIsVisible(true);
       }
-    } else {
-      // Show banner if no consent has been saved
+    } catch (error) {
+      // localStorage might not be available in private browsing mode
+      console.warn('localStorage access error:', error);
       setIsVisible(true);
     }
   }, []);
@@ -99,8 +106,13 @@ export default function CookieConsentBanner() {
 
   const saveConsent = (newConsent: CookieConsent) => {
     setConsent(newConsent);
-    localStorage.setItem('cookieConsent', JSON.stringify(newConsent));
-    localStorage.setItem('cookieConsentDate', new Date().toISOString());
+    try {
+      localStorage.setItem('cookieConsent', JSON.stringify(newConsent));
+      localStorage.setItem('cookieConsentDate', new Date().toISOString());
+    } catch (error) {
+      console.warn('Failed to save consent to localStorage:', error);
+      // Continue anyway - consent is stored in state
+    }
     setIsVisible(false);
     setShowCustom(false);
 
@@ -165,7 +177,7 @@ export default function CookieConsentBanner() {
                   checked={consent.analytics}
                   onChange={() => toggleConsent('analytics')}
                   aria-label="Analytics cookies"
-                  className="w-5 h-5 cursor-pointer shrine-0"
+                  className="w-5 h-5 cursor-pointer shrink-0"
                 />
               </label>
             </div>

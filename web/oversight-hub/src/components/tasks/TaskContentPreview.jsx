@@ -50,7 +50,8 @@ const TaskContentPreview = ({ task, onTaskUpdate }) => {
           ? (() => {
               try {
                 return JSON.parse(task.result);
-              } catch {
+              } catch (error) {
+                console.error('Failed to parse task result:', error);
                 return {};
               }
             })()

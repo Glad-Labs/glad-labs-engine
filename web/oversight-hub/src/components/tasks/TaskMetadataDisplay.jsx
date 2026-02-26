@@ -41,7 +41,8 @@ const TaskMetadataDisplay = ({ task }) => {
   if (typeof taskMeta === 'string') {
     try {
       parsedTaskMeta = JSON.parse(taskMeta);
-    } catch {
+    } catch (error) {
+      console.error('Failed to parse task metadata:', error);
       parsedTaskMeta = {};
     }
   }
@@ -51,7 +52,8 @@ const TaskMetadataDisplay = ({ task }) => {
   if (typeof result === 'string') {
     try {
       parsedResult = JSON.parse(result);
-    } catch {
+    } catch (error) {
+      console.error('Failed to parse task result:', error);
       parsedResult = {};
     }
   }

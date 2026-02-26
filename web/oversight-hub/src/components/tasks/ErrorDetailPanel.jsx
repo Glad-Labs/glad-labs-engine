@@ -30,7 +30,8 @@ const ErrorDetailPanel = ({ task }) => {
         if (typeof task.task_metadata.error_details === 'string') {
           try {
             errors.metadata = JSON.parse(task.task_metadata.error_details);
-          } catch {
+          } catch (parseErr) {
+            console.error('Failed to parse error_details:', parseErr);
             errors.secondary.push(task.task_metadata.error_details);
           }
         } else {
@@ -72,7 +73,8 @@ const ErrorDetailPanel = ({ task }) => {
                 : JSON.stringify(parsed.error)
             );
           }
-        } catch {
+        } catch (parseErr) {
+          console.error('Failed to parse metadata field:', parseErr);
           if (task.metadata) errors.secondary.push(task.metadata);
         }
       } else if (task.metadata && typeof task.metadata === 'object') {
@@ -101,7 +103,8 @@ const ErrorDetailPanel = ({ task }) => {
                 : JSON.stringify(parsed.error)
             );
           }
-        } catch {
+        } catch (parseErr) {
+          console.error('Failed to parse result field:', parseErr);
           if (task.result) errors.secondary.push(task.result);
         }
       } else if (typeof task.result === 'object') {
