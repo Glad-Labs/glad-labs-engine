@@ -37,7 +37,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { PlayArrow as PlayIcon, Stop as StopIcon, Refresh as RefreshIcon } from '@mui/icons-material';
-import apiClient from '../../lib/apiClient';
+import apiClient from '../lib/apiClient';
 
 /**
  * Blog Workflow Page
