@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
+
 import TaskTable from './TaskTable';
 
 describe('TaskTable Component', () => {
@@ -41,17 +41,17 @@ describe('TaskTable Component', () => {
     limit: 10,
     total: 30,
     selectedTasks: [],
-    onSelectTask: jest.fn(),
-    onSelectAll: jest.fn(),
-    onSelectOne: jest.fn(),
-    onPageChange: jest.fn(),
-    onRowsPerPageChange: jest.fn(),
-    onEditTask: jest.fn(),
-    onDeleteTask: jest.fn(),
+    onSelectTask: vi.fn(),
+    onSelectAll: vi.fn(),
+    onSelectOne: vi.fn(),
+    onPageChange: vi.fn(),
+    onRowsPerPageChange: vi.fn(),
+    onEditTask: vi.fn(),
+    onDeleteTask: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Rendering', () => {

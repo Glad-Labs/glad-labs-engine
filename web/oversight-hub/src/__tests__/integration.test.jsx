@@ -16,7 +16,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom';
+
 
 // ============================================
 // Mock Components (Simulating Real Components)
@@ -163,9 +163,9 @@ const TaskCreationModal = ({ open, onClose, onSubmit }) => {
 describe('LoginForm Integration', () => {
   it('should validate email format before submission', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn();
+    const mockSubmit = vi.fn();
 
-    render(<LoginForm onSubmit={mockSubmit} onSuccess={jest.fn()} />);
+    render(<LoginForm onSubmit={mockSubmit} onSuccess={vi.fn()} />);
 
     await user.type(screen.getByTestId('login-email'), 'invalid-email');
     await user.type(screen.getByTestId('login-password'), 'password123');
@@ -182,9 +182,9 @@ describe('LoginForm Integration', () => {
 
   it('should validate password length before submission', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn();
+    const mockSubmit = vi.fn();
 
-    render(<LoginForm onSubmit={mockSubmit} onSuccess={jest.fn()} />);
+    render(<LoginForm onSubmit={mockSubmit} onSuccess={vi.fn()} />);
 
     await user.type(screen.getByTestId('login-email'), 'test@example.com');
     await user.type(screen.getByTestId('login-password'), 'short');
@@ -201,8 +201,8 @@ describe('LoginForm Integration', () => {
 
   it('should successfully submit valid login form', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({ success: true }));
-    const mockSuccess = jest.fn();
+    const mockSubmit = vi.fn(async () => ({ success: true }));
+    const mockSuccess = vi.fn();
 
     render(<LoginForm onSubmit={mockSubmit} onSuccess={mockSuccess} />);
 
@@ -222,12 +222,12 @@ describe('LoginForm Integration', () => {
 
   it('should handle API errors in login submission', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({
+    const mockSubmit = vi.fn(async () => ({
       success: false,
       message: 'Invalid credentials',
     }));
 
-    render(<LoginForm onSubmit={mockSubmit} onSuccess={jest.fn()} />);
+    render(<LoginForm onSubmit={mockSubmit} onSuccess={vi.fn()} />);
 
     await user.type(screen.getByTestId('login-email'), 'test@example.com');
     await user.type(screen.getByTestId('login-password'), 'password123');
@@ -242,14 +242,14 @@ describe('LoginForm Integration', () => {
 
   it('should display loading state during submission', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(
+    const mockSubmit = vi.fn(
       async () =>
         new Promise((resolve) =>
           setTimeout(() => resolve({ success: true }), 100)
         )
     );
 
-    render(<LoginForm onSubmit={mockSubmit} onSuccess={jest.fn()} />);
+    render(<LoginForm onSubmit={mockSubmit} onSuccess={vi.fn()} />);
 
     await user.type(screen.getByTestId('login-email'), 'test@example.com');
     await user.type(screen.getByTestId('login-password'), 'password123');
@@ -272,12 +272,12 @@ describe('LoginForm Integration', () => {
 describe('TaskCreationModal Integration', () => {
   it('should not submit task with empty title', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn();
+    const mockSubmit = vi.fn();
 
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -295,12 +295,12 @@ describe('TaskCreationModal Integration', () => {
 
   it('should validate minimum title length', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn();
+    const mockSubmit = vi.fn();
 
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -319,8 +319,8 @@ describe('TaskCreationModal Integration', () => {
 
   it('should successfully create task with valid inputs', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({ id: 1 }));
-    const mockClose = jest.fn();
+    const mockSubmit = vi.fn(async () => ({ id: 1 }));
+    const mockClose = vi.fn();
 
     render(
       <TaskCreationModal
@@ -349,12 +349,12 @@ describe('TaskCreationModal Integration', () => {
 
   it('should clear form after successful submission', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({ id: 1 }));
+    const mockSubmit = vi.fn(async () => ({ id: 1 }));
 
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -376,8 +376,8 @@ describe('TaskCreationModal Integration', () => {
 
   it('should handle cancel button correctly', async () => {
     const user = userEvent.setup();
-    const mockClose = jest.fn();
-    const mockSubmit = jest.fn();
+    const mockClose = vi.fn();
+    const mockSubmit = vi.fn();
 
     render(
       <TaskCreationModal
@@ -396,7 +396,7 @@ describe('TaskCreationModal Integration', () => {
 
   it('should disable form during submission', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(
+    const mockSubmit = vi.fn(
       async () =>
         new Promise((resolve) => setTimeout(() => resolve({ id: 1 }), 100))
     );
@@ -404,7 +404,7 @@ describe('TaskCreationModal Integration', () => {
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -475,15 +475,15 @@ describe('Multi-Form Workflows', () => {
 
   it('should handle form validation across multiple components', async () => {
     const user = userEvent.setup();
-    const mockLoginSubmit = jest.fn();
-    const mockTaskSubmit = jest.fn();
+    const mockLoginSubmit = vi.fn();
+    const mockTaskSubmit = vi.fn();
 
     render(
       <>
-        <LoginForm onSubmit={mockLoginSubmit} onSuccess={jest.fn()} />
+        <LoginForm onSubmit={mockLoginSubmit} onSuccess={vi.fn()} />
         <TaskCreationModal
           open={true}
-          onClose={jest.fn()}
+          onClose={vi.fn()}
           onSubmit={mockTaskSubmit}
         />
       </>
@@ -509,9 +509,9 @@ describe('Multi-Form Workflows', () => {
 describe('Error Recovery & Edge Cases', () => {
   it('should allow resubmission after validation error', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({ success: true }));
+    const mockSubmit = vi.fn(async () => ({ success: true }));
 
-    render(<LoginForm onSubmit={mockSubmit} onSuccess={jest.fn()} />);
+    render(<LoginForm onSubmit={mockSubmit} onSuccess={vi.fn()} />);
 
     // First attempt with invalid data
     await user.type(screen.getByTestId('login-email'), 'invalid');
@@ -534,12 +534,12 @@ describe('Error Recovery & Edge Cases', () => {
 
   it('should handle whitespace-only input', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn();
+    const mockSubmit = vi.fn();
 
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -556,13 +556,13 @@ describe('Error Recovery & Edge Cases', () => {
 
   it('should handle very long input strings', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({ id: 1 }));
+    const mockSubmit = vi.fn(async () => ({ id: 1 }));
     const longTitle = 'a'.repeat(1000);
 
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -581,12 +581,12 @@ describe('Error Recovery & Edge Cases', () => {
 
   it('should handle special characters in input', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({ id: 1 }));
+    const mockSubmit = vi.fn(async () => ({ id: 1 }));
 
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -611,12 +611,12 @@ describe('Error Recovery & Edge Cases', () => {
 describe('Real-World User Scenarios', () => {
   it('should handle rapid form interaction', async () => {
     const user = userEvent.setup();
-    const mockSubmit = jest.fn(async () => ({ id: 1 }));
+    const mockSubmit = vi.fn(async () => ({ id: 1 }));
 
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
+        onClose={vi.fn()}
         onSubmit={mockSubmit}
       />
     );
@@ -638,7 +638,7 @@ describe('Real-World User Scenarios', () => {
   it('should handle tab navigation between form fields', async () => {
     const user = userEvent.setup();
 
-    render(<LoginForm onSubmit={jest.fn()} onSuccess={jest.fn()} />);
+    render(<LoginForm onSubmit={vi.fn()} onSuccess={vi.fn()} />);
 
     const emailInput = screen.getByTestId('login-email');
     const passwordInput = screen.getByTestId('login-password');
@@ -662,8 +662,8 @@ describe('Real-World User Scenarios', () => {
     render(
       <TaskCreationModal
         open={true}
-        onClose={jest.fn()}
-        onSubmit={jest.fn(async () => ({ id: 1 }))}
+        onClose={vi.fn()}
+        onSubmit={vi.fn(async () => ({ id: 1 }))}
       />
     );
 

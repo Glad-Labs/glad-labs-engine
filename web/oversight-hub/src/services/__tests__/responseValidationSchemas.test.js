@@ -169,8 +169,8 @@ describe('responseValidationSchemas', () => {
     test('throws on percent_used > 100', () => {
       const invalidBudget = {
         monthly_budget: 150.0,
-        amount_spent: 200,
-        amount_remaining: -50,
+        amount_spent: 150,
+        amount_remaining: 0,
         percent_used: 150,
       };
 

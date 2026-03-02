@@ -23,9 +23,9 @@ export default function LegalLayout({
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 md:px-6 max-w-2xl py-12">
+      <div className="container mx-auto px-4 md:px-6 max-w-2xl py-12">
         {children}
-      </main>
+      </div>
 
       {/* Footer Navigation */}
       <footer className="bg-gray-800 border-t border-gray-700 mt-12">

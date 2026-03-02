@@ -80,7 +80,7 @@ export default async function CategoryPage({
   const posts = await getCategoryPosts(category.id);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Category Header */}
       <div className="pt-20 pb-12">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -173,6 +173,6 @@ export default async function CategoryPage({
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

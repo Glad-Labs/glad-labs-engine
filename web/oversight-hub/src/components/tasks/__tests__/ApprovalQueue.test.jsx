@@ -42,11 +42,11 @@ describe('ApprovalQueue Component', () => {
 
   beforeEach(() => {
     // Mock fetch for API calls
-    global.fetch = jest.fn();
+    global.fetch = vi.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Task List Rendering', () => {
@@ -575,7 +575,7 @@ describe('ApprovalQueue Component', () => {
 
   describe('WebSocket Integration', () => {
     test('subscribes to WebSocket approval updates', async () => {
-      global.WebSocket = jest.fn();
+      global.WebSocket = vi.fn();
 
       global.fetch.mockResolvedValueOnce({
         ok: true,
@@ -596,13 +596,13 @@ describe('ApprovalQueue Component', () => {
 
     test('updates task status on WebSocket message', async () => {
       const mockWebSocket = {
-        send: jest.fn(),
-        close: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
+        send: vi.fn(),
+        close: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
       };
 
-      global.WebSocket = jest.fn(() => mockWebSocket);
+      global.WebSocket = vi.fn(() => mockWebSocket);
 
       global.fetch.mockResolvedValueOnce({
         ok: true,

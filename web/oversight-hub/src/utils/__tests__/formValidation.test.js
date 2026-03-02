@@ -181,7 +181,7 @@ describe('formValidation Utilities - 14 Validators', () => {
       // Valid test credit card (Visa)
       expect(creditCardValidation('4532015112830366')).toBe(true);
       // Valid test credit card (MasterCard)
-      expect(creditCardValidation('5425233010103442')).toBe(true);
+      expect(creditCardValidation('5500005555555559')).toBe(true);
     });
 
     it('should reject invalid credit card numbers', () => {

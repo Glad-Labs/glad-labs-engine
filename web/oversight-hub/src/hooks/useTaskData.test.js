@@ -8,17 +8,17 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTaskData } from './useTaskData';
 import * as taskService from '../services/taskService';
 
-jest.mock('../services/taskService');
+vi.mock('../services/taskService');
 
 describe('useTaskData Hook', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
   });
 
   describe('Initial Fetch', () => {
@@ -78,7 +78,7 @@ describe('useTaskData Hook', () => {
         );
       });
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       taskService.getTasks.mockResolvedValue([]);
 
       // Move to page 3
@@ -145,7 +145,7 @@ describe('useTaskData Hook', () => {
         expect(taskService.getTasks).toHaveBeenCalledTimes(1);
       });
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       taskService.getTasks.mockResolvedValue([]);
 
       rerender({ sortBy: 'name' });
@@ -172,7 +172,7 @@ describe('useTaskData Hook', () => {
 
       // Fast-forward 30 seconds
       act(() => {
-        jest.advanceTimersByTime(30000);
+        vi.advanceTimersByTime(30000);
       });
 
       await waitFor(() => {
@@ -230,7 +230,7 @@ describe('useTaskData Hook', () => {
       });
 
       // Second request succeeds
-      jest.clearAllMocks();
+      vi.clearAllMocks();
       taskService.getTasks.mockResolvedValue(mockTasks);
 
       rerender({ page: 2 });
@@ -287,7 +287,7 @@ describe('useTaskData Hook', () => {
       });
 
       act(() => {
-        jest.advanceTimersByTime(150);
+        vi.advanceTimersByTime(150);
       });
 
       await waitFor(() => {

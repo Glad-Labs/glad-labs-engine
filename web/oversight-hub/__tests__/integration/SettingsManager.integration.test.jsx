@@ -13,11 +13,11 @@ import SettingsManager from '../../src/components/SettingsManager';
 /* eslint-enable no-unused-vars */
 import * as settingsApi from '../../src/api/settingsApi';
 
-jest.mock('../../src/api/settingsApi');
+vi.mock('../../src/api/settingsApi');
 
 describe('SettingsManager Integration Tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Load Settings on Mount', () => {

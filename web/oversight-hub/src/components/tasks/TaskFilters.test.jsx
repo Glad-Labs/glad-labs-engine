@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
+
 import TaskFilters from './TaskFilters';
 
 describe('TaskFilters Component', () => {
@@ -14,14 +14,14 @@ describe('TaskFilters Component', () => {
     sortBy: 'created_at',
     sortDirection: 'desc',
     statusFilter: '',
-    onSortChange: jest.fn(),
-    onDirectionChange: jest.fn(),
-    onStatusChange: jest.fn(),
-    onResetFilters: jest.fn(),
+    onSortChange: vi.fn(),
+    onDirectionChange: vi.fn(),
+    onStatusChange: vi.fn(),
+    onResetFilters: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Rendering', () => {
@@ -229,7 +229,7 @@ describe('TaskFilters Component', () => {
           sortBy="created_at"
           sortDirection="desc"
           statusFilter=""
-          onResetFilters={jest.fn()}
+          onResetFilters={vi.fn()}
         />
       );
 
@@ -254,7 +254,7 @@ describe('TaskFilters Component', () => {
       fireEvent.click(screen.getByText('Name'));
       expect(defaultProps.onSortChange).toHaveBeenCalledWith('name');
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       // Change direction
       rerender(<TaskFilters {...defaultProps} sortBy="name" />);
@@ -263,7 +263,7 @@ describe('TaskFilters Component', () => {
       fireEvent.click(screen.getByText('Ascending'));
       expect(defaultProps.onDirectionChange).toHaveBeenCalledWith('asc');
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       // Change status
       rerender(
@@ -284,7 +284,7 @@ describe('TaskFilters Component', () => {
     });
 
     it('should use default prop values', () => {
-      const { container } = render(<TaskFilters onSortChange={jest.fn()} />);
+      const { container } = render(<TaskFilters onSortChange={vi.fn()} />);
 
       expect(
         container.querySelector('[value="created_at"]')

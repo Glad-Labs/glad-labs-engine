@@ -44,7 +44,8 @@ test.describe('UI/Backend Integration Tests', () => {
 
   test('Can fetch tasks from backend', async ({ apiClient }) => {
     const tasks = await apiClient.get('/api/tasks');
-    expect(Array.isArray(tasks) || tasks.data).toBeTruthy();
+    // API returns {tasks: [...], total: N, offset: N, limit: N}
+    expect(Array.isArray(tasks) || tasks?.tasks || tasks?.data).toBeTruthy();
   });
 
   test('Can create task via API', async ({ apiClient, database }) => {

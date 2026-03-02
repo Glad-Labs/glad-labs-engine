@@ -330,3 +330,137 @@ const formValidation = {
 };
 
 export default formValidation;
+
+// ============================================================================
+// Additional utility validators (named exports for direct use)
+// ============================================================================
+
+/** Strict email-only validator (does not accept bare usernames) */
+export const isValidEmail = (email) => {
+  if (!email || typeof email !== 'string') return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+/** Strong password: >= 8 chars, uppercase, lowercase, number, special char */
+export const isStrongPassword = (password) => {
+  if (!password || typeof password !== 'string') return false;
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+  );
+};
+
+/** Returns a validator that checks string length >= n */
+export const minLength = (n) => (value) =>
+  typeof value === 'string' && value.length >= n;
+
+/** Returns a validator that checks string length <= n */
+export const maxLength = (n) => (value) =>
+  typeof value === 'string' && value.length <= n;
+
+/** Only alphanumeric characters (no spaces, underscores, hyphens, etc.) */
+export const alphanumericOnly = (str) =>
+  typeof str === 'string' && /^[A-Za-z0-9]+$/.test(str);
+
+/** Validates URL with http/https protocol */
+export const urlValidation = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+/** Alias for urlValidation */
+export const isValidURL = urlValidation;
+
+/** Validates US phone numbers: 10 digits, optional formatting */
+export const phoneValidation = (phone) => {
+  if (!phone || typeof phone !== 'string') return false;
+  const cleaned = phone.replace(/[\s\-().]/g, '');
+  return /^\d{10}$/.test(cleaned);
+};
+
+/** Luhn algorithm credit card validator */
+export const creditCardValidation = (number) => {
+  if (!number || typeof number !== 'string') return false;
+  const digits = number.replace(/\D/g, '');
+  if (digits.length < 13 || digits.length > 19) return false;
+  let sum = 0;
+  let shouldDouble = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = parseInt(digits[i], 10);
+    if (shouldDouble) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+  return sum % 10 === 0;
+};
+
+/** Validates date string in YYYY-MM-DD format */
+export const isValidDate = (dateStr) => {
+  if (!dateStr || typeof dateStr !== 'string') return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return false;
+  // Verify month/day are valid (Date constructor wraps invalid dates)
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() + 1 === month &&
+    date.getUTCDate() === day
+  );
+};
+
+/** Validates US ZIP code: 5 digits or 5+4 format */
+export const validateUSZipCode = (zip) => {
+  if (!zip || typeof zip !== 'string') return false;
+  return /^\d{5}(-\d{4})?$/.test(zip);
+};
+
+/** Analyzes password strength, returns {score: 0-4, feedback: string[]} */
+export const passwordStrength = (password) => {
+  if (!password || typeof password !== 'string') {
+    return { score: 0, feedback: ['Password is required'] };
+  }
+  const feedback = [];
+  let score = 0;
+  if (password.length >= 8) score++;
+  else feedback.push('Use at least 8 characters');
+  if (/[A-Z]/.test(password)) score++;
+  else feedback.push('Add uppercase letters');
+  if (/[0-9]/.test(password)) score++;
+  else feedback.push('Add numbers');
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  else feedback.push('Add special characters');
+  return { score, feedback };
+};
+
+/** Converts text to URL-friendly slug */
+export const slugify = (str) => {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove non-alphanumeric (except spaces/hyphens)
+    .trim()
+    .replace(/[\s-]+/g, '-') // Replace spaces and hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+};
+
+/** Validates task title: 3-255 chars, allows common punctuation */
+export const validateTaskTitle = (title) => {
+  if (!title || typeof title !== 'string') return false;
+  const trimmed = title.trim();
+  return trimmed.length >= 3 && trimmed.length <= 255;
+};

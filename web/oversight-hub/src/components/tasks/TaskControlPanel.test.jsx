@@ -1,19 +1,19 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import TaskControlPanel from '../TaskControlPanel';
+import TaskControlPanel from './TaskControlPanel';
 import * as taskService from '../../../services/taskService';
 
 // Mock the service
-jest.mock('../../../services/taskService');
+vi.mock('../../../services/taskService');
 
 // Mock Zustand store
-jest.mock('../../../store/useStore', () => {
-  return jest.fn(() => ({
+vi.mock('../../../store/useStore', () => {
+  return vi.fn(() => ({
     taskActionLoading: {},
     taskActionError: {},
-    setTaskActionLoading: jest.fn(),
-    setTaskActionError: jest.fn(),
-    clearTaskAction: jest.fn(),
+    setTaskActionLoading: vi.fn(),
+    setTaskActionError: vi.fn(),
+    clearTaskAction: vi.fn(),
   }));
 });
 
@@ -24,10 +24,10 @@ describe('TaskControlPanel Component', () => {
     name: 'Test Task',
   };
 
-  const mockOnTaskUpdated = jest.fn();
+  const mockOnTaskUpdated = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders Pause button when task is in_progress', () => {
@@ -163,9 +163,9 @@ describe('TaskControlPanel Component', () => {
     jest.requireMock('../../../store/useStore').mockReturnValue({
       taskActionLoading: { 'task-123': true },
       taskActionError: {},
-      setTaskActionLoading: jest.fn(),
-      setTaskActionError: jest.fn(),
-      clearTaskAction: jest.fn(),
+      setTaskActionLoading: vi.fn(),
+      setTaskActionError: vi.fn(),
+      clearTaskAction: vi.fn(),
     });
 
     render(

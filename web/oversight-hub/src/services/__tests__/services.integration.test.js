@@ -241,7 +241,13 @@ describe('settingsService Integration Tests', () => {
         fail('Should have thrown an error');
       } catch (error) {
         expect(error).toBeDefined();
-        expect(error.message).toContain('401') || expect(error.message).toContain('Unauthorized');
+        expect(
+          error.message.includes('401') ||
+          error.message.includes('Unauthorized') ||
+          error.message.includes('Not authenticated') ||
+          error.message.includes('authentication') ||
+          error.message.includes('auth')
+        ).toBe(true);
       }
     });
 

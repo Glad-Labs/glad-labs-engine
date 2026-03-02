@@ -2,12 +2,12 @@ import { logError, logErrorToBackend, logErrorToSentry } from '../errorLoggingSe
 import * as cofounderAgentClient from '../cofounderAgentClient';
 
 // Mock cofounderAgentClient
-jest.mock('../cofounderAgentClient');
+vi.mock('../cofounderAgentClient');
 
 describe('errorLoggingService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    console.error = jest.fn();
+    vi.clearAllMocks();
+    console.error = vi.fn();
   });
 
   describe('logErrorToBackend', () => {
@@ -94,7 +94,7 @@ describe('errorLoggingService', () => {
 
   describe('logErrorToSentry', () => {
     test('sends error to Sentry if available', () => {
-      const mockCapture = jest.fn();
+      const mockCapture = vi.fn();
       window.__SENTRY__ = { captureException: mockCapture };
 
       const mockError = new Error('Test error');
@@ -127,7 +127,7 @@ describe('errorLoggingService', () => {
     });
 
     test('includes custom context when sending to Sentry', () => {
-      const mockCapture = jest.fn();
+      const mockCapture = vi.fn();
       window.__SENTRY__ = { captureException: mockCapture };
 
       const mockError = new Error('Test error');
@@ -150,7 +150,7 @@ describe('errorLoggingService', () => {
 
   describe('logError', () => {
     test('calls both Sentry and backend logging', async () => {
-      const mockCapture = jest.fn();
+      const mockCapture = vi.fn();
       window.__SENTRY__ = { captureException: mockCapture };
       cofounderAgentClient.makeRequest.mockResolvedValue({ success: true });
 
@@ -168,7 +168,7 @@ describe('errorLoggingService', () => {
     });
 
     test('continues even if Sentry fails', async () => {
-      const mockCapture = jest.fn(() => {
+      const mockCapture = vi.fn(() => {
         throw new Error('Sentry failed');
       });
       window.__SENTRY__ = { captureException: mockCapture };
@@ -185,7 +185,7 @@ describe('errorLoggingService', () => {
     });
 
     test('continues even if backend fails', async () => {
-      const mockCapture = jest.fn();
+      const mockCapture = vi.fn();
       window.__SENTRY__ = { captureException: mockCapture };
       cofounderAgentClient.makeRequest.mockRejectedValue(
         new Error('Backend failed')

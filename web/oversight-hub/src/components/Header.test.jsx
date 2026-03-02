@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
+
 import Header from './Header';
 
 test('renders header and handles button clicks', () => {
-  const handleNewTask = jest.fn();
-  const handleIntervene = jest.fn();
+  const handleNewTask = vi.fn();
+  const handleIntervene = vi.fn();
 
   render(<Header onNewTask={handleNewTask} onIntervene={handleIntervene} />);
 

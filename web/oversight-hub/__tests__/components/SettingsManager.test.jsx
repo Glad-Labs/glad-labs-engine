@@ -13,7 +13,7 @@ import SettingsManager from '../../src/components/SettingsManager';
 /* eslint-enable no-unused-vars */
 
 // Mock Material-UI components if needed
-jest.mock('@mui/material', () => ({
+vi.mock('@mui/material', () => ({
   ...jest.requireActual('@mui/material'),
 }));
 
@@ -242,8 +242,8 @@ describe('SettingsManager Component', () => {
 
   describe('API Integration', () => {
     test('calls API when saving settings', async () => {
-      const mockSaveSettings = jest.fn().mockResolvedValue({ success: true });
-      jest.mock('../../src/api/settingsApi', () => ({
+      const mockSaveSettings = vi.fn().mockResolvedValue({ success: true });
+      vi.mock('../../src/api/settingsApi', () => ({
         saveSettings: mockSaveSettings,
       }));
 

@@ -47,6 +47,8 @@ class APIClient {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        // Dev auth token - accepted by TokenValidationMiddleware and get_current_user
+        'Authorization': 'Bearer dev-token',
         ...options?.headers,
       },
     };
@@ -183,9 +185,11 @@ class DatabaseUtils {
    */
   async createTestTask(data?: any) {
     return this.apiClient.post('/api/tasks', {
-      title: 'Test Task',
-      description: 'Automated test task',
-      status: 'pending',
+      task_name: 'Test Task',
+      topic: 'Automated test topic for E2E testing',
+      primary_keyword: 'testing',
+      target_audience: 'Developers',
+      category: 'general',
       ...data,
     });
   }

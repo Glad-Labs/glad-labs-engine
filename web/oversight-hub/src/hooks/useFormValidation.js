@@ -234,10 +234,35 @@ export const useFormValidation = ({
   }, []);
 
   /**
-   * Reset form to initial values
+   * Set a general (non-field-specific) error
    */
-  const reset = useCallback(() => {
-    setValues(initialValues);
+  const setGeneralError = useCallback((message) => {
+    setErrors((prev) => ({ ...prev, general: message }));
+  }, []);
+
+  /**
+   * Clear all form errors
+   */
+  const clearErrors = useCallback(() => {
+    setErrors({});
+  }, []);
+
+  /**
+   * Clear a specific field error
+   */
+  const clearFieldError = useCallback((fieldName) => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[fieldName];
+      return next;
+    });
+  }, []);
+
+  /**
+   * Reset form to initial values (or custom values if provided)
+   */
+  const reset = useCallback((customValues) => {
+    setValues(customValues || initialValues);
     setErrors({});
     setTouched({});
     setIsSubmitting(false);
@@ -265,9 +290,21 @@ export const useFormValidation = ({
     (fieldName) => {
       return {
         name: fieldName,
-        value: values[fieldName] || '',
-        onChange: handleChange,
-        onBlur: handleBlur,
+        value: values[fieldName] !== undefined ? values[fieldName] : '',
+        onChange: (e) => {
+          // Inject fieldName; preserve checkbox type so handleChange detects it
+          const target = { name: fieldName, ...e.target };
+          if (typeof e.target.checked === 'boolean' && !target.type) {
+            target.type = 'checkbox';
+          }
+          handleChange({ ...e, target });
+        },
+        onBlur: (e) => {
+          // Works with or without an event argument
+          const event =
+            e && e.target ? e : { target: { name: fieldName } };
+          handleBlur({ ...event, target: { name: fieldName, ...event.target } });
+        },
         error: touched[fieldName] && !!errors[fieldName],
         helperText: touched[fieldName] && errors[fieldName],
       };
@@ -289,6 +326,9 @@ export const useFormValidation = ({
     handleSubmit,
     setFieldValue,
     setFieldError,
+    setGeneralError,
+    clearErrors,
+    clearFieldError,
     reset,
     setValues: setAllValues,
     setErrors: setAllErrors,

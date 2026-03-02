@@ -4,11 +4,11 @@ import ModelPreferences from './ModelPreferences';
 import * as settingsService from '../../services/settingsService';
 
 // Mock the settings service
-jest.mock('../../services/settingsService');
+vi.mock('../../services/settingsService');
 
 describe('ModelPreferences Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders the component with title', () => {

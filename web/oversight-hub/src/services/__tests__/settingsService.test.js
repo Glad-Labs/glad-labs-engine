@@ -9,11 +9,11 @@ import {
 import * as cofounderAgentClient from '../cofounderAgentClient';
 
 // Mock cofounderAgentClient
-jest.mock('../cofounderAgentClient');
+vi.mock('../cofounderAgentClient');
 
 describe('settingsService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('listSettings', () => {
@@ -203,7 +203,7 @@ describe('settingsService', () => {
     });
 
     test('logs warning when setting not found', async () => {
-      console.warn = jest.fn();
+      console.warn = vi.fn();
 
       cofounderAgentClient.makeRequest.mockRejectedValue(
         new Error('Not found')

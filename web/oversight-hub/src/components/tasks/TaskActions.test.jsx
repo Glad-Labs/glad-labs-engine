@@ -7,7 +7,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import '@testing-library/jest-dom';
+
 import TaskActions from './TaskActions';
 
 describe('TaskActions Component', () => {
@@ -20,14 +20,14 @@ describe('TaskActions Component', () => {
   const defaultProps = {
     selectedTask: mockTask,
     isLoading: false,
-    onApprove: jest.fn(),
-    onReject: jest.fn(),
-    onDelete: jest.fn(),
-    onClose: jest.fn(),
+    onApprove: vi.fn(),
+    onReject: vi.fn(),
+    onDelete: vi.fn(),
+    onClose: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Component Rendering', () => {
@@ -281,7 +281,7 @@ describe('TaskActions Component', () => {
       expect(defaultProps.onApprove).toHaveBeenCalledTimes(1);
 
       // Clear for next action test
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       await defaultProps.onReject(mockTask.id, 'reason');
       expect(defaultProps.onReject).toHaveBeenCalledTimes(1);
@@ -307,10 +307,10 @@ describe('TaskActions Component', () => {
       const { container } = render(
         <TaskActions
           selectedTask={mockTask}
-          onApprove={jest.fn()}
-          onReject={jest.fn()}
-          onDelete={jest.fn()}
-          onClose={jest.fn()}
+          onApprove={vi.fn()}
+          onReject={vi.fn()}
+          onDelete={vi.fn()}
+          onClose={vi.fn()}
         />
       );
 
