@@ -175,3 +175,73 @@ export async function getPostsByCategory(
     };
   }
 }
+
+/**
+ * Fetch all published posts sorted by published_at (newest first)
+ * Used for navigation and discovery features
+ */
+export async function getAllPublishedPosts(): Promise<Post[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/posts?published_only=true&limit=1000`,
+      {
+        next: { revalidate: 3600 }, // ISR: revalidate every hour
+      }
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    const posts = data.data || data.items || [];
+
+    // Sort by published_at descending (newest first)
+    return posts.sort(
+      (a: Post, b: Post) =>
+        new Date((b.published_at || b.created_at)).getTime() -
+        new Date((a.published_at || a.created_at)).getTime()
+    );
+  } catch (error) {
+    console.error('Error fetching all published posts:', error);
+    return [];
+  }
+}
+
+/**
+ * Get the next post in chronological order (older post)
+ */
+export async function getNextPost(currentSlug: string): Promise<Post | null> {
+  try {
+    const allPosts = await getAllPublishedPosts();
+    const currentIndex = allPosts.findIndex((p) => p.slug === currentSlug);
+
+    if (currentIndex === -1 || currentIndex === allPosts.length - 1) {
+      return null; // No next post
+    }
+
+    return allPosts[currentIndex + 1];
+  } catch (error) {
+    console.error('Error fetching next post:', error);
+    return null;
+  }
+}
+
+/**
+ * Get the previous post in chronological order (newer post)
+ */
+export async function getPreviousPost(currentSlug: string): Promise<Post | null> {
+  try {
+    const allPosts = await getAllPublishedPosts();
+    const currentIndex = allPosts.findIndex((p) => p.slug === currentSlug);
+
+    if (currentIndex <= 0) {
+      return null; // No previous post
+    }
+
+    return allPosts[currentIndex - 1];
+  } catch (error) {
+    console.error('Error fetching previous post:', error);
+    return null;
+  }
+}

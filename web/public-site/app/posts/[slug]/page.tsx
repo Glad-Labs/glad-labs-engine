@@ -8,11 +8,17 @@ import {
 } from '../../../components/StructuredData';
 import { generateBlogPostingSchema } from '../../../lib/structured-data';
 import { GiscusWrapper } from '../../../components/GiscusWrapper';
+import { PostMetadata } from '../../../components/PostMetadata';
+import { PostNavigation } from '../../../components/PostNavigation';
+import { TableOfContents } from '../../../components/TableOfContents';
+import { RelatedPosts } from '../../../components/RelatedPosts';
 import {
   buildMetaDescription,
   buildSEOTitle,
   generateCanonicalURL,
 } from '../../../lib/seo';
+import { generateTableOfContents } from '../../../lib/content-utils';
+import { getPreviousPost, getNextPost, getRelatedPosts } from '../../../lib/posts';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -145,6 +151,21 @@ export default async function PostPage({
   const imageUrl = post.cover_image_url || post.featured_image_url;
   const publishDate = post.published_at || post.created_at;
 
+  // Fetch previous and next posts for navigation
+  const [previousPost, nextPost] = await Promise.all([
+    getPreviousPost(slug),
+    getNextPost(slug),
+  ]);
+
+  // Fetch related posts (by category if available)
+  let relatedPosts = [];
+  if (post.category_id) {
+    relatedPosts = await getRelatedPosts(post.category_id, post.id, 3);
+  }
+
+  // Generate table of contents from post content
+  const toc = generateTableOfContents(post.content);
+
   const breadcrumbs = [
     { label: 'Home', url: '/' },
     { label: 'Articles', url: '/archive/1' },
@@ -210,17 +231,13 @@ export default async function PostPage({
               </h1>
 
               {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-4 text-slate-400 mb-8">
-                <time dateTime={post.published_at || post.created_at}>
-                  {publishDate}
-                </time>
-                {post.view_count > 0 && (
-                  <>
-                    <span>•</span>
-                    <span>{post.view_count} views</span>
-                  </>
-                )}
-              </div>
+              <PostMetadata
+                publishedAt={post.published_at}
+                createdAt={post.created_at}
+                content={post.content}
+                viewCount={post.view_count}
+              />
+              <div className="mb-8"></div>
 
               {/* Excerpt */}
               {post.excerpt && (
@@ -235,6 +252,8 @@ export default async function PostPage({
         {/* Article Content */}
         <div className="px-4 sm:px-6 lg:px-8 pb-20">
           <div className="max-w-4xl mx-auto">
+            {/* Table of Contents */}
+            {toc && <TableOfContents headings={toc} />}
             <article
               className="prose prose-invert max-w-none
                        prose-headings:font-bold
@@ -260,27 +279,7 @@ export default async function PostPage({
             </article>
 
             {/* Bottom Navigation */}
-            <div className="mt-12 pt-8 border-t border-slate-700">
-              <Link
-                href="/archive/1"
-                className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                Back to Archive
-              </Link>
-            </div>
+            <PostNavigation previousPost={previousPost} nextPost={nextPost} />
           </div>
         </div>
 
@@ -290,6 +289,37 @@ export default async function PostPage({
             <p className="text-slate-400 text-sm">Advertisement</p>
           </div>
         </div>
+
+        {/* Related Posts */}
+        {relatedPosts && relatedPosts.length > 0 && (
+          <div className="px-4 sm:px-6 lg:px-8 pb-16">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl font-bold text-white mb-8">Related Articles</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedPosts.map((relatedPost) => (
+                  <Link
+                    key={relatedPost.id}
+                    href={`/posts/${relatedPost.slug}`}
+                    className="group p-4 rounded-lg border border-slate-700 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors line-clamp-2 mb-2">
+                      {relatedPost.title}
+                    </h3>
+                    {relatedPost.published_at && (
+                      <div className="text-xs text-slate-400">
+                        {new Date(relatedPost.published_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Comments Section */}
         <div className="px-4 sm:px-6 lg:px-8 pb-20 bg-slate-800/30">

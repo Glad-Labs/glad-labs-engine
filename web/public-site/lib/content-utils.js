@@ -323,3 +323,23 @@ export function getInitials(name) {
     .toUpperCase()
     .substring(0, 2);
 }
+
+/**
+ * Strip HTML tags from content
+ * Used for word counting and plain text extraction
+ */
+export function stripHtmlTags(html) {
+  if (!html || typeof html !== 'string') {
+    return '';
+  }
+
+  return html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+    .replace(/&amp;/g, '&') // Replace HTML entities
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
