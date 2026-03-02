@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     // Forward to backend API
     const response = await fetch(
-      `${API_BASE}/api/posts?skip=${skip}&limit=${limit}&status=${status}`,
+      `${API_BASE}/api/posts?skip=${skip}&limit=${limit}&published_only=${status === 'published'}`,
       {
         next: { revalidate: 3600 }, // ISR: revalidate every hour
       }
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
 
     return NextResponse.json({
-      items: data.items || data || [],
-      total: data.total || (Array.isArray(data) ? data.length : 0),
+      items: data.data || data.items || [],
+      total: data.meta?.pagination?.total || data.total || 0,
     });
   } catch (error) {
     console.error('Error in posts API route:', error);
