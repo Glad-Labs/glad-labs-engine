@@ -32,7 +32,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between mb-4 hover:text-cyan-400 transition-colors"
       >
-        <h3 className="text-lg font-semibold text-cyan-400">Table of Contents</h3>
+        <h3 className="text-lg font-semibold text-cyan-400">
+          Table of Contents
+        </h3>
         <svg
           className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"

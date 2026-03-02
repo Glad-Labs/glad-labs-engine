@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Post } from '@/lib/posts';
+import { Post } from '../lib/posts';
 
 interface PostNavigationProps {
   previousPost: Post | null;

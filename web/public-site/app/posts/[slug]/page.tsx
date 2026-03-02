@@ -7,11 +7,12 @@ import {
   BreadcrumbSchema,
 } from '../../../components/StructuredData';
 import { generateBlogPostingSchema } from '../../../lib/structured-data';
+import { AuthorCard } from '../../../components/AuthorCard';
 import { GiscusWrapper } from '../../../components/GiscusWrapper';
 import { PostMetadata } from '../../../components/PostMetadata';
 import { PostNavigation } from '../../../components/PostNavigation';
+import { ShareButtons } from '../../../components/ShareButtons';
 import { TableOfContents } from '../../../components/TableOfContents';
-import { RelatedPosts } from '../../../components/RelatedPosts';
 import {
   buildMetaDescription,
   buildSEOTitle,
@@ -158,7 +159,7 @@ export default async function PostPage({
   ]);
 
   // Fetch related posts (by category if available)
-  let relatedPosts = [];
+  let relatedPosts: Post[] = [];
   if (post.category_id) {
     relatedPosts = await getRelatedPosts(post.category_id, post.id, 3);
   }
@@ -237,6 +238,15 @@ export default async function PostPage({
                 content={post.content}
                 viewCount={post.view_count}
               />
+              <div className="mb-4"></div>
+
+              {/* Share Buttons */}
+              <ShareButtons
+                title={post.seo_title || post.title}
+                description={post.seo_description || post.excerpt}
+                slug={post.slug}
+                siteUrl={SITE_URL}
+              />
               <div className="mb-8"></div>
 
               {/* Excerpt */}
@@ -277,6 +287,9 @@ export default async function PostPage({
                 }}
               />
             </article>
+
+            {/* Author Card */}
+            <AuthorCard authorId={post.author_id} authorName={post.title} />
 
             {/* Bottom Navigation */}
             <PostNavigation previousPost={previousPost} nextPost={nextPost} />
