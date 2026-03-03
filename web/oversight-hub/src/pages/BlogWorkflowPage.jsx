@@ -63,6 +63,7 @@ function BlogWorkflowPage() {
     tone: 'professional',
     target_length: 1500,
   });
+  const [selectedModel, setSelectedModel] = useState('ollama-mistral');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [executionId, setExecutionId] = useState(null);
@@ -132,6 +133,7 @@ function BlogWorkflowPage() {
         style: workflowConfig.style,
         tone: workflowConfig.tone,
         target_length: workflowConfig.target_length,
+        model: selectedModel, // ADD MODEL TO METADATA
       },
     };
   };
@@ -236,7 +238,11 @@ function BlogWorkflowPage() {
         Blog Post Workflow Builder
       </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
         <Step>
@@ -318,13 +324,17 @@ function BlogWorkflowPage() {
                   <FormLabel>Content Style</FormLabel>
                   <Select
                     value={workflowConfig.style}
-                    onChange={(e) => handleConfigChange('style', e.target.value)}
+                    onChange={(e) =>
+                      handleConfigChange('style', e.target.value)
+                    }
                   >
                     <MenuItem value="balanced">Balanced</MenuItem>
                     <MenuItem value="technical">Technical</MenuItem>
                     <MenuItem value="narrative">Narrative</MenuItem>
                     <MenuItem value="listicle">Listicle</MenuItem>
-                    <MenuItem value="thought-leadership">Thought Leadership</MenuItem>
+                    <MenuItem value="thought-leadership">
+                      Thought Leadership
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -343,12 +353,37 @@ function BlogWorkflowPage() {
                 </FormControl>
               </Grid>
               <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <FormLabel>LLM Model</FormLabel>
+                  <Select
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                  >
+                    <MenuItem value="ollama-mistral">
+                      Ollama Mistral (Local)
+                    </MenuItem>
+                    <MenuItem value="gpt-4-turbo">
+                      GPT-4 Turbo (OpenAI)
+                    </MenuItem>
+                    <MenuItem value="claude-opus">
+                      Claude Opus (Anthropic)
+                    </MenuItem>
+                    <MenuItem value="gemini-pro">Gemini Pro (Google)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type="number"
                   label="Target Word Count"
                   value={workflowConfig.target_length}
-                  onChange={(e) => handleConfigChange('target_length', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    handleConfigChange(
+                      'target_length',
+                      parseInt(e.target.value)
+                    )
+                  }
                   inputProps={{ min: 500, max: 5000, step: 100 }}
                 />
               </Grid>
@@ -384,10 +419,17 @@ function BlogWorkflowPage() {
                     <strong>Topic:</strong> {workflowConfig.topic}
                   </Typography>
                   <Typography variant="caption">
-                    <strong>Phases:</strong> {Object.keys(selectedPhases).filter((p) => selectedPhases[p]).length} selected
+                    <strong>Phases:</strong>{' '}
+                    {
+                      Object.keys(selectedPhases).filter(
+                        (p) => selectedPhases[p]
+                      ).length
+                    }{' '}
+                    selected
                   </Typography>
                   <Typography variant="caption">
-                    <strong>Style:</strong> {workflowConfig.style} | <strong>Tone:</strong> {workflowConfig.tone}
+                    <strong>Style:</strong> {workflowConfig.style} |{' '}
+                    <strong>Tone:</strong> {workflowConfig.tone}
                   </Typography>
                 </Stack>
                 <Button
@@ -409,7 +451,13 @@ function BlogWorkflowPage() {
                   <Stack spacing={2}>
                     <Box>
                       <Typography variant="caption">
-                        Status: <Chip label={executionProgress.status} size="small" color={getStatusColor(executionProgress.status)} variant="outlined" />
+                        Status:{' '}
+                        <Chip
+                          label={executionProgress.status}
+                          size="small"
+                          color={getStatusColor(executionProgress.status)}
+                          variant="outlined"
+                        />
                       </Typography>
                     </Box>
                     <Box>
@@ -419,7 +467,9 @@ function BlogWorkflowPage() {
                         value={executionProgress.progress_percent || 0}
                       />
                       <Typography variant="caption" color="text.secondary">
-                        {executionProgress.phase_name} ({executionProgress.current_phase} / {executionProgress.total_phases})
+                        {executionProgress.phase_name} (
+                        {executionProgress.current_phase} /{' '}
+                        {executionProgress.total_phases})
                       </Typography>
                     </Box>
                   </Stack>
@@ -452,7 +502,11 @@ function BlogWorkflowPage() {
               {executionResults ? (
                 <Stack spacing={2}>
                   <Typography variant="subtitle2">
-                    Status: <Chip label={executionResults.status || 'completed'} color="success" />
+                    Status:{' '}
+                    <Chip
+                      label={executionResults.status || 'completed'}
+                      color="success"
+                    />
                   </Typography>
 
                   {/* Display phase results */}
@@ -464,13 +518,21 @@ function BlogWorkflowPage() {
                           <Table size="small">
                             <TableHead>
                               <TableRow>
-                                <TableCell><strong>Phase</strong></TableCell>
-                                <TableCell><strong>Status</strong></TableCell>
-                                <TableCell><strong>Duration</strong></TableCell>
+                                <TableCell>
+                                  <strong>Phase</strong>
+                                </TableCell>
+                                <TableCell>
+                                  <strong>Status</strong>
+                                </TableCell>
+                                <TableCell>
+                                  <strong>Duration</strong>
+                                </TableCell>
                               </TableRow>
                             </TableHead>
                             <TableBody>
-                              {Object.entries(executionResults.phase_results).map(([phaseName, result]) => (
+                              {Object.entries(
+                                executionResults.phase_results
+                              ).map(([phaseName, result]) => (
                                 <TableRow key={phaseName}>
                                   <TableCell>{phaseName}</TableCell>
                                   <TableCell>
@@ -480,7 +542,9 @@ function BlogWorkflowPage() {
                                       color={getStatusColor(result.status)}
                                     />
                                   </TableCell>
-                                  <TableCell>{result.execution_time_ms || '-'} ms</TableCell>
+                                  <TableCell>
+                                    {result.execution_time_ms || '-'} ms
+                                  </TableCell>
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -491,7 +555,8 @@ function BlogWorkflowPage() {
                   )}
 
                   {/* Display blog post link if created */}
-                  {executionResults.phase_results?.blog_create_post?.output?.url && (
+                  {executionResults.phase_results?.blog_create_post?.output
+                    ?.url && (
                     <Card variant="outlined" sx={{ bgcolor: '#e8f5e9' }}>
                       <CardContent>
                         <Typography variant="subtitle2" color="success.main">
@@ -499,7 +564,10 @@ function BlogWorkflowPage() {
                         </Typography>
                         <Button
                           variant="text"
-                          href={executionResults.phase_results.blog_create_post.output.url}
+                          href={
+                            executionResults.phase_results.blog_create_post
+                              .output.url
+                          }
                           target="_blank"
                         >
                           View Post
@@ -535,20 +603,34 @@ function BlogWorkflowPage() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell><strong>Date</strong></TableCell>
-                    <TableCell><strong>Workflow</strong></TableCell>
-                    <TableCell><strong>Status</strong></TableCell>
-                    <TableCell><strong>Duration</strong></TableCell>
-                    <TableCell><strong>Actions</strong></TableCell>
+                    <TableCell>
+                      <strong>Date</strong>
+                    </TableCell>
+                    <TableCell>
+                      <strong>Workflow</strong>
+                    </TableCell>
+                    <TableCell>
+                      <strong>Status</strong>
+                    </TableCell>
+                    <TableCell>
+                      <strong>Duration</strong>
+                    </TableCell>
+                    <TableCell>
+                      <strong>Actions</strong>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {workflowHistory.map((execution) => (
                     <TableRow key={execution.id || execution.execution_id}>
                       <TableCell>
-                        {new Date(execution.created_at || execution.timestamp).toLocaleDateString()}
+                        {new Date(
+                          execution.created_at || execution.timestamp
+                        ).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>{execution.name || 'Blog Post Workflow'}</TableCell>
+                      <TableCell>
+                        {execution.name || 'Blog Post Workflow'}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={execution.status}
@@ -556,7 +638,11 @@ function BlogWorkflowPage() {
                           color={getStatusColor(execution.status)}
                         />
                       </TableCell>
-                      <TableCell>{execution.duration_ms ? `${Math.round(execution.duration_ms / 1000)}s` : '-'}</TableCell>
+                      <TableCell>
+                        {execution.duration_ms
+                          ? `${Math.round(execution.duration_ms / 1000)}s`
+                          : '-'}
+                      </TableCell>
                       <TableCell>
                         <Button size="small" variant="text">
                           View Details
