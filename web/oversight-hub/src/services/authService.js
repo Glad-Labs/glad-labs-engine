@@ -7,6 +7,27 @@ import { getApiUrl } from '../config/apiConfig';
 
 const API_BASE_URL = getApiUrl();
 
+const getEnv = (...keys) => {
+  const viteEnv =
+    typeof import.meta !== 'undefined' && import.meta.env
+      ? import.meta.env
+      : {};
+  const procEnv =
+    typeof process !== 'undefined' && process.env ? process.env : {};
+
+  for (const key of keys) {
+    if (viteEnv[key] !== undefined && viteEnv[key] !== '') return viteEnv[key];
+    if (procEnv[key] !== undefined && procEnv[key] !== '') return procEnv[key];
+  }
+  return undefined;
+};
+
+const isMockAuthEnabled = () =>
+  getEnv('VITE_USE_MOCK_AUTH', 'REACT_APP_USE_MOCK_AUTH') === 'true';
+
+const isMockCode = (code) =>
+  typeof code === 'string' && code.startsWith('mock_auth_code_');
+
 /**
  * Generate GitHub OAuth authorization URL
  * @param {string} clientId - GitHub OAuth Client ID
@@ -30,6 +51,15 @@ export const generateGitHubAuthURL = (clientId) => {
  */
 export const exchangeCodeForToken = async (code) => {
   try {
+    if (isMockCode(code)) {
+      if (!isMockAuthEnabled()) {
+        throw new Error('Mock auth code received but mock auth is disabled');
+      }
+
+      const mockAuth = await import('./mockAuthService');
+      return await mockAuth.exchangeCodeForToken(code);
+    }
+
     // Real GitHub OAuth
     const state = sessionStorage.getItem('oauth_state');
     if (!state) {
@@ -51,8 +81,14 @@ export const exchangeCodeForToken = async (code) => {
 
     const data = await response.json();
 
+    // Store user profile
     if (data.user) {
       localStorage.setItem('user', JSON.stringify(data.user));
+    }
+
+    // Store JWT token if provided by backend
+    if (data.token) {
+      localStorage.setItem('auth_token', data.token);
     }
 
     return data;
@@ -91,11 +127,13 @@ export const logout = async () => {
 
     // Clear client-side profile cache regardless of API response
     localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
     sessionStorage.removeItem('oauth_state');
   } catch (error) {
     console.error('Error during logout:', error);
     // Still clear local cache even if API call fails
     localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
   }
 };
 
@@ -154,7 +192,12 @@ export const initializeDevToken = async () => {
       auth_provider: 'mock',
     };
 
+    // Use dev-token format that backend recognizes (bypasses JWT validation)
+    // Backend auth_unified.py accepts tokens starting with "dev-" or equal to "dev-token"
+    const mockToken = 'dev-token';
+
     localStorage.setItem('user', JSON.stringify(mockUser));
+    localStorage.setItem('auth_token', mockToken);
     console.log('[authService] Development profile initialized');
     return null;
   } catch (error) {
@@ -272,6 +315,17 @@ export async function getOAuthLoginURL(provider) {
  */
 export async function handleOAuthCallbackNew(provider, code, state) {
   try {
+    if (isMockCode(code)) {
+      if (!isMockAuthEnabled()) {
+        throw new Error('Mock auth code received but mock auth is disabled');
+      }
+
+      const mockAuth = await import('./mockAuthService');
+      const mockData = await mockAuth.exchangeCodeForToken(code);
+      sessionStorage.removeItem('oauth_state');
+      return mockData;
+    }
+
     // Verify CSRF state
     const storedState = sessionStorage.getItem('oauth_state');
     if (storedState && storedState !== state) {
@@ -294,8 +348,14 @@ export async function handleOAuthCallbackNew(provider, code, state) {
 
     const data = await response.json();
 
+    // Store user profile
     if (data.user) {
       localStorage.setItem('user', JSON.stringify(data.user));
+    }
+
+    // Store JWT token if provided by backend
+    if (data.token) {
+      localStorage.setItem('auth_token', data.token);
     }
 
     // Clear state
@@ -332,9 +392,17 @@ export async function validateAndGetCurrentUser() {
     }
 
     const data = await response.json();
+
+    // Store user profile
     if (data.user) {
       localStorage.setItem('user', JSON.stringify(data.user));
     }
+
+    // Store JWT token if provided
+    if (data.token) {
+      localStorage.setItem('auth_token', data.token);
+    }
+
     return data.user;
   } catch (error) {
     console.error('Error validating user:', error);

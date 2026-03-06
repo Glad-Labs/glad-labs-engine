@@ -65,7 +65,15 @@ function capitalizeWords(str) {
 // API configuration validation - REACT_APP_API_URL should be set in environment
 
 function getAuthHeaders() {
-  return { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json' };
+
+  // Include JWT token if available (from mock auth or real OAuth)
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
 }
 
 export async function makeRequest(

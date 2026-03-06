@@ -75,11 +75,16 @@ export const exchangeCodeForToken = async (code) => {
       avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
     };
 
-    // Store non-sensitive profile only. Session token is cookie-based.
+    // Use dev-token format that backend recognizes (bypasses JWT validation)
+    // Backend auth_unified.py accepts tokens starting with "dev-" or equal to "dev-token"
+    const mockToken = 'dev-token';
+
+    // Store both user profile and auth token
     localStorage.setItem('user', JSON.stringify(mockUser));
+    localStorage.setItem('auth_token', mockToken);
 
     return {
-      token: null,
+      token: mockToken,
       user: mockUser,
     };
   } catch (error) {
@@ -107,5 +112,6 @@ export const verifySession = async () => {
  */
 export const logout = async () => {
   localStorage.removeItem('user');
+  localStorage.removeItem('auth_token');
   sessionStorage.removeItem('mock_auth_code');
 };

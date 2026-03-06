@@ -4,19 +4,39 @@ import { generateGitHubAuthURL } from '../services/authService';
 import useAuth from '../hooks/useAuth';
 import './Login.css';
 
+const getEnv = (...keys) => {
+  const viteEnv =
+    typeof import.meta !== 'undefined' && import.meta.env
+      ? import.meta.env
+      : {};
+  const procEnv =
+    typeof process !== 'undefined' && process.env ? process.env : {};
+
+  for (const key of keys) {
+    if (viteEnv[key] !== undefined && viteEnv[key] !== '') return viteEnv[key];
+    if (procEnv[key] !== undefined && procEnv[key] !== '') return procEnv[key];
+  }
+  return undefined;
+};
+
 const Login = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const clientId = process.env.REACT_APP_GH_OAUTH_CLIENT_ID;
+  const clientId = getEnv(
+    'VITE_GH_OAUTH_CLIENT_ID',
+    'REACT_APP_GH_OAUTH_CLIENT_ID'
+  );
   // Mock auth ONLY allowed in development
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const mode = getEnv('MODE', 'NODE_ENV') || 'development';
+  const isDevelopment = mode === 'development';
   const useMockAuth =
-    isDevelopment && process.env.REACT_APP_USE_MOCK_AUTH === 'true';
+    isDevelopment &&
+    getEnv('VITE_USE_MOCK_AUTH', 'REACT_APP_USE_MOCK_AUTH') === 'true';
   const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     const info = {
-      environment: process.env.NODE_ENV,
+      environment: mode,
       clientId: clientId ? 'Set' : 'NOT SET',
       mockAuth:
         isDevelopment && useMockAuth ? 'ENABLED (DEV ONLY)' : 'DISABLED',
@@ -24,10 +44,13 @@ const Login = () => {
     setDebugInfo(JSON.stringify(info, null, 2));
 
     // Warn if mock auth is enabled in production
-    if (!isDevelopment && process.env.REACT_APP_USE_MOCK_AUTH === 'true') {
+    if (
+      !isDevelopment &&
+      getEnv('VITE_USE_MOCK_AUTH', 'REACT_APP_USE_MOCK_AUTH') === 'true'
+    ) {
       console.error('❌ SECURITY: Mock auth enabled in non-development mode!');
     }
-  }, [clientId, useMockAuth, isDevelopment]);
+  }, [clientId, useMockAuth, isDevelopment, mode]);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/');
