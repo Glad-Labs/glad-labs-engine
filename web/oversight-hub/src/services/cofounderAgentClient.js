@@ -135,16 +135,6 @@ export async function makeRequest(
 
       const result = await response.json().catch(() => response.text());
 
-      // =======================================================================
-      // DEBUGGING: Log the raw API response to diagnose task list issue
-      if (
-        process.env.NODE_ENV === 'development' &&
-        endpoint.startsWith('/api/tasks')
-      ) {
-        console.log('✅ [DEBUG] Raw response from /api/tasks:', result);
-      }
-      // =======================================================================
-
       if (!response.ok) {
         // Extract error message from response
         let errorMessage = `HTTP ${response.status}`;
@@ -191,14 +181,6 @@ export async function makeRequest(
 
       // Collect metric for successful response
       collectMetric(endpoint, method, response.status, duration_ms, false);
-
-      // DEBUGGING: Log the raw API response to diagnose task list issue
-      if (
-        process.env.NODE_ENV === 'development' &&
-        endpoint.startsWith('/api/tasks')
-      ) {
-        console.log('✅ [DEBUG] Raw response from /api/tasks:', result);
-      }
 
       return result;
     } catch (fetchError) {
