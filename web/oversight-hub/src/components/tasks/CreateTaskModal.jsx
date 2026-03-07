@@ -233,6 +233,10 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
         defaultData[field.name] = field.defaultValue;
       }
     });
+    
+    console.log('📝 [CreateTaskModal] Task type selected:', type);
+    console.log('📝 [CreateTaskModal] Default data initialized:', defaultData);
+    
     setFormData(defaultData);
     setSelectedWritingStyleId(null); // Reset writing style when changing task type
     setError(null);
@@ -359,13 +363,20 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           ? { writing_style_id: selectedWritingStyleId }
           : undefined;
 
+        // 🔍 CRITICAL: Don't use fallback defaults - let Pydantic schema handle defaults
+        // If user didn't select style/tone, form validation should have caught it
+        console.log('📤 [CreateTaskModal] Form data before payload:', formData);
+        console.log('📤 [CreateTaskModal] Model selections:', modelSelection);
+
         taskPayload = {
           task_type: 'blog_post',
           task_name: `Blog: ${formData.topic}`,
           topic: formData.topic || '',
           category: 'blog_post',
-          style: formData.style || 'technical',
-          tone: formData.tone || 'professional',
+          // ⚠️ IMPORTANT: Send actual values or undefined, not hardcoded fallbacks
+          // This allows backend Pydantic defaults to apply correctly
+          style: formData.style || undefined,
+          tone: formData.tone || undefined,
           target_length: parseInt(formData.word_count) || 1500,
           generate_featured_image: formData.generate_featured_image !== false,
           tags: formData.keywords
@@ -380,31 +391,40 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           metadata: {
             task_type: 'blog_post',
             task_name: `Blog: ${formData.topic}`,
-            style: formData.style || 'technical',
-            tone: formData.tone || 'professional',
+            style: formData.style,
+            tone: formData.tone,
             word_count: parseInt(formData.word_count) || 1500,
             generate_featured_image: formData.generate_featured_image !== false,
             publish_mode: 'draft',
             writing_style_id: selectedWritingStyleId,
           },
         };
+
+        console.log('📤 [CreateTaskModal] Final payload:', taskPayload);
       } else {
         // Use generic task endpoint for other types
+        // Generic task payload - also remove hardcoded fallbacks
+        console.log('📤 [CreateTaskModal] Generic task - Form data:', formData);
+
         taskPayload = {
           task_type: taskType || 'blog_post',
           topic: formData.topic || formData.description || '',
           category: formData.category || taskType || 'general',
-          style: formData.style || 'narrative',
-          tone: formData.tone || 'professional',
+          // Use undefined instead of hardcoded fallbacks
+          style: formData.style || undefined,
+          tone: formData.tone || undefined,
           models_by_phase: modelSelection.modelSelections || {},
           quality_preference: modelSelection.qualityPreference || 'balanced',
           metadata: {
             task_type: taskType,
             style: formData.style,
+            tone: formData.tone,
             word_count: formData.word_count,
             ...formData, // Include all original form data in metadata
           },
         };
+
+        console.log('📤 [CreateTaskModal] Generic task payload:', taskPayload);
       }
 
       console.log('📤 Creating task:', taskPayload);
