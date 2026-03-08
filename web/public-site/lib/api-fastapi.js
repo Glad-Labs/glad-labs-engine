@@ -127,20 +127,18 @@ export async function getFeaturedPost() {
  */
 export async function getPostBySlug(slug) {
   try {
-    // Fetch all published posts and filter by slug (backend doesn't have /by-slug endpoint)
-    const response = await fetchAPI(`/posts?populate=*&status=published`);
+    const response = await fetchAPI(`/posts/${encodeURIComponent(slug)}`);
+    const post = response?.data;
 
-    if (response.data && Array.isArray(response.data)) {
-      const post = response.data.find((p) => p.slug === slug);
-      if (post) {
-        return {
-          ...post,
-          // Normalize meta fields for compatibility
-          category: post.category || null,
-          tags: post.tags || [],
-        };
-      }
+    if (post) {
+      return {
+        ...post,
+        // Normalize meta fields for compatibility
+        category: post.category || null,
+        tags: post.tags || [],
+      };
     }
+
     return null;
   } catch (error) {
     if (process.env.NODE_ENV !== 'production') {
