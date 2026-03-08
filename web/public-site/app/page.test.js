@@ -24,11 +24,11 @@ global.fetch = jest.fn();
 
 describe('Home Page', () => {
   beforeEach(() => {
-    (fetch as jest.Mock).mockClear();
+    global.fetch.mockClear();
   });
 
   it('should render home page', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ posts: [] }),
     });
@@ -39,7 +39,7 @@ describe('Home Page', () => {
   });
 
   it('should display page title/heading', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ posts: [] }),
     });
@@ -53,25 +53,28 @@ describe('Home Page', () => {
 
   it('should display hero section', () => {
     render(<HomePage />);
-    const heroSection = screen.queryByText(/welcome|hero|featured/i) ||
-    document.querySelector('[class*="hero"]') ||
-    document.querySelector('[class*="banner"]');
-    
-    expect(heroSection).toBeInTheDocument() || expect(document.body).toBeInTheDocument();
+    const heroSection =
+      screen.queryByText(/welcome|hero|featured/i) ||
+      document.querySelector('[class*="hero"]') ||
+      document.querySelector('[class*="banner"]');
+
+    expect(heroSection).toBeInTheDocument() ||
+      expect(document.body).toBeInTheDocument();
   });
 
   it('should have call-to-action button', () => {
     render(<HomePage />);
-    const ctaButton = screen.queryByRole('button', { name: /get started|explore|read/i }) ||
-    screen.queryByRole('link', { name: /get started|explore|read/i });
-    
+    const ctaButton =
+      screen.queryByRole('button', { name: /get started|explore|read/i }) ||
+      screen.queryByRole('link', { name: /get started|explore|read/i });
+
     if (ctaButton) {
       expect(ctaButton).toBeInTheDocument();
     }
   });
 
   it('should fetch featured posts', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    global.fetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         posts: [
@@ -82,15 +85,15 @@ describe('Home Page', () => {
     });
 
     render(<HomePage />);
-    
+
     // Should call fetch API
-    expect(fetch).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalled();
   });
 
   it('should display featured posts section', () => {
     render(<HomePage />);
     const featuredSection = screen.queryByText(/featured|latest|recent/i);
-    
+
     if (featuredSection) {
       expect(featuredSection).toBeInTheDocument();
     }
@@ -99,7 +102,7 @@ describe('Home Page', () => {
   it('should have newsletter signup section', () => {
     render(<HomePage />);
     const newsletterSection = screen.queryByText(/newsletter|subscribe|email/i);
-    
+
     if (newsletterSection) {
       expect(newsletterSection).toBeInTheDocument();
     }
@@ -107,8 +110,10 @@ describe('Home Page', () => {
 
   it('should display social proof or testimonials', () => {
     render(<HomePage />);
-    const testimonialSection = screen.queryByText(/testimonial|review|feedback|what people say/i);
-    
+    const testimonialSection = screen.queryByText(
+      /testimonial|review|feedback|what people say/i
+    );
+
     if (testimonialSection) {
       expect(testimonialSection).toBeInTheDocument();
     }
@@ -133,7 +138,7 @@ describe('Home Page', () => {
   });
 
   it('should handle API errors gracefully', async () => {
-    (fetch as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
+    global.fetch.mockRejectedValueOnce(new Error('API Error'));
 
     render(<HomePage />);
     // Should not crash on API error

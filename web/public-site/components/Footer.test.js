@@ -22,7 +22,9 @@ describe('Footer Component', () => {
   it('should display copyright information', () => {
     render(<Footer />);
     const currentYear = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(currentYear.toString()))
+    ).toBeInTheDocument();
   });
 
   it('should display company name in copyright', () => {
@@ -56,9 +58,11 @@ describe('Footer Component', () => {
 
   it('should have social media links', () => {
     render(<Footer />);
-    const socialLinks = screen.queryAllByRole('link', { name: /twitter|facebook|linkedin|github|instagram/i });
-    expect(socialLinks.length).toBeGreaterThan(0) || 
-    expect(screen.queryByRole('link')).toBeInTheDocument();
+    const socialLinks = screen.queryAllByRole('link', {
+      name: /twitter|facebook|linkedin|github|instagram/i,
+    });
+    expect(socialLinks.length).toBeGreaterThan(0) ||
+      expect(screen.queryByRole('link')).toBeInTheDocument();
   });
 
   it('should display RSS feed link', () => {
@@ -72,8 +76,11 @@ describe('Footer Component', () => {
   it('should have proper link destinations', () => {
     render(<Footer />);
     const privacyLink = screen.getByRole('link', { name: /privacy|policy/i });
-    expect(privacyLink).toHaveAttribute('href', '/privacy') || 
-    expect(privacyLink).toHaveAttribute('href', expect.stringContaining('privacy'));
+    expect(privacyLink).toHaveAttribute('href', '/privacy') ||
+      expect(privacyLink).toHaveAttribute(
+        'href',
+        expect.stringContaining('privacy')
+      );
   });
 
   it('should display newsletter signup section', () => {
@@ -88,7 +95,9 @@ describe('Footer Component', () => {
     render(<Footer />);
     expect(screen.getByRole('link', { name: /about/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /contact/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /privacy|policy/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /privacy|policy/i })
+    ).toBeInTheDocument();
   });
 
   it('should have semantic footer structure', () => {
@@ -100,14 +109,16 @@ describe('Footer Component', () => {
   it('should display multiple column layout for footer links', () => {
     const { container } = render(<Footer />);
     const footer = container.querySelector('footer');
-    const linkGroups = footer?.querySelectorAll('nav, [role="navigation"], ul, div');
+    const linkGroups = footer?.querySelectorAll(
+      'nav, [role="navigation"], ul, div'
+    );
     expect(linkGroups && linkGroups.length > 0).toBeTruthy();
   });
 
   it('should have accessible link structure', () => {
     render(<Footer />);
     const links = screen.getAllByRole('link');
-    links.forEach(link => {
+    links.forEach((link) => {
       expect(link).toHaveAccessibleName();
     });
   });
@@ -123,15 +134,16 @@ describe('Footer Component', () => {
     const { container } = render(<Footer />);
     const footer = container.querySelector('footer');
     // Check for dark mode class or style
-    expect(footer?.className).toBeDefined() || expect(footer).toBeInTheDocument();
+    expect(footer?.className).toBeDefined() ||
+      expect(footer).toBeInTheDocument();
   });
 
   it('should be responsive (mobile-friendly)', () => {
     const { container } = render(<Footer />);
     const footer = container.querySelector('footer');
     // Check for responsive classes or layout
-    expect(footer?.className).toMatch(/responsive|mobile|flex|grid/i) || 
-    expect(footer).toBeInTheDocument();
+    expect(footer?.className).toMatch(/responsive|mobile|flex|grid/i) ||
+      expect(footer).toBeInTheDocument();
   });
 
   it('should have proper spacing and padding', () => {
@@ -145,7 +157,9 @@ describe('Footer Component', () => {
 
   it('should display back to top button if applicable', () => {
     render(<Footer />);
-    const backToTopButton = screen.queryByRole('button', { name: /back to top|top/i });
+    const backToTopButton = screen.queryByRole('button', {
+      name: /back to top|top/i,
+    });
     if (backToTopButton) {
       expect(backToTopButton).toBeInTheDocument();
     }
@@ -153,7 +167,9 @@ describe('Footer Component', () => {
 
   it('should have language selector if multi-language', () => {
     render(<Footer />);
-    const languageSelector = screen.queryByRole('combobox', { name: /language|lang/i });
+    const languageSelector = screen.queryByRole('combobox', {
+      name: /language|lang/i,
+    });
     if (languageSelector) {
       expect(languageSelector).toBeInTheDocument();
     }
@@ -162,6 +178,8 @@ describe('Footer Component', () => {
   it('should update year dynamically in copyright', () => {
     render(<Footer />);
     const currentYear = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(currentYear.toString()))
+    ).toBeInTheDocument();
   });
 });

@@ -25,12 +25,16 @@ jest.mock('next/router', () => ({
 describe('TopNav Component', () => {
   it('should render navigation header', () => {
     const { container } = render(<TopNav />);
-    expect(container.querySelector('nav') || container.querySelector('header')).toBeInTheDocument();
+    expect(
+      container.querySelector('nav') || container.querySelector('header')
+    ).toBeInTheDocument();
   });
 
   it('should display logo', () => {
     render(<TopNav />);
-    const logo = screen.getByRole('img', { name: /logo/i }) || screen.getByAltText(/logo/i);
+    const logo =
+      screen.getByRole('img', { name: /logo/i }) ||
+      screen.getByAltText(/logo/i);
     if (logo) {
       expect(logo).toBeInTheDocument();
     }
@@ -68,7 +72,9 @@ describe('TopNav Component', () => {
 
   it('should include search functionality', () => {
     render(<TopNav />);
-    const searchInput = screen.queryByRole('searchbox') || screen.queryByPlaceholderText(/search/i);
+    const searchInput =
+      screen.queryByRole('searchbox') ||
+      screen.queryByPlaceholderText(/search/i);
     if (searchInput) {
       expect(searchInput).toBeInTheDocument();
     }
@@ -76,7 +82,9 @@ describe('TopNav Component', () => {
 
   it('should have responsive mobile menu', () => {
     render(<TopNav />);
-    const menuButton = screen.queryByRole('button', { name: /menu|hamburger|toggle/i });
+    const menuButton = screen.queryByRole('button', {
+      name: /menu|hamburger|toggle/i,
+    });
     if (menuButton) {
       expect(menuButton).toBeInTheDocument();
     }
@@ -84,8 +92,10 @@ describe('TopNav Component', () => {
 
   it('should toggle mobile menu on button click', () => {
     render(<TopNav />);
-    const menuButton = screen.queryByRole('button', { name: /menu|hamburger|toggle/i });
-    
+    const menuButton = screen.queryByRole('button', {
+      name: /menu|hamburger|toggle/i,
+    });
+
     if (menuButton) {
       fireEvent.click(menuButton);
       // Mobile menu should be visible after click
@@ -95,7 +105,9 @@ describe('TopNav Component', () => {
 
   it('should have proper semantic structure', () => {
     const { container } = render(<TopNav />);
-    expect(container.querySelector('nav') || container.querySelector('header')).toBeInTheDocument();
+    expect(
+      container.querySelector('nav') || container.querySelector('header')
+    ).toBeInTheDocument();
   });
 
   it('should display all main navigation items', () => {
@@ -108,21 +120,24 @@ describe('TopNav Component', () => {
   it('should highlight current page in navigation', () => {
     render(<TopNav />);
     const homeLink = screen.getByRole('link', { name: /home/i });
-    expect(homeLink.parentElement).toHaveClass('active') || 
-    expect(homeLink).toHaveAttribute('aria-current');
+    expect(homeLink.parentElement).toHaveClass('active') ||
+      expect(homeLink).toHaveAttribute('aria-current');
   });
 
   it('should have accessibility attributes', () => {
     render(<TopNav />);
-    const nav = screen.getByRole('navigation') || screen.getByRole('link', { name: /home/i }).closest('nav');
+    const nav =
+      screen.getByRole('navigation') ||
+      screen.getByRole('link', { name: /home/i }).closest('nav');
     expect(nav).toBeInTheDocument();
   });
 
   it('should display subscribe button or CTA', () => {
     render(<TopNav />);
-    const subscribeButton = screen.queryByRole('button', { name: /subscribe|newsletter/i }) ||
-    screen.queryByRole('link', { name: /subscribe|newsletter/i });
-    
+    const subscribeButton =
+      screen.queryByRole('button', { name: /subscribe|newsletter/i }) ||
+      screen.queryByRole('link', { name: /subscribe|newsletter/i });
+
     if (subscribeButton) {
       expect(subscribeButton).toBeInTheDocument();
     }
@@ -130,18 +145,22 @@ describe('TopNav Component', () => {
 
   it('should be sticky on scroll', () => {
     const { container } = render(<TopNav />);
-    const nav = container.querySelector('nav') || container.querySelector('header');
-    
+    const nav =
+      container.querySelector('nav') || container.querySelector('header');
+
     if (nav) {
       const style = window.getComputedStyle(nav);
-      expect(style.position).toBe('sticky') || expect(style.position).toBe('fixed');
+      expect(style.position).toBe('sticky') ||
+        expect(style.position).toBe('fixed');
     }
   });
 
   it('should handle search input', () => {
     render(<TopNav />);
-    const searchInput = screen.queryByRole('searchbox') || screen.queryByPlaceholderText(/search/i);
-    
+    const searchInput =
+      screen.queryByRole('searchbox') ||
+      screen.queryByPlaceholderText(/search/i);
+
     if (searchInput) {
       fireEvent.change(searchInput, { target: { value: 'React' } });
       expect(searchInput.value).toBe('React');
@@ -150,8 +169,9 @@ describe('TopNav Component', () => {
 
   it('should have proper z-index for overlay', () => {
     const { container } = render(<TopNav />);
-    const nav = container.querySelector('nav') || container.querySelector('header');
-    
+    const nav =
+      container.querySelector('nav') || container.querySelector('header');
+
     if (nav) {
       const style = window.getComputedStyle(nav);
       expect(parseInt(style.zIndex) || 1).toBeGreaterThan(0);
