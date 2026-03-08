@@ -29,9 +29,9 @@ function emit(level, message, args) {
   const prefix = `[${ts}] [${level.padEnd(5)}] ${message}`;
   const fn = LEVEL_FN[level] || 'log';
   if (args.length) {
-    console[fn](prefix, ...args); // eslint-disable-line no-console
+    console[fn](prefix, ...args);  
   } else {
-    console[fn](prefix); // eslint-disable-line no-console
+    console[fn](prefix);  
   }
 }
 
