@@ -1,3 +1,4 @@
+'use client';
 import logger from '@/lib/logger';
 /**
  * Phase 2: AdSense Component
@@ -8,8 +9,6 @@ import logger from '@/lib/logger';
  * Place your Google AdSense script ID in environment variables:
  * NEXT_PUBLIC_ADSENSE_ID=ca-pub-xxxxxxxxxxxxxxxx
  */
-
-'use client';
 
 import Script from 'next/script';
 import { useEffect, useState } from 'react';

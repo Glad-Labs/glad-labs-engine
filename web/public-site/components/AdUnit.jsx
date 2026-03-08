@@ -1,11 +1,10 @@
+'use client';
 import logger from '@/lib/logger';
 /**
  * AdUnit Component
  * Displays responsive Google AdSense ad units
  * Supports multiple formats: responsive, leaderboard, medium-rectangle
  */
-
-'use client';
 
 import { useEffect } from 'react';
 

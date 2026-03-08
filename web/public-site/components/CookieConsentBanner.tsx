@@ -1,3 +1,4 @@
+'use client';
 import logger from '@/lib/logger';
 /**
  * Phase 4: Cookie Consent Banner
@@ -16,8 +17,6 @@ import logger from '@/lib/logger';
  * - Users can withdraw consent at any time
  * - Opt-out is clear and easy
  */
-
-'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';

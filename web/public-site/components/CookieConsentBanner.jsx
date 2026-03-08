@@ -1,11 +1,10 @@
+'use client';
 import logger from '@/lib/logger';
 /**
  * Cookie Consent Banner
  * Lightweight GDPR/CCPA compliant cookie consent implementation
  * Uses localStorage to persist user's choice
  */
-
-'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
