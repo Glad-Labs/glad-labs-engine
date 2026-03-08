@@ -1,3 +1,5 @@
+Documentation hygiene reminder: if a PR changes architecture, routes, or deprecated patterns, update affected `docs/`, remove stale references, audit moved or renamed internal links, and note any deferred larger doc update.
+
 ### New console messages
 
 - [LOG] 🔵 makeRequest: GET http://localhost:8000/api/tasks?offset=0&limit=1000 @ http://localhost:300...

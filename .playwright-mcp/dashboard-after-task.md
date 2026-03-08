@@ -1,3 +1,5 @@
+Documentation hygiene reminder: if a PR changes architecture, routes, or deprecated patterns, update affected `docs/`, remove stale references, audit moved or renamed internal links, and note any deferred larger doc update.
+
 ### New console messages
 
 - [LOG] ✅ Ollama available with 25 models @ http://localhost:3001/static/js/src_services_ollamaService...
