@@ -5,13 +5,20 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getPaginatedPosts } from '../lib/api-fastapi';
 
+interface Post {
+  id: string | number;
+  slug: string;
+  title: string;
+  excerpt?: string;
+}
+
 /**
  * 404 Not Found Page
  * Displays when a page doesn't exist
  * Shows related posts and navigation options for recovery
  */
 export default function NotFound() {
-  const [suggestedPosts, setSuggestedPosts] = useState([]);
+  const [suggestedPosts, setSuggestedPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

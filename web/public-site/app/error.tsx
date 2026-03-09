@@ -5,12 +5,17 @@ import * as Sentry from '@sentry/nextjs';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
+interface ErrorProps {
+  error: Error & { digest?: string };
+  reset: () => void;
+}
+
 /**
  * Error Boundary Component
  * Catches errors and displays recovery options
- * Shows as the error.jsx page in Next.js
+ * Shows as the error.tsx page in Next.js
  */
-export default function Error({ error, reset }) {
+export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
     logger.error('Error caught:', error);
     Sentry.captureException(error);
