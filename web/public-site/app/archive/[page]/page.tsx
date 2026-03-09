@@ -1,13 +1,10 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_FASTAPI_URL ||
-  'http://localhost:8000';
+import useSWR from 'swr';
+import { fetcher, defaultSwrOptions } from '@/lib/swr-config';
 
 interface Post {
   id: string;
@@ -30,42 +27,18 @@ const POSTS_PER_PAGE = 10;
 
 export default function ArchivePage({ params }: ArchivePageProps) {
   const resolvedParams = use(params);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const pageNum = parseInt(resolvedParams.page) || 1;
+  const skip = (pageNum - 1) * POSTS_PER_PAGE;
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const skip = (pageNum - 1) * POSTS_PER_PAGE;
-        const response = await fetch(
-          `${API_BASE}/api/posts?skip=${skip}&limit=${POSTS_PER_PAGE}&published_only=true`
-        );
+  const { data, error, isLoading } = useSWR(
+    `/api/posts?skip=${skip}&limit=${POSTS_PER_PAGE}&published_only=true`,
+    fetcher,
+    defaultSwrOptions
+  );
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch posts');
-        }
-
-        const data = await response.json();
-        setPosts(data.data || data.items || data || []);
-        const total =
-          data.meta?.pagination?.total || data.total || data.length || 0;
-        setTotalPages(Math.ceil(total / POSTS_PER_PAGE));
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [pageNum]);
+  const posts: Post[] = data?.data || data?.items || (Array.isArray(data) ? data : []);
+  const total = data?.meta?.pagination?.total || data?.total || posts.length || 0;
+  const totalPages = Math.ceil(total / POSTS_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
@@ -87,7 +60,7 @@ export default function ArchivePage({ params }: ArchivePageProps) {
       <div className="px-4 sm:px-6 lg:px-8 pb-20">
         <div className="max-w-4xl mx-auto">
           {/* Loading State */}
-          {loading && (
+          {isLoading && (
             <div className="text-center py-12">
               <div className="inline-block">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
@@ -97,9 +70,9 @@ export default function ArchivePage({ params }: ArchivePageProps) {
           )}
 
           {/* Error State */}
-          {error && !loading && (
+          {error && !isLoading && (
             <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
-              <p className="text-red-400">{error}</p>
+              <p className="text-red-400">{error.message || 'Failed to load posts'}</p>
               <p className="text-slate-400 text-sm mt-2">
                 Please try refreshing the page
               </p>
@@ -107,7 +80,7 @@ export default function ArchivePage({ params }: ArchivePageProps) {
           )}
 
           {/* Posts Grid */}
-          {!loading && !error && posts.length > 0 && (
+          {!isLoading && !error && posts.length > 0 && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 {posts.map((post) => (
@@ -241,7 +214,7 @@ export default function ArchivePage({ params }: ArchivePageProps) {
           )}
 
           {/* Empty State */}
-          {!loading && !error && posts.length === 0 && (
+          {!isLoading && !error && posts.length === 0 && (
             <div className="text-center py-12">
               <svg
                 className="w-16 h-16 text-slate-600 mx-auto mb-4"

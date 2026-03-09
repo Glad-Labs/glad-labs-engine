@@ -30,6 +30,7 @@
     "react-dom": "^18.3.1",
     "react-markdown": "^9.1.0",
     "remark-gfm": "^4.0.1",
+    "swr": "^2.4.1",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
