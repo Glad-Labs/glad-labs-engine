@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import logger from '@/lib/logger';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -64,6 +65,30 @@ async function getCategoryPosts(categoryId: string): Promise<Post[]> {
     logger.error(`Error fetching posts for category "${categoryId}":`, error);
     return [];
   }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const category = await getCategory(slug);
+
+  if (!category) {
+    return { title: 'Category Not Found | Glad Labs' };
+  }
+
+  const title = `${category.name} Articles | Glad Labs`;
+  const description =
+    category.description ||
+    `Browse all articles in the ${category.name} category on Glad Labs.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
 }
 
 export default async function CategoryPage({

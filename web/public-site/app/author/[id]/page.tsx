@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -11,6 +12,22 @@ const authorProfiles: Record<string, { name: string; bio: string }> = {
     bio: 'Where AI meets thoughtful content creation. We explore the intersection of artificial intelligence and human creativity.',
   },
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const author = authorProfiles[id] || authorProfiles.default;
+  const title = `${author.name} | Glad Labs`;
+
+  return {
+    title,
+    description: author.bio,
+    openGraph: { title, description: author.bio },
+  };
+}
 
 export default async function AuthorPage({
   params,

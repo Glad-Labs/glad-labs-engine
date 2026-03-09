@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import logger from '@/lib/logger';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -39,6 +40,23 @@ async function getTagPosts(tag: string): Promise<Post[]> {
     logger.error(`Error fetching posts for tag "${tag}":`, error);
     return [];
   }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const tag = decodeURIComponent(slug);
+  const title = `#${tag} Articles | Glad Labs`;
+  const description = `Browse all articles tagged with "${tag}" on Glad Labs.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
 }
 
 export default async function TagPage({
