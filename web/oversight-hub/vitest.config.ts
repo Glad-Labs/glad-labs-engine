@@ -16,6 +16,20 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      // Enforce minimum coverage thresholds. Fail CI if any threshold is missed.
+      thresholds: {
+        lines: 50,
+        functions: 50,
+        branches: 40,
+        statements: 50,
+        // Critical service/hook paths — raise thresholds here as coverage grows
+        'src/services/**': {
+          lines: 60,
+          functions: 60,
+          branches: 50,
+          statements: 60,
+        },
+      },
     },
   },
   resolve: {
