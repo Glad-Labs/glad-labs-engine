@@ -8,14 +8,22 @@ import logger from '@/lib/logger';
 
 import { useEffect } from 'react';
 
-export default function AdUnit({ format = 'responsive', className = '' }) {
+type AdFormat = 'responsive' | 'leaderboard' | 'medium-rectangle';
+
+interface AdUnitProps {
+  format?: AdFormat;
+  className?: string;
+}
+
+export default function AdUnit({ format = 'responsive', className = '' }: AdUnitProps) {
   const adSenseId = process.env.NEXT_PUBLIC_ADSENSE_ID;
 
   useEffect(() => {
     // Push ad when component mounts if AdSense script is loaded
-    if (window.adsbygoogle && adSenseId) {
+    const w = window as unknown as { adsbygoogle?: object[] };
+    if (w.adsbygoogle && adSenseId) {
       try {
-        window.adsbygoogle.push({});
+        w.adsbygoogle.push({});
       } catch (error) {
         logger.warn('[AdUnit] Failed to push ad:', error);
       }
@@ -34,7 +42,7 @@ export default function AdUnit({ format = 'responsive', className = '' }) {
   }
 
   // Determine ad dimensions based on format
-  const getAdStyle = () => {
+  const getAdStyle = (): React.CSSProperties => {
     switch (format) {
       case 'leaderboard':
         return { minHeight: '90px' };

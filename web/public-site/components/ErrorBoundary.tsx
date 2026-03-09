@@ -1,14 +1,28 @@
-import { Component } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import Link from 'next/link';
 import { logError, getErrorType, getErrorMessage } from '../lib/error-handling';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: { component?: string };
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  onReset?: () => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  errorType: string | null;
+}
 
 /**
  * Error Boundary Component
  * Catches React errors and displays a fallback UI
  * Usage: Wrap pages or sections with <ErrorBoundary>Content</ErrorBoundary>
  */
-export default class ErrorBoundary extends Component {
-  constructor(props) {
+export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
@@ -18,11 +32,11 @@ export default class ErrorBoundary extends Component {
     };
   }
 
-  static getDerivedStateFromError(_error) {
+  static getDerivedStateFromError(_error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const errorType = getErrorType(error);
 
     this.setState({
@@ -69,12 +83,20 @@ export default class ErrorBoundary extends Component {
   }
 }
 
+interface ErrorFallbackProps {
+  error: Error | null;
+  errorType: string | null;
+  onReset: () => void;
+  isDevelopment: boolean;
+}
+
 /**
  * Error Fallback Component
  * Displays user-friendly error message with full WCAG 2.1 AA compliance
  */
-function ErrorFallback({ error, errorType, onReset, isDevelopment }) {
-  const errorMessage = getErrorMessage(error, errorType);
+function ErrorFallback({ error, errorType, onReset, isDevelopment }: ErrorFallbackProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const errorMessage = getErrorMessage(error, errorType as any);
 
   return (
     <div
@@ -155,13 +177,12 @@ function ErrorFallback({ error, errorType, onReset, isDevelopment }) {
             >
               🔄 Try Again
             </button>
-            <Link href="/">
-              <a
-                className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 transition-all duration-200 text-center"
-                aria-label="Return to home page"
-              >
-                ← Go Home
-              </a>
+            <Link
+              href="/"
+              className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 transition-all duration-200 text-center"
+              aria-label="Return to home page"
+            >
+              ← Go Home
             </Link>
           </div>
 
@@ -205,32 +226,6 @@ function ErrorFallback({ error, errorType, onReset, isDevelopment }) {
           </p>
         </div>
       </footer>
-
-      {/* Accessibility Styles */}
-      <style jsx>{`
-        .sr-only {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
-          white-space: nowrap;
-          border-width: 0;
-        }
-
-        .focus\:not-sr-only:focus {
-          position: static;
-          width: auto;
-          height: auto;
-          padding: inherit;
-          margin: inherit;
-          overflow: visible;
-          clip: auto;
-          white-space: normal;
-        }
-      `}</style>
     </div>
   );
 }

@@ -33,8 +33,9 @@ export default function AdSenseScript() {
       onLoad={() => {
         logger.log('[AdSense] Script loaded successfully');
         // Push any queued ads
-        if (window.adsbygoogle) {
-          window.adsbygoogle.push({});
+        const w = window as unknown as { adsbygoogle?: object[] };
+        if (w.adsbygoogle) {
+          w.adsbygoogle.push({});
         }
       }}
       onError={() => {

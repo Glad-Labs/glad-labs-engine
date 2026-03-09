@@ -1,7 +1,7 @@
 'use client';
 import logger from '@/lib/logger';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ChangeEvent, FormEvent } from 'react';
 import { subscribeToNewsletter } from '../lib/api-fastapi';
 
 /**
@@ -10,8 +10,27 @@ import { subscribeToNewsletter } from '../lib/api-fastapi';
  * Triggered by "Get Updates" button in footer
  */
 
-const NewsletterModal = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState({
+interface NewsletterModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface FormData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  company: string;
+  interestCategories: string[];
+  marketingConsent: boolean;
+}
+
+interface Message {
+  type: '' | 'success' | 'error';
+  text: string;
+}
+
+const NewsletterModal = ({ isOpen, onClose }: NewsletterModalProps) => {
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     firstName: '',
     lastName: '',
@@ -21,8 +40,8 @@ const NewsletterModal = ({ isOpen, onClose }) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const timeoutRef = useRef(null);
+  const [message, setMessage] = useState<Message>({ type: '', text: '' });
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cleanup timeout on unmount or when modal closes
   useEffect(() => {
@@ -42,7 +61,7 @@ const NewsletterModal = ({ isOpen, onClose }) => {
     'Gaming',
   ];
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -50,7 +69,7 @@ const NewsletterModal = ({ isOpen, onClose }) => {
     }));
   };
 
-  const handleCategoryToggle = (category) => {
+  const handleCategoryToggle = (category: string) => {
     setFormData((prev) => ({
       ...prev,
       interestCategories: prev.interestCategories.includes(category)
@@ -59,7 +78,7 @@ const NewsletterModal = ({ isOpen, onClose }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!formData.email) {
@@ -105,7 +124,7 @@ const NewsletterModal = ({ isOpen, onClose }) => {
       logger.error('Newsletter signup error:', error);
       setMessage({
         type: 'error',
-        text: error.message || 'Failed to subscribe. Please try again.',
+        text: (error as Error).message || 'Failed to subscribe. Please try again.',
       });
     } finally {
       setIsLoading(false);

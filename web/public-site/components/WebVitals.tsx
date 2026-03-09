@@ -2,8 +2,10 @@
 
 import { useReportWebVitals } from 'next/web-vitals';
 
+type VitalName = 'LCP' | 'FID' | 'CLS' | 'FCP' | 'TTFB' | 'INP';
+
 // Thresholds for Core Web Vitals (good/needs improvement boundaries)
-const THRESHOLDS = {
+const THRESHOLDS: Record<VitalName, { good: number; poor: number }> = {
   LCP: { good: 2500, poor: 4000 },
   FID: { good: 100, poor: 300 },
   CLS: { good: 0.1, poor: 0.25 },
@@ -12,17 +14,19 @@ const THRESHOLDS = {
   INP: { good: 200, poor: 500 },
 };
 
-function getRating(name, value) {
-  const t = THRESHOLDS[name];
+function getRating(name: string, value: number): 'good' | 'needs-improvement' | 'poor' | 'unknown' {
+  const t = THRESHOLDS[name as VitalName];
   if (!t) return 'unknown';
   if (value <= t.good) return 'good';
   if (value <= t.poor) return 'needs-improvement';
   return 'poor';
 }
 
-function sendToGoogleAnalytics({ name, value, id }) {
-  if (typeof window === 'undefined' || !window.gtag) return;
-  window.gtag('event', name, {
+function sendToGoogleAnalytics({ name, value, id }: { name: string; value: number; id: string }) {
+  type WGtag = { gtag?: (...args: unknown[]) => void };
+  const w = window as unknown as WGtag;
+  if (typeof window === 'undefined' || !w.gtag) return;
+  w.gtag('event', name, {
     event_category: 'Web Vitals',
     event_label: id,
     value: Math.round(name === 'CLS' ? value * 1000 : value),

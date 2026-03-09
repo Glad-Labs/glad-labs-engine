@@ -1,12 +1,12 @@
 import Link from 'next/link';
-import OptimizedImage from './OptimizedImage';
+import Image from 'next/image';
 import { formatDate } from '../lib/content-utils';
 
 /**
  * Simple markdown text renderer for excerpts
  * Handles: **bold**, *italic*, ***bold italic***
  */
-const MarkdownText = ({ text }) => {
+const MarkdownText = ({ text }: { text?: string }) => {
   if (!text) return null;
 
   // Split text by markdown patterns while preserving the markdown markers
@@ -49,20 +49,44 @@ const MarkdownText = ({ text }) => {
   });
 };
 
+interface PostImage {
+  data?: {
+    attributes?: { url?: string };
+  };
+}
+
+interface PostCategory {
+  data?: {
+    attributes?: { slug?: string; name?: string };
+  };
+}
+
+interface Post {
+  id: string | number;
+  title: string;
+  excerpt?: string;
+  slug: string;
+  publishedAt?: string;
+  coverImage?: PostImage;
+  category?: PostCategory;
+  tags?: unknown[];
+}
+
+interface RelatedPostsProps {
+  posts?: Post[];
+  onPostClick?: ((post: Post) => void) | null;
+}
+
 /**
  * Related Posts Component
  * Displays a grid of related articles at the bottom of article pages
- *
- * @param {Object} props
- * @param {Array} props.posts - Array of related posts
- * @param {Function} props.onPostClick - Optional callback when a post is clicked for analytics
  */
-export default function RelatedPosts({ posts = [], onPostClick = null }) {
+export default function RelatedPosts({ posts = [], onPostClick = null }: RelatedPostsProps) {
   if (!posts || posts.length === 0) {
     return null;
   }
 
-  const handlePostClick = (post) => {
+  const handlePostClick = (post: Post) => {
     if (onPostClick) {
       onPostClick(post);
     }
@@ -95,10 +119,15 @@ export default function RelatedPosts({ posts = [], onPostClick = null }) {
   );
 }
 
+interface RelatedPostCardProps {
+  post: Post;
+  onPostClick?: ((post: Post) => void) | null;
+}
+
 /**
  * Individual related post card
  */
-function RelatedPostCard({ post, onPostClick = null }) {
+function RelatedPostCard({ post, onPostClick = null }: RelatedPostCardProps) {
   const { title, excerpt, slug, publishedAt, coverImage, category, tags } =
     post;
 
@@ -125,7 +154,7 @@ function RelatedPostCard({ post, onPostClick = null }) {
         {/* Image Container */}
         {imageUrl && (
           <div className="relative h-40 w-full overflow-hidden bg-gray-200">
-            <OptimizedImage
+            <Image
               src={imageUrl}
               alt={`Cover image for: ${title}`}
               fill
@@ -164,7 +193,7 @@ function RelatedPostCard({ post, onPostClick = null }) {
 
           {/* Meta Information */}
           <div className="flex items-center justify-between text-xs text-gray-500 mt-auto pt-3 border-t border-gray-100">
-            {displayDate && (
+            {displayDate && publishedAt && (
               <time
                 dateTime={publishedAt.split('T')[0]}
                 className="font-medium"
@@ -188,10 +217,15 @@ function RelatedPostCard({ post, onPostClick = null }) {
   );
 }
 
+interface RelatedPostsListProps {
+  posts?: Post[];
+  maxItems?: number;
+}
+
 /**
  * Alternative: Minimal Related Posts (used in sidebars)
  */
-export function RelatedPostsList({ posts = [], maxItems = 5 }) {
+export function RelatedPostsList({ posts = [], maxItems = 5 }: RelatedPostsListProps) {
   if (!posts || posts.length === 0) {
     return null;
   }
@@ -228,7 +262,7 @@ export function RelatedPostsList({ posts = [], maxItems = 5 }) {
 /**
  * Alternative: Featured Related Posts (larger, 2-column layout)
  */
-export function RelatedPostsFeatured({ posts = [], maxItems = 2 }) {
+export function RelatedPostsFeatured({ posts = [], maxItems = 2 }: RelatedPostsListProps) {
   if (!posts || posts.length === 0) {
     return null;
   }
