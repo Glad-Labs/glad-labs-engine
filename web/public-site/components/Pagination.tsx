@@ -1,6 +1,19 @@
 import Link from 'next/link';
 
-export default function Pagination({ pagination, basePath = '/archive' }) {
+interface PaginationData {
+  page: number;
+  pageCount: number;
+}
+
+interface PaginationProps {
+  pagination: PaginationData;
+  basePath?: string;
+}
+
+export default function Pagination({
+  pagination,
+  basePath = '/archive',
+}: PaginationProps) {
   const { page, pageCount } = pagination;
 
   if (pageCount <= 1) return null;
