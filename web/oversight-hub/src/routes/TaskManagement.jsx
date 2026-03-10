@@ -8,11 +8,12 @@ import logger from '@/lib/logger';
  * - statusConfig (centralized status definitions)
  * - formatTaskForDisplay (centralized task formatting)
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useStore from '../store/useStore';
 import { bulkUpdateTasks } from '../services/cofounderAgentClient';
 import { unifiedStatusService } from '../services/unifiedStatusService';
 import useFetchTasks from '../hooks/useFetchTasks';
+import { useWebSocketEvent } from '../context/WebSocketContext';
 import CreateTaskModal from '../components/tasks/CreateTaskModal';
 import TaskDetailModal from '../components/tasks/TaskDetailModal';
 import TaskFilters from '../components/tasks/TaskFilters';
@@ -42,6 +43,29 @@ function TaskManagement() {
     limit,
     30000 // Auto-refresh every 30 seconds
   );
+
+  // 🔥 NEW: Listen to WebSocket task progress events for real-time updates
+  const handleTaskProgressUpdate = useCallback(
+    (data) => {
+      logger.log('🔔 TaskManagement: Received task progress update:', data);
+
+      // Trigger refetch when task status changes
+      // This ensures UI shows tasks in 'in_progress' state immediately
+      if (
+        data?.status &&
+        ['RUNNING', 'COMPLETED', 'FAILED', 'PAUSED'].includes(data.status)
+      ) {
+        logger.log(
+          '🔄 TaskManagement: Triggering task list refresh due to status change'
+        );
+        refreshTasks();
+      }
+    },
+    [refreshTasks]
+  );
+
+  // Subscribe to all task progress events (not just specific task IDs)
+  useWebSocketEvent('progress', handleTaskProgressUpdate);
 
   // Handler to open detail modal for editing
   const handleEditTask = (task) => {
