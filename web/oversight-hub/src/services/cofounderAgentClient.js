@@ -11,6 +11,7 @@ import logger from '@/lib/logger';
 
 import { getApiUrl } from '../config/apiConfig';
 import { authClient } from '../lib/authClient';
+import { serviceStatus } from '../lib/serviceStatus';
 
 const API_BASE_URL = getApiUrl();
 
@@ -181,6 +182,9 @@ export async function makeRequest(
       // Collect metric for successful response
       collectMetric(endpoint, method, response.status, duration_ms, false);
 
+      // Signal backend is back online (clears any offline banner)
+      serviceStatus.markOnline();
+
       return result;
     } catch (fetchError) {
       clearTimeout(timeoutId);
@@ -197,6 +201,23 @@ export async function makeRequest(
         throw new Error(
           `Request timeout after ${timeout}ms - operation took too long`
         );
+      }
+
+      // Detect network-level connection failures (ERR_CONNECTION_RESET, Failed to fetch)
+      const isConnectionFailure =
+        fetchError instanceof TypeError &&
+        (fetchError.message === 'Failed to fetch' ||
+          fetchError.message.includes('NetworkError') ||
+          fetchError.message.includes('ERR_CONNECTION'));
+      if (isConnectionFailure) {
+        const isFirstError = serviceStatus.markOffline();
+        // Only log on first error in the dedup window to avoid console flooding
+        if (isFirstError && process.env.NODE_ENV === 'development') {
+          logger.warn(
+            `[cofounderAgentClient] Backend unreachable: ${method} ${endpoint} — ${fetchError.message}`
+          );
+        }
+        throw fetchError;
       }
 
       const status =

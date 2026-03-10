@@ -15,6 +15,7 @@ import * as cofounderAgentClient from '../services/cofounderAgentClient';
 import { modelService } from '../services/modelService';
 import { composeAndExecuteTask } from '../services/naturalLanguageComposerService';
 import ModelSelectDropdown from './ModelSelectDropdown';
+import BackendStatusBanner from './BackendStatusBanner';
 import '../OversightHub.css';
 
 const LayoutWrapper = ({ children }) => {
@@ -396,6 +397,7 @@ const LayoutWrapper = ({ children }) => {
 
   return (
     <div className="oversight-hub-container">
+      <BackendStatusBanner />
       {/* Header with Navigation */}
       <header className="oversight-header">
         <div className="header-top">

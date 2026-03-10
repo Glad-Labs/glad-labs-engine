@@ -34,6 +34,7 @@ import logger from '@/lib/logger';
 
 import axios from 'axios';
 import { getApiUrl } from '../config/apiConfig';
+import { serviceStatus } from './serviceStatus';
 
 // ============================================================================
 // API CLIENT CONFIGURATION
@@ -53,14 +54,21 @@ const apiClient = axios.create({
 // Import centralized auth client for token management
 import { authClient } from './authClient';
 
-// Response interceptor: Handle common errors
+// Response interceptor: Handle common errors and backend connectivity state
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    serviceStatus.markOnline();
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       // Session expired, clear auth data and force re-auth
       authClient.logout();
       window.location.href = '/login';
+    }
+    // Network-level failure (no response) = backend unreachable
+    if (!error.response) {
+      serviceStatus.markOffline();
     }
     return Promise.reject(error);
   }
