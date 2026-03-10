@@ -41,7 +41,7 @@ function TaskManagement() {
   } = useFetchTasks(
     page,
     limit,
-    30000 // Auto-refresh every 30 seconds
+    5000 // Auto-refresh every 5 seconds
   );
 
   // 🔥 NEW: Listen to WebSocket task progress events for real-time updates
