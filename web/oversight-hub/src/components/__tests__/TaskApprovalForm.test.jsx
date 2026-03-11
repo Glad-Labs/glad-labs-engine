@@ -129,9 +129,10 @@ describe('TaskApprovalForm Component', () => {
   });
 
   describe('Rejected state', () => {
+    // Component uses 'failed_revisions_requested' (not 'rejected') to show the rejection UI
     const rejectedProps = {
       ...defaultProps,
-      task: { status: 'rejected', reviewer_feedback: 'Needs more detail' },
+      task: { status: 'failed_revisions_requested', reviewer_feedback: 'Needs more detail' },
     };
 
     it('should show rejection section', () => {
@@ -165,7 +166,7 @@ describe('TaskApprovalForm Component', () => {
       render(
         <TaskApprovalForm
           {...rejectedProps}
-          task={{ status: 'rejected' }}
+          task={{ status: 'failed_revisions_requested' }}
         />
       );
       expect(screen.queryByText('Reviewer feedback:')).not.toBeInTheDocument();

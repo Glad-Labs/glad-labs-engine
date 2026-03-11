@@ -1,4 +1,5 @@
 import logger from '@/lib/logger';
+import { extractApiError } from '@/lib/extractApiError';
 import React, { useState, useCallback } from 'react';
 import { createTask, makeRequest } from '../../services/cofounderAgentClient';
 import ModelSelectionPanel from '../ModelSelectionPanel';
@@ -378,10 +379,6 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           throw new Error('Image generation failed: No response from server');
         }
 
-        if (!imageResult) {
-          throw new Error('Image generation failed: No response from server');
-        }
-
         if (!imageResult.success) {
           throw new Error(imageResult.message || 'Image generation failed');
         }
@@ -518,48 +515,7 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
       setTaskType('');
       setFormData({});
     } catch (err) {
-      // Properly extract error message from various error object formats
-      let errorMessage = 'Unknown error';
-
-      if (typeof err === 'string') {
-        errorMessage = err;
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (err && typeof err === 'object') {
-        // Handle API error responses with detail/message fields
-        if (err.response?.detail) {
-          errorMessage =
-            typeof err.response.detail === 'string'
-              ? err.response.detail
-              : JSON.stringify(err.response.detail);
-        } else if (err.response?.details) {
-          const details = err.response.details;
-          if (typeof details === 'string') {
-            errorMessage = details;
-          } else if (details && typeof details === 'object') {
-            const entries = Object.entries(details);
-            if (entries.length > 0) {
-              const [field, message] = entries[0];
-              errorMessage = `${field}: ${String(message)}`;
-            } else {
-              errorMessage = 'Request validation failed';
-            }
-          }
-        } else if (err.response?.message) {
-          errorMessage =
-            typeof err.response.message === 'string'
-              ? err.response.message
-              : JSON.stringify(err.response.message);
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-      }
-
-      if (errorMessage === 'Failed to fetch') {
-        errorMessage =
-          'Cannot reach backend service (it may be restarting). Please wait a few seconds and try again.';
-      }
-
+      const errorMessage = extractApiError(err);
       setError(`Failed to create task: ${errorMessage}`);
       logger.error('Task creation error:', {
         message: errorMessage,
