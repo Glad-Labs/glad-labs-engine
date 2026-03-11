@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Glad Labs is an AI orchestration system (v3.0.2) — a monorepo with three integrated services:
+Glad Labs is an AI orchestration system (v3.0.39) — a monorepo with three integrated services:
 
-- **Backend:** Python FastAPI orchestrator with 87+ service modules (port 8000)
+- **Backend:** Python FastAPI orchestrator with 105+ service modules (port 8000)
 - **Admin UI:** React 18 + Material-UI dashboard for agent monitoring (port 3001)
 - **Public Site:** Next.js 15 content distribution website (port 3000)
 
@@ -151,4 +151,4 @@ npm workspaces cover `web/public-site` and `web/oversight-hub`. `npm install` at
 - Deployment/CI: `docs/05-Operations/Operations-Maintenance.md`, `docs/04-Development/Development-Workflow.md`
 - AI agents: `docs/02-Architecture/Multi-Agent-Pipeline.md`
 - Troubleshooting: `docs/troubleshooting/`
-- Full env variable reference: `.env.example` (52+ variables)
+- Full env variable reference: `.env.example` (60+ variables)
