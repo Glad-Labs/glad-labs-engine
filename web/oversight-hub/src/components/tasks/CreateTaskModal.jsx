@@ -75,6 +75,14 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           description: 'Who is this article for? (e.g. "senior software engineers")',
         },
         {
+          name: 'description',
+          label: 'Campaign Brief (Optional)',
+          type: 'textarea',
+          required: false,
+          description:
+            'Human-written context for this task (e.g. "Q1 campaign targeting enterprise buyers"). Stored separately from the AI-generated excerpt.',
+        },
+        {
           name: 'word_count',
           label: 'Target Word Count',
           type: 'number',
@@ -420,6 +428,7 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           task_type: 'blog_post',
           task_name: `Blog: ${formData.topic}`,
           topic: formData.topic || '',
+          description: formData.description || undefined,
           category: 'blog_post',
           // ⚠️ IMPORTANT: Send actual values or undefined, not hardcoded fallbacks
           // This allows backend Pydantic defaults to apply correctly

@@ -148,4 +148,53 @@ describe('CreateTaskModal — component', () => {
     });
     expect(screen.getByText(/✓ Create Task/)).toBeInTheDocument();
   });
+
+  test('blog post form shows Campaign Brief textarea field (#116)', async () => {
+    render(
+      <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+    );
+    fireEvent.click(screen.getByText(/📝 Blog Post/i));
+    await waitFor(() => {
+      expect(screen.getByLabelText(/campaign brief/i)).toBeInTheDocument();
+    });
+  });
+
+  test('blog post payload includes description field when provided (#116)', async () => {
+    render(
+      <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+    );
+    fireEvent.click(screen.getByText(/📝 Blog Post/i));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/topic/i)).toBeInTheDocument();
+    });
+
+    // Fill required fields
+    fireEvent.change(screen.getByLabelText(/topic/i), {
+      target: { value: 'AI in Healthcare' },
+    });
+    fireEvent.change(screen.getByLabelText(/campaign brief/i), {
+      target: { value: 'Q1 campaign for enterprise buyers' },
+    });
+    // Select style and tone (required)
+    const selects = screen.getAllByRole('combobox');
+    const styleSelect = selects.find((s) =>
+      s.closest('div')?.previousElementSibling?.textContent?.includes('Writing Style')
+    ) || selects[0];
+    const toneSelect = selects.find((s) =>
+      s.closest('div')?.previousElementSibling?.textContent?.includes('Tone')
+    ) || selects[1];
+    fireEvent.change(styleSelect, { target: { value: 'technical' } });
+    fireEvent.change(toneSelect, { target: { value: 'professional' } });
+
+    fireEvent.click(screen.getByText(/✓ Create Task/));
+
+    await waitFor(() => {
+      expect(createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'Q1 campaign for enterprise buyers',
+        })
+      );
+    });
+  });
 });
