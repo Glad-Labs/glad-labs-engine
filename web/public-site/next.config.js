@@ -131,7 +131,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://giscus.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' http://localhost:8000 https://www.google-analytics.com https://cofounder-production.up.railway.app https://api.railway.app; frame-src 'self' https://pagead2.googlesyndication.com https://giscus.app;",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://giscus.app https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' http://localhost:8000 https://www.google-analytics.com https://cofounder-production.up.railway.app https://api.railway.app https://va.vercel-scripts.com https://vitals.vercel-insights.com; frame-src 'self' https://pagead2.googlesyndication.com https://giscus.app;",
           },
           // Control referrer information
           {
