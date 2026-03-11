@@ -1,5 +1,4 @@
 'use client';
-import logger from '@/lib/logger';
 /**
  * Phase 2: AdSense Component
  *
@@ -31,7 +30,8 @@ export default function AdSenseScript() {
       src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adSenseId}`}
       strategy="afterInteractive"
       onLoad={() => {
-        logger.log('[AdSense] Script loaded successfully');
+        // eslint-disable-next-line no-console
+        console.log('[AdSense] Script loaded successfully');
         // Push any queued ads
         const w = window as unknown as { adsbygoogle?: object[] };
         if (w.adsbygoogle) {
@@ -39,7 +39,8 @@ export default function AdSenseScript() {
         }
       }}
       onError={() => {
-        logger.error('[AdSense] Failed to load script');
+        // eslint-disable-next-line no-console
+        console.error('[AdSense] Failed to load script');
       }}
     />
   );
