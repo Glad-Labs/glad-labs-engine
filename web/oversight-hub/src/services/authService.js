@@ -25,7 +25,7 @@ const getEnv = (...keys) => {
 };
 
 const isMockAuthEnabled = () =>
-  getEnv('VITE_USE_MOCK_AUTH', 'REACT_APP_USE_MOCK_AUTH') === 'true';
+  getEnv('VITE_USE_MOCK_AUTH') === 'true';
 
 const isMockCode = (code) =>
   typeof code === 'string' && code.startsWith('mock_auth_code_');
