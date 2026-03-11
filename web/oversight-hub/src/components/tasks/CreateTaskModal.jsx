@@ -66,14 +66,16 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           label: 'Primary Keyword',
           type: 'text',
           required: false,
-          description: 'Main SEO keyword to target (e.g. "machine learning best practices")',
+          description:
+            'Main SEO keyword to target (e.g. "machine learning best practices")',
         },
         {
           name: 'target_audience',
           label: 'Target Audience',
           type: 'text',
           required: false,
-          description: 'Who is this article for? (e.g. "senior software engineers")',
+          description:
+            'Who is this article for? (e.g. "senior software engineers")',
         },
         {
           name: 'description',
@@ -444,6 +446,8 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           models_by_phase: modelSelection.modelSelections || {},
           quality_preference: modelSelection.qualityPreference || 'balanced',
           writing_style_id: selectedWritingStyleId || undefined,
+          enforce_constraints:
+            formData.strict_mode === true || formData.strict_mode === 'true',
           context,
           metadata: {
             task_type: 'blog_post',

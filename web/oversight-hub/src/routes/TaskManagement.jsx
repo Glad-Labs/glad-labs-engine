@@ -440,12 +440,15 @@ function TaskManagement() {
         {loading && <div className="loading">Loading tasks...</div>}
         {!loading && filteredTasks.length === 0 ? (
           <div className="empty-state">
-            {(statusFilter || searchQuery) ? (
+            {statusFilter || searchQuery ? (
               <>
                 <p>
                   No tasks match
                   {searchQuery ? ` "${searchQuery}"` : ''}
-                  {statusFilter ? ` with status "${formatStatusLabel(statusFilter)}"` : ''}.
+                  {statusFilter
+                    ? ` with status "${formatStatusLabel(statusFilter)}"`
+                    : ''}
+                  .
                 </p>
                 <button
                   className="btn-clear-filters"
@@ -542,7 +545,7 @@ function TaskManagement() {
                       />
                     </td>
                     <td className="task-name">
-                      {typeof task.task_name === 'object'
+                      {task.task_name && typeof task.task_name === 'object'
                         ? JSON.stringify(task.task_name)
                         : task.task_name || task.topic || 'Untitled'}
                     </td>

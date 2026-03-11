@@ -193,10 +193,15 @@ export const ValidationFailureUI = ({ task, taskId, limit = 50 }) => {
 
       if (!details.length_gate_passes && details.length_gate_detail) {
         const detail = details.length_gate_detail;
+        const tooLong =
+          (detail.maximum != null && detail.word_count > detail.maximum) ||
+          (detail.maximum == null &&
+            detail.target != null &&
+            detail.word_count > detail.target);
         failingGates.push({
           constraint_name: '❌ Length Gate',
-          message: `Word count insufficient`,
-          details: `Generated: ${detail.word_count} words | Target: ${detail.target} | Minimum: ${detail.minimum} (tolerance: ${detail.tolerance_percent}%)`,
+          message: tooLong ? 'Word count too long' : 'Word count insufficient',
+          details: `Generated: ${detail.word_count} words | Target: ${detail.target} | ${tooLong ? `Maximum: ${detail.maximum ?? Math.round(detail.target * (1 + (detail.tolerance_percent || 15) / 100))}` : `Minimum: ${detail.minimum}`} (tolerance: ${detail.tolerance_percent}%)`,
           severity: 'error',
         });
       }
@@ -474,7 +479,7 @@ export const StatusDashboardMetrics = () => {
             Success Rate
           </Typography>
           <Typography variant="body2">
-            {(metrics.success_rate * 100).toFixed(1)}%
+            {Number(metrics.success_rate).toFixed(1)}%
           </Typography>
         </Paper>
       )}
