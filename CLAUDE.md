@@ -100,7 +100,7 @@ npm run build                 # Build all workspaces
 - `services/workflow_executor.py` — Phase-based workflow execution with real-time WebSocket progress events
 - `services/capability_registry.py` — Intent-based task routing; auto-selects agents from natural language requests
 
-**Agent system:** Four core agent types in `src/agents/`. The content agent runs a 6-stage self-critiquing pipeline: Research → Creative Draft → QA Critique → Creative Refinement → Image Selection → Publishing Prep (with DB Storage). QA agents critique without rewriting; Creative agents apply the feedback.
+**Agent system:** Four core agent types in `src/cofounder_agent/agents/` (Content, Financial, Market Insight, Compliance). The content agent runs a 6-stage self-critiquing pipeline: Research → Creative Draft → QA Critique → Creative Refinement → Image Selection → Publishing Prep (with DB Storage). QA agents critique without rewriting; Creative agents apply the feedback.
 
 **Database:** SQLAlchemy 2.0 async ORM + Alembic migrations. Five domain modules delegate from `DatabaseService`.
 
