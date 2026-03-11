@@ -179,7 +179,7 @@ const OrchestratorErrorMessage = ({ message, onRetry, onCancel }) => {
       label: 'Cancel',
       onClick: handleCancel,
       variant: 'outlined',
-      icon: CloseIcon,
+      icon: <CloseIcon />,
     },
     ...(retryable
       ? [
@@ -187,7 +187,7 @@ const OrchestratorErrorMessage = ({ message, onRetry, onCancel }) => {
             label: 'Retry',
             onClick: handleRetry,
             variant: 'contained',
-            icon: RefreshIcon,
+            icon: <RefreshIcon />,
             sx: { backgroundColor: 'white', color: severityInfo.color },
           },
         ]
