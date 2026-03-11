@@ -339,11 +339,27 @@ function TaskManagement() {
         {loading && <div className="loading">Loading tasks...</div>}
         {!loading && filteredTasks.length === 0 ? (
           <div className="empty-state">
-            <p>
-              {statusFilter
-                ? 'No tasks found with the selected filter. Try adjusting your filters.'
-                : 'No tasks found. Create your first task to get started!'}
-            </p>
+            {statusFilter ? (
+              <>
+                <p>No tasks match the &quot;{formatStatusLabel(statusFilter)}&quot; filter.</p>
+                <button
+                  className="btn-clear-filters"
+                  onClick={() => handleStatusFilter('')}
+                >
+                  Clear filter
+                </button>
+              </>
+            ) : (
+              <>
+                <p>No tasks yet. Create your first task to get started!</p>
+                <button
+                  className="btn-create-task"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  Create Task
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <>
