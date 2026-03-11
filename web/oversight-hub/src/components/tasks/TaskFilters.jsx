@@ -17,17 +17,21 @@ import {
   Button,
   FormControl,
   InputLabel,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
-import { Clear as ClearIcon } from '@mui/icons-material';
+import { Clear as ClearIcon, Search as SearchIcon } from '@mui/icons-material';
 import { filterBox, button, compactSelect } from '../../lib/muiStyles';
 
 const TaskFilters = ({
   sortBy = 'created_at',
   sortDirection = 'desc',
   statusFilter = '',
+  searchQuery = '',
   onSortChange,
   onDirectionChange,
   onStatusChange,
+  onSearchChange,
   onResetFilters,
 }) => {
   return (
@@ -92,6 +96,22 @@ const TaskFilters = ({
         </Select>
       </FormControl>
 
+      <TextField
+        size="small"
+        placeholder="Search tasks…"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ minWidth: 200 }}
+        inputProps={{ 'aria-label': 'Search tasks' }}
+      />
+
       <Button
         variant="outlined"
         size="small"
@@ -111,8 +131,10 @@ TaskFilters.propTypes = {
   sortBy: PropTypes.string,
   sortDirection: PropTypes.string,
   statusFilter: PropTypes.string,
+  searchQuery: PropTypes.string,
   onSortChange: PropTypes.func.isRequired,
   onDirectionChange: PropTypes.func.isRequired,
   onStatusChange: PropTypes.func.isRequired,
+  onSearchChange: PropTypes.func,
   onResetFilters: PropTypes.func.isRequired,
 };

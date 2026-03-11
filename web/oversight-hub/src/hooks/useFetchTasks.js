@@ -29,7 +29,8 @@ import { getTasks } from '../services/cofounderAgentClient';
 export const useFetchTasks = (
   page = 1,
   limit = 10,
-  autoRefreshInterval = 30000
+  autoRefreshInterval = 30000,
+  { status, search } = {}
 ) => {
   const [tasks, setTasks] = useState([]);
   const [total, setTotal] = useState(0);
@@ -47,7 +48,7 @@ export const useFetchTasks = (
       const offset = (page - 1) * limit;
 
       try {
-        const response = await getTasks(limit, offset);
+        const response = await getTasks(limit, offset, { status, search });
         logger.log('🟢 useFetchTasks: Response received:', response);
 
         // Handle success
@@ -83,7 +84,7 @@ export const useFetchTasks = (
     } finally {
       setLoading(false);
     }
-  }, [page, limit, setStoreTasks]);
+  }, [page, limit, status, search, setStoreTasks]);
 
   // Auto-refresh effect
   useEffect(() => {

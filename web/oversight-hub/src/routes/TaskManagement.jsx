@@ -24,6 +24,7 @@ function TaskManagement() {
   const [sortBy, setSortBy] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
   const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -41,7 +42,8 @@ function TaskManagement() {
   } = useFetchTasks(
     page,
     limit,
-    5000 // Auto-refresh every 5 seconds
+    5000, // Auto-refresh every 5 seconds
+    { status: statusFilter || undefined, search: searchQuery || undefined }
   );
 
   // 🔥 NEW: Listen to WebSocket task progress events for real-time updates
@@ -146,16 +148,9 @@ function TaskManagement() {
     }
   };
 
-  // Filter and sort tasks
+  // Sort tasks (filtering is now server-side via API params)
   const getFilteredTasks = () => {
     let filtered = localTasks || [];
-
-    // Apply status filter
-    if (statusFilter && statusFilter !== '') {
-      filtered = filtered.filter(
-        (t) => t.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
-    }
 
     // Apply sorting
     return filtered.sort((a, b) => {
@@ -189,8 +184,14 @@ function TaskManagement() {
     setPage(1); // Reset to first page
   };
 
+  const handleSearchChange = (query) => {
+    setSearchQuery(query);
+    setPage(1); // Reset to first page
+  };
+
   const handleResetFilters = () => {
     setStatusFilter('');
+    setSearchQuery('');
     setSortBy('created_at');
     setSortDirection('desc');
     setPage(1);
@@ -295,9 +296,11 @@ function TaskManagement() {
         sortBy={sortBy}
         sortDirection={sortDirection}
         statusFilter={statusFilter}
+        searchQuery={searchQuery}
         onSortChange={handleSort}
         onDirectionChange={(dir) => setSortDirection(dir)}
         onStatusChange={handleStatusFilter}
+        onSearchChange={handleSearchChange}
         onResetFilters={handleResetFilters}
       />
 
@@ -339,14 +342,18 @@ function TaskManagement() {
         {loading && <div className="loading">Loading tasks...</div>}
         {!loading && filteredTasks.length === 0 ? (
           <div className="empty-state">
-            {statusFilter ? (
+            {(statusFilter || searchQuery) ? (
               <>
-                <p>No tasks match the &quot;{formatStatusLabel(statusFilter)}&quot; filter.</p>
+                <p>
+                  No tasks match
+                  {searchQuery ? ` "${searchQuery}"` : ''}
+                  {statusFilter ? ` with status "${formatStatusLabel(statusFilter)}"` : ''}.
+                </p>
                 <button
                   className="btn-clear-filters"
-                  onClick={() => handleStatusFilter('')}
+                  onClick={handleResetFilters}
                 >
-                  Clear filter
+                  Clear filters
                 </button>
               </>
             ) : (

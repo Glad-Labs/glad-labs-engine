@@ -294,9 +294,12 @@ export async function refreshAccessToken() {
   }
 }
 
-export async function getTasks(limit = 50, offset = 0) {
+export async function getTasks(limit = 50, offset = 0, { status, search } = {}) {
+  const params = new URLSearchParams({ limit, offset });
+  if (status) params.set('status', status);
+  if (search) params.set('search', search);
   return makeRequest(
-    `/api/tasks?limit=${limit}&offset=${offset}`,
+    `/api/tasks?${params.toString()}`,
     'GET',
     null,
     false,
