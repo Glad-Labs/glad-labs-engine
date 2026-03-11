@@ -10,6 +10,8 @@ import {
   Box,
   Button,
   Divider,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import useStore from '../../store/useStore';
 import {
@@ -56,6 +58,12 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
   const [imageSource, setImageSource] = useState('pexels');
   const [selectedImageUrl, setSelectedImageUrl] = useState('');
   const [imageGenerating, setImageGenerating] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+  const showSuccess = (message) => setSnackbar({ open: true, message, severity: 'success' });
+  const showError = (message) => setSnackbar({ open: true, message, severity: 'error' });
+  const showInfo = (message) => setSnackbar({ open: true, message, severity: 'info' });
+  const handleSnackbarClose = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -84,13 +92,13 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
 
         if (result.image_url) {
           setSelectedImageUrl(result.image_url);
-          alert('✅ Image generated successfully!');
+          showSuccess('Image generated successfully');
         } else {
           throw new Error('No image URL in response');
         }
       } catch (error) {
         logger.error('❌ Image generation error:', error);
-        alert(`❌ Error generating image: ${error.message}`);
+        showError(`Error generating image: ${error.message}`);
       } finally {
         setImageGenerating(false);
       }
@@ -109,9 +117,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
           approvalFeedback || 'Approved from oversight hub'
         );
 
-        alert(
-          `✅ Task approved!\n\nStatus: ${result.status}\n\nNow waiting for you to publish when ready.`
-        );
+        showSuccess(`Task approved (${result.status}). Ready to publish when you are.`);
         // Reset form state
         setApprovalFeedback('');
         setReviewerId('oversight_hub_user');
@@ -121,7 +127,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
         onClose();
       } catch (error) {
         logger.error('❌ Approval error:', error);
-        alert(`❌ Error approving task: ${error.message}`);
+        showError(`Error approving task: ${error.message}`);
       } finally {
         setApprovalLoading(false);
       }
@@ -138,7 +144,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
       const publishedUrl =
         result.published_url ||
         `${window.location.origin}/posts/${result.post_slug || 'published'}`;
-      alert(`✅ Task published!\n\nURL: ${publishedUrl}`);
+      showSuccess(`Task published! URL: ${publishedUrl}`);
       // Reset form state
       setApprovalFeedback('');
       setReviewerId('oversight_hub_user');
@@ -148,7 +154,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
       onClose();
     } catch (error) {
       logger.error('❌ Publishing error:', error);
-      alert(`❌ Error publishing task: ${error.message}`);
+      showError(`Error publishing task: ${error.message}`);
     } finally {
       setApprovalLoading(false);
     }
@@ -164,9 +170,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
 
         if (latestStatus && latestStatus !== 'awaiting_approval') {
           handleTaskUpdate(latestTask);
-          alert(
-            `ℹ️ Task is already '${latestTask.status}'. Reject is only available when status is 'awaiting_approval'.`
-          );
+          showInfo(`Task is already '${latestTask.status}'. Reject is only available when status is 'awaiting_approval'.`);
           return;
         }
 
@@ -181,7 +185,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
           handleTaskUpdate(rejectedTask);
         }
 
-        alert('✅ Task rejected successfully');
+        showSuccess('Task rejected successfully');
         // Reset form state
         setApprovalFeedback('');
         setReviewerId('oversight_hub_user');
@@ -202,7 +206,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
           }
         }
         logger.error('❌ Rejection error:', error);
-        alert(`❌ Error rejecting task: ${error.message}`);
+        showError(`Error rejecting task: ${error.message}`);
       } finally {
         setApprovalLoading(false);
       }
@@ -219,13 +223,13 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
       if (updatedTask) {
         handleTaskUpdate(updatedTask);
       }
-      alert('Task sent back for re-review. Status reset to pending.');
+      showSuccess('Task sent back for re-review. Status reset to pending.');
       setApprovalFeedback('');
       setSelectedTask(null);
       onClose();
     } catch (error) {
       logger.error('Re-review error:', error);
-      alert(`Error resetting task for re-review: ${error.message}`);
+      showError(`Error resetting task for re-review: ${error.message}`);
     } finally {
       setApprovalLoading(false);
     }
@@ -629,6 +633,23 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
           Close
         </Button>
       </DialogActions>
+
+      {/* Toast notifications (replaces native alert() calls) */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };
