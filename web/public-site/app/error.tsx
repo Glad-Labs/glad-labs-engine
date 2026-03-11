@@ -1,5 +1,4 @@
 'use client';
-import logger from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
 
 import Link from 'next/link';
@@ -17,7 +16,7 @@ interface ErrorProps {
  */
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    logger.error('Error caught:', error);
+    console.error('Error caught:', error);
     Sentry.captureException(error);
   }, [error]);
 

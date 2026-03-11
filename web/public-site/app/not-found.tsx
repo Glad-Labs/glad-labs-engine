@@ -1,5 +1,4 @@
 'use client';
-import logger from '@/lib/logger';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -28,7 +27,7 @@ export default function NotFound() {
         const data = await getPaginatedPosts(1, 3);
         setSuggestedPosts(data?.data?.slice(0, 3) || []);
       } catch (error) {
-        logger.error('Failed to fetch suggested posts:', error);
+        console.error('Failed to fetch suggested posts:', error);
       } finally {
         setIsLoading(false);
       }
