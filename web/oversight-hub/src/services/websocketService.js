@@ -7,6 +7,7 @@ import logger from '@/lib/logger';
  */
 
 import { getWebSocketUrl } from '../config/apiConfig';
+import { authClient } from '@/lib/authClient';
 
 class WebSocketService {
   constructor() {
@@ -30,7 +31,16 @@ class WebSocketService {
     return new Promise((resolve, reject) => {
       try {
         this.isIntentionallyClosed = false;
-        this.ws = new WebSocket(this.url);
+        // Append auth token as query param (required by server)
+        const token =
+          authClient.getToken() ||
+          (import.meta.env.DEV ? 'dev-token' : null);
+        if (!token) {
+          reject(new Error('Not authenticated'));
+          return;
+        }
+        const connectUrl = `${this.url}?token=${encodeURIComponent(token)}`;
+        this.ws = new WebSocket(connectUrl);
 
         this.ws.onopen = () => {
           if (process.env.NODE_ENV === 'development') {
