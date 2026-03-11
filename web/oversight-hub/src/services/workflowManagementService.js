@@ -124,6 +124,32 @@ export const getPerformanceMetrics = async (range = '30d') => {
  * @param {Object} options - Query options (limit, offset)
  * @returns {Promise<Object>} Execution history for the workflow
  */
+/**
+ * Execute a workflow or template by ID
+ * @param {string} workflowId - ID or template name of the workflow to execute
+ * @param {Object} taskInput - Input data for the workflow (default: {})
+ * @returns {Promise<Object>} Execution details including execution_id
+ */
+export const executeWorkflow = async (workflowId, taskInput = {}) => {
+  try {
+    const response = await makeRequest(
+      `/api/workflows/execute/${workflowId}`,
+      'POST',
+      taskInput,
+      false,
+      null,
+      30000
+    );
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    return response;
+  } catch (error) {
+    logger.error(`Failed to execute workflow ${workflowId}:`, error);
+    throw error;
+  }
+};
+
 export const getWorkflowExecutionHistory = async (workflowId, options = {}) => {
   try {
     const params = new URLSearchParams();
