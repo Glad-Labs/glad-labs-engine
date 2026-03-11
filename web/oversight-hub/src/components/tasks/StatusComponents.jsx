@@ -11,7 +11,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, CircularProgress, Paper, Chip } from '@mui/material';
 import { unifiedStatusService } from '../../services/unifiedStatusService';
-import { STATUS_COLORS } from '../../Constants/statusEnums';
+import { STATUS_COLORS, getStatusLabel } from '../../Constants/statusEnums';
 
 /**
  * StatusAuditTrail Component
@@ -154,7 +154,7 @@ export const StatusTimeline = ({
           {statusHistory.map((entry, idx) => (
             <Chip
               key={idx}
-              label={entry.new_status}
+              label={getStatusLabel(entry.new_status)}
               size="small"
               sx={{
                 backgroundColor: STATUS_COLORS[entry.new_status] || '#999',

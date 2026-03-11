@@ -35,6 +35,7 @@ import {
   Stop as StopIcon,
 } from '@mui/icons-material';
 import { getStatusColor } from '../../lib/statusConfig';
+import { getStatusLabel } from '../../Constants/statusEnums';
 import { tableHeaderRow, loadingContainer } from '../../lib/muiStyles';
 
 const TaskTable = ({
@@ -120,7 +121,7 @@ const TaskTable = ({
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={task.status || 'unknown'}
+                    label={getStatusLabel(task.status)}
                     size="small"
                     color={getStatusColor(task.status)}
                     variant="filled"

@@ -20,6 +20,7 @@ export const STATUS_ENUM = {
   FAILED: 'failed',
   ON_HOLD: 'on_hold',
   CANCELLED: 'cancelled',
+  FAILED_REVISIONS_REQUESTED: 'failed_revisions_requested',
 };
 
 /**
@@ -75,6 +76,7 @@ export const STATUS_COLORS = {
   [STATUS_ENUM.FAILED]: '#F44336', // Red
   [STATUS_ENUM.ON_HOLD]: '#9C27B0', // Purple
   [STATUS_ENUM.CANCELLED]: '#9E9E9E', // Gray
+  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]: '#FF9800', // Amber — distinct from hard-failed red
 };
 
 /**
@@ -90,6 +92,7 @@ export const STATUS_DESCRIPTIONS = {
   [STATUS_ENUM.FAILED]: 'Task execution failed',
   [STATUS_ENUM.ON_HOLD]: 'Task is on hold pending review or action',
   [STATUS_ENUM.CANCELLED]: 'Task has been cancelled',
+  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]: 'Task was rejected; revisions have been requested',
 };
 
 /**
@@ -129,6 +132,7 @@ export const VALID_STATUS_TRANSITIONS = {
     STATUS_ENUM.CANCELLED,
   ],
   [STATUS_ENUM.CANCELLED]: [],
+  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]: [STATUS_ENUM.PENDING, STATUS_ENUM.ON_HOLD],
 };
 
 /**
@@ -149,4 +153,27 @@ export const isValidStatusTransition = (fromStatus, toStatus) => {
  */
 export const getValidTransitions = (status) => {
   return VALID_STATUS_TRANSITIONS[status] || [];
+};
+
+/**
+ * Human-readable display labels for statuses.
+ * Converts snake_case to Title Case with custom overrides.
+ * @param {string} status - Raw status string from API
+ * @returns {string} - Display-friendly label
+ */
+const STATUS_DISPLAY_LABELS = {
+  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]: 'Revisions Requested',
+  [STATUS_ENUM.AWAITING_APPROVAL]: 'Awaiting Approval',
+  [STATUS_ENUM.IN_PROGRESS]: 'In Progress',
+  [STATUS_ENUM.ON_HOLD]: 'On Hold',
+};
+
+export const getStatusLabel = (status) => {
+  if (STATUS_DISPLAY_LABELS[status]) {
+    return STATUS_DISPLAY_LABELS[status];
+  }
+  // Default: capitalize first letter of snake_case
+  return (status || 'unknown')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 };
