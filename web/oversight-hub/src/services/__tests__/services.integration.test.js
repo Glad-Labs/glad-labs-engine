@@ -5,7 +5,7 @@
  * Tests should be run against a running backend server (e.g., http://localhost:8000)
  *
  * Environment setup:
- * - REACT_APP_API_URL should point to backend server
+ * - VITE_API_URL should point to backend server
  * - Backend must have /api/settings and /api/logs endpoints
  *
  * Run with: npm test -- settingsService.integration.test.js
@@ -30,8 +30,8 @@ import {
 } from '../errorLoggingService';
 
 // Mock for integration tests - replace with real auth token when testing against actual backend
-const TEST_AUTH_TOKEN = process.env.REACT_APP_TEST_AUTH_TOKEN || null;
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const TEST_AUTH_TOKEN = process.env.VITE_TEST_AUTH_TOKEN || null;
+const API_URL = process.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * Helper to set auth token for tests
@@ -49,7 +49,7 @@ describe('settingsService Integration Tests', () => {
   beforeAll(() => {
     if (!TEST_AUTH_TOKEN) {
       console.warn(
-        '⚠️  REACT_APP_TEST_AUTH_TOKEN not set. Some tests will be skipped.'
+        '⚠️  VITE_TEST_AUTH_TOKEN not set. Some tests will be skipped.'
       );
     }
     if (!API_URL.includes('localhost') && !API_URL.includes('127.0.0.1')) {
@@ -279,8 +279,8 @@ describe('settingsService Integration Tests', () => {
 
     test('should handle network errors', async () => {
       // Try to connect to non-existent server
-      const backupUrl = process.env.REACT_APP_API_URL;
-      process.env.REACT_APP_API_URL =
+      const backupUrl = process.env.VITE_API_URL;
+      process.env.VITE_API_URL =
         'http://invalid-url-xyz-12345.example.com:9999';
 
       try {
@@ -290,7 +290,7 @@ describe('settingsService Integration Tests', () => {
         expect(error).toBeDefined();
         // Should be a network error or timeout
       } finally {
-        process.env.REACT_APP_API_URL = backupUrl;
+        process.env.VITE_API_URL = backupUrl;
       }
     });
   });
