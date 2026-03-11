@@ -72,23 +72,25 @@ npm test -- --coverage
 ```
 web/public-site/
 ├── README.md                    ← Component README
-├── pages/                       ← Next.js pages
-│   ├── index.js               ← Homepage
-│   ├── about.js               ← About page (Strapi)
-│   ├── privacy-policy.js      ← Privacy (Strapi)
-│   ├── terms-of-service.js    ← Terms (Strapi)
-│   ├── posts/[slug].js        ← Post detail page
-│   ├── category/[slug].js     ← Category archive
-│   └── tag/[slug].js          ← Tag archive
+├── app/                         ← Next.js 15 app router
+│   ├── page.js                ← Homepage
+│   ├── layout.js              ← Root layout (wraps all pages in <main>)
+│   ├── about/page.js          ← About page
+│   ├── posts/[slug]/page.tsx  ← Post detail page
+│   ├── category/[slug]/page.tsx ← Category archive
+│   ├── tag/[slug]/page.tsx    ← Tag archive
+│   ├── archive/[page]/page.tsx ← Paginated archive
+│   ├── author/[id]/page.tsx   ← Author page
+│   └── legal/layout.tsx       ← Legal pages layout
 ├── components/                ← React components
 │   ├── __tests__/             ← Component tests
 │   ├── PostCard.js            ← Blog post card
 │   ├── Pagination.js          ← Pagination component
-│   ├── Header.js              ← Header navigation
+│   ├── TopNav.js              ← Header navigation
 │   ├── Footer.js              ← Footer
-│   └── Layout.js              ← Layout wrapper
+│   └── [other components]
 ├── lib/                       ← Utilities
-│   ├── api.js                 ← Strapi API client (10s timeout!)
+│   ├── api.js                 ← FastAPI client
 │   └── __tests__/
 │       └── api.test.js        ← API tests
 └── public/                    ← Static assets
@@ -98,28 +100,25 @@ web/public-site/
 
 ## 🔗 Integration Points
 
-### Strapi CMS Integration
+### FastAPI Integration
 
 **API Client**: `lib/api.js`
 
 Key functions:
 
-- `fetchAPI()` - Base API call with **10-second timeout** ⚠️
 - `getPaginatedPosts()` - Fetch blog posts with pagination
 - `getFeaturedPost()` - Get featured blog post
 - `getPostBySlug()` - Get single post by slug
 - `getCategories()` - Fetch all categories
 - `getTags()` - Fetch all tags
 
-**Critical Pattern**: All API calls include markdown fallback content for Strapi downtime.
-
 ### Environment Variables
 
-Required in `.env.local`:
+Required in `web/public-site/.env.local`:
 
 ```
-NEXT_PUBLIC_STRAPI_API_URL=http://localhost:1337
-NEXT_PUBLIC_STRAPI_API_TOKEN=<token>
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 ---
@@ -146,8 +145,8 @@ npm start
 
 ```bash
 # Environment variables set in Vercel dashboard
-# NEXT_PUBLIC_STRAPI_API_URL
-# NEXT_PUBLIC_STRAPI_API_TOKEN
+# NEXT_PUBLIC_API_BASE_URL
+# NEXT_PUBLIC_SITE_URL
 
 git push origin main  # Auto-deploys to Vercel
 ```
@@ -165,8 +164,7 @@ git push origin main  # Auto-deploys to Vercel
 **In main docs hub:**
 
 - Frontend Architecture: `docs/02-Architecture/System-Design.md`
-- Strapi Integration: `docs/guides/STRAPI_BACKED_PAGES_GUIDE.md`
-- Testing Guide: `docs/guides/TESTING_SUMMARY.md`
+- Testing Guide: `docs/04-Development/Testing-Guide.md`
 - Deployment: `docs/05-Operations/Operations-Maintenance.md`
 
 ---

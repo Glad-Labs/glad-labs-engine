@@ -18,8 +18,8 @@
 
 ### Configuration
 
-- **`.env.example`** - Environment variables template
-- **Firebase configuration** - Authentication and data storage
+- **`.env.example`** - Environment variables template (uses `VITE_*` prefix)
+- **Vite configuration** - `vite.config.js` at `web/oversight-hub/`
 - **Routing configuration** - Application routes setup
 
 ---
@@ -27,10 +27,11 @@
 ## 🎯 Key Features
 
 - **React 18** - Modern frontend framework
-- **Firebase Integration** - Real-time database and authentication
+- **Zustand** - Global state management
+- **Material-UI** - Component library
 - **Task Management** - Create, track, and execute AI tasks
 - **Dashboard Views** - System health, financials, content queue, marketing analytics
-- **Real-time Updates** - Pub/Sub messaging for live updates
+- **Real-time Updates** - WebSocket connection to FastAPI backend
 - **Cost Tracking** - Monitor AI model costs and optimize spending
 
 ---
@@ -42,15 +43,11 @@ web/oversight-hub/
 ├── README.md                    ← Component README
 ├── src/
 │   ├── App.jsx                 ← Root application component
-│   ├── OversightHub.jsx        ← Main hub component
-│   ├── firebaseConfig.js       ← Firebase setup
-│   ├── index.js                ← React entry point
+│   ├── main.jsx                ← Vite entry point
 │   ├── components/
 │   │   ├── Header.jsx          ← App header
 │   │   ├── Sidebar.jsx         ← Navigation sidebar
 │   │   ├── TaskList.jsx        ← Task list component
-│   │   ├── Dashboard.jsx       ← Dashboard views
-│   │   ├── Financials.jsx      ← Cost tracking
 │   │   └── [other components]
 │   ├── routes/
 │   │   ├── Dashboard.jsx       ← Dashboard route
@@ -59,18 +56,14 @@ web/oversight-hub/
 │   │   └── Settings.jsx        ← Settings
 │   ├── hooks/
 │   │   ├── useTasks.js         ← Tasks hook
-│   │   ├── useRuns.js          ← Runs hook
-│   │   ├── useFinancials.js    ← Financials hook
-│   │   └── useFirestoreCollection.js
+│   │   └── useWebSocket.js     ← WebSocket hook
 │   ├── services/
-│   │   ├── taskService.js      ← Task operations
-│   │   └── pubsub.js           ← Pub/Sub messaging
+│   │   └── taskService.js      ← Task operations (REST API)
 │   ├── store/
-│   │   └── useStore.js         ← State management
+│   │   └── useStore.js         ← Zustand state management
 │   └── lib/
-│       ├── api.js              ← API integration
-│       ├── date.js             ← Date utilities
-│       └── firebase.js         ← Firebase utilities
+│       ├── api.js              ← FastAPI client (http://localhost:8000)
+│       └── date.js             ← Date utilities
 └── public/                     ← Static assets
 ```
 
@@ -78,34 +71,24 @@ web/oversight-hub/
 
 ## 🔗 Integration Points
 
-### Firebase Integration
-
-**Config**: `src/firebaseConfig.js`
-
-Key integrations:
-
-- **Firestore**: Real-time database for tasks, runs, financials
-- **Authentication**: Firebase Auth for user login
-- **Cloud Messaging**: Notifications and updates
-
 ### API Integration
 
 **Client**: `src/lib/api.js`
 
 Connects to:
 
-- Co-founder Agent (`http://localhost:8000`)
-- PostgreSQL Database (for content management)
+- Co-founder Agent (`http://localhost:8000`) via REST
+- Real-time updates via WebSocket: `ws://localhost:8000/api/workflow-progress/{id}`
 
-### Pub/Sub Integration
+### State Management
 
-**Service**: `src/services/pubsub.js`
+**Store**: `src/store/useStore.js`
 
-Real-time messaging for:
+Zustand global state for:
 
-- Task execution updates
-- Cost tracking changes
-- System health alerts
+- Task list and status
+- Agent monitoring data
+- System health metrics
 
 ---
 
@@ -115,14 +98,11 @@ Real-time messaging for:
 # Start from oversight-hub directory
 cd web/oversight-hub
 
-# Run tests
-npm test
+# Run tests (Vitest)
+npx vitest run --pool=forks --poolOptions.forks.maxForks=4
 
 # Build for production
 npm run build
-
-# Start production server
-npm start
 ```
 
 ---
@@ -132,11 +112,11 @@ npm start
 ### Local Development
 
 ```bash
-# Start React dev server
-npm start
+# Start Vite dev server
+npm run dev
 
-# Run tests
-npm test
+# Run tests (Vitest)
+npx vitest run
 
 # Build for production
 npm run build
@@ -166,25 +146,23 @@ CMD ["npm", "start"]
 **In main docs hub:**
 
 - Dashboard Architecture: `docs/02-Architecture/System-Design.md`
-- Firebase Setup: `docs/guides/FIREBASE_SETUP.md` (if exists)
 - Deployment: `docs/05-Operations/Operations-Maintenance.md`
 
 ---
 
 ## 🔑 Environment Variables
 
-Required in `.env`:
+Required in `web/oversight-hub/.env.local`:
 
 ```
-REACT_APP_FIREBASE_API_KEY=<key>
-REACT_APP_FIREBASE_AUTH_DOMAIN=<domain>
-REACT_APP_FIREBASE_PROJECT_ID=<project>
-REACT_APP_FIREBASE_STORAGE_BUCKET=<bucket>
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=<sender>
-REACT_APP_FIREBASE_APP_ID=<app>
-REACT_APP_COFOUNDER_API_URL=http://localhost:8000
-REACT_APP_API_URL=http://localhost:8000  # FastAPI backend
+VITE_API_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8000
+VITE_WS_BASE_URL=ws://localhost:8000
+VITE_AGENT_URL=http://localhost:8000
+VITE_GH_OAUTH_CLIENT_ID=<your-github-oauth-client-id>
 ```
+
+Note: Vite requires the `VITE_` prefix for env vars to be accessible in browser code via `import.meta.env.VITE_*`.
 
 ---
 
