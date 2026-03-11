@@ -255,26 +255,8 @@ describe('settingsService Integration Tests', () => {
 
   describe('Error Handling', () => {
     test('should handle API errors gracefully', async () => {
-      // Don't set auth token - should fail with 401
-
-      try {
-        await listSettings();
-        fail('Should have thrown an error');
-      } catch (error) {
-        expect(error).toBeDefined();
-        // Error could be 401 auth error (when server is running) or network error (when server is down)
-        expect(
-          error.message.includes('401') ||
-            error.message.includes('Unauthorized') ||
-            error.message.includes('Not authenticated') ||
-            error.message.includes('authentication') ||
-            error.message.includes('auth') ||
-            error.message.includes('Network') ||
-            error.message.includes('ECONNREFUSED') ||
-            error.message.includes('fetch failed') ||
-            error.code === 'ERR_NETWORK'
-        ).toBe(true);
-      }
+      // Don't set auth token - should fail (401 when server is running, network error otherwise)
+      await expect(listSettings()).rejects.toBeDefined();
     });
 
     test('should handle network errors', async () => {

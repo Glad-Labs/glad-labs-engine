@@ -160,7 +160,9 @@ describe('CreateTaskModal — component', () => {
   });
 
   test('blog post payload includes description field when provided (#116)', async () => {
-    render(
+    createTask.mockResolvedValue({ id: 'task-123', status: 'pending' });
+
+    const { container } = render(
       <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
     );
     fireEvent.click(screen.getByText(/📝 Blog Post/i));
@@ -176,16 +178,9 @@ describe('CreateTaskModal — component', () => {
     fireEvent.change(screen.getByLabelText(/campaign brief/i), {
       target: { value: 'Q1 campaign for enterprise buyers' },
     });
-    // Select style and tone (required)
-    const selects = screen.getAllByRole('combobox');
-    const styleSelect = selects.find((s) =>
-      s.closest('div')?.previousElementSibling?.textContent?.includes('Writing Style')
-    ) || selects[0];
-    const toneSelect = selects.find((s) =>
-      s.closest('div')?.previousElementSibling?.textContent?.includes('Tone')
-    ) || selects[1];
-    fireEvent.change(styleSelect, { target: { value: 'technical' } });
-    fireEvent.change(toneSelect, { target: { value: 'professional' } });
+    // Select style and tone by their stable id attributes
+    fireEvent.change(container.querySelector('#style'), { target: { value: 'technical' } });
+    fireEvent.change(container.querySelector('#tone'), { target: { value: 'professional' } });
 
     fireEvent.click(screen.getByText(/✓ Create Task/));
 
