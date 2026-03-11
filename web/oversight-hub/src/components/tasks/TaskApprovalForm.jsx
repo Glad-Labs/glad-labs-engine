@@ -33,7 +33,9 @@ const TaskApprovalForm = ({
 
   const isAwaitingApproval = task.status === 'awaiting_approval';
   const isApproved = task.status === 'approved';
-  const isRejected = task.status === 'rejected';
+  // Backend sets 'failed' (no revisions) or 'failed_revisions_requested' (revisions allowed)
+  const isRejected = task.status === 'failed' || task.status === 'failed_revisions_requested';
+  const isRevisionsRequested = task.status === 'failed_revisions_requested';
 
   return (
     <Box>
@@ -187,7 +189,7 @@ const TaskApprovalForm = ({
       )}
 
       {/* REJECTED: Re-review Option */}
-      {isRejected && (
+      {isRevisionsRequested && (
         <Box
           sx={{
             background: 'linear-gradient(135deg, #3a1a1a 0%, #2a1a3a 100%)',
