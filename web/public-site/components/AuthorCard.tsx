@@ -37,8 +37,8 @@ export function AuthorCard({ authorId, authorName }: AuthorCardProps) {
           <h3 className="text-lg font-semibold text-white mb-1">
             About the Author
           </h3>
-          <p className="block text-base font-medium text-cyan-400 hover:text-cyan-300 transition-colors mb-2">
-            <Link href={`/author/${authorId || 'default'}`}>{displayName}</Link>
+          <p className="block text-base font-medium text-cyan-400 mb-2">
+            {displayName}
           </p>
           <p className="text-sm text-slate-400 leading-relaxed">
             {profile.bio}
@@ -46,6 +46,7 @@ export function AuthorCard({ authorId, authorName }: AuthorCardProps) {
           <Link
             href={`/author/${authorId || 'default'}`}
             className="inline-block mt-3 text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+            aria-label={`View more articles by ${displayName}`}
           >
             View more articles →
           </Link>

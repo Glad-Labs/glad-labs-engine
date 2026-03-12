@@ -13,10 +13,10 @@
     "lint:fix": "eslint . --fix",
     "start": "next start",
     "test": "jest",
-    "test:coverage": "jest --coverage",
-    "postbuild": "node ./scripts/generate-sitemap.js"
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.43.0",
     "@types/sanitize-html": "^2.16.1",
     "@vercel/analytics": "^1.6.1",
     "cross-env": "^7.0.3",
