@@ -22,7 +22,7 @@ const baseMessage = {
   details: {},
   suggestions: [],
   retryable: true,
-  timestamp: Date.now(),
+  timestamp: 1737032400000, // 2026-01-15T10:00:00.000Z — fixed for determinism
 };
 
 describe('OrchestratorErrorMessage', () => {
@@ -77,14 +77,18 @@ describe('OrchestratorErrorMessage', () => {
 
   it('calls onRetry when Retry button is clicked', () => {
     const onRetry = vi.fn();
-    render(<OrchestratorErrorMessage message={baseMessage} onRetry={onRetry} />);
+    render(
+      <OrchestratorErrorMessage message={baseMessage} onRetry={onRetry} />
+    );
     fireEvent.click(screen.getByText('Retry'));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
   it('calls onCancel and failExecution when Cancel is clicked', () => {
     const onCancel = vi.fn();
-    render(<OrchestratorErrorMessage message={baseMessage} onCancel={onCancel} />);
+    render(
+      <OrchestratorErrorMessage message={baseMessage} onCancel={onCancel} />
+    );
     fireEvent.click(screen.getByText('Cancel'));
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(mockFailExecution).toHaveBeenCalledWith({ cancelled: true });
@@ -93,7 +97,10 @@ describe('OrchestratorErrorMessage', () => {
   it('displays recovery suggestions in expanded content', () => {
     const msgWithSuggestions = {
       ...baseMessage,
-      suggestions: ['Check database credentials', 'Verify network connectivity'],
+      suggestions: [
+        'Check database credentials',
+        'Verify network connectivity',
+      ],
     };
     render(<OrchestratorErrorMessage message={msgWithSuggestions} />);
 

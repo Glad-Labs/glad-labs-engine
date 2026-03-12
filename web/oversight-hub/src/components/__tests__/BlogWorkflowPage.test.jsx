@@ -700,19 +700,23 @@ describe('BlogWorkflowPage - Error Handling', () => {
 // ============================================================================
 
 describe('BlogWorkflowPage - Workflow History', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('should display recent executions', async () => {
     const mockHistory = [
       {
         id: 'exec-1',
         name: 'Blog Post 1',
         status: 'completed',
-        created_at: new Date().toISOString(),
+        created_at: '2026-01-15T10:00:00.000Z',
       },
       {
         id: 'exec-2',
         name: 'Blog Post 2',
         status: 'completed',
-        created_at: new Date().toISOString(),
+        created_at: '2026-01-15T10:00:00.000Z',
       },
     ];
 

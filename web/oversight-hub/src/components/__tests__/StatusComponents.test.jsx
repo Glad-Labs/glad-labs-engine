@@ -55,14 +55,18 @@ describe('StatusAuditTrail Component', () => {
   it('shows loading spinner while fetching', () => {
     unifiedStatusService.getHistory.mockReturnValue(new Promise(() => {})); // never resolves
     render(<StatusAuditTrail taskId="task-1" />);
-    expect(document.querySelector('.MuiCircularProgress-root')).toBeInTheDocument();
+    expect(
+      document.querySelector('.MuiCircularProgress-root')
+    ).toBeInTheDocument();
   });
 
   it('shows empty message when history is empty array', async () => {
     unifiedStatusService.getHistory.mockResolvedValue([]);
     render(<StatusAuditTrail taskId="task-1" />);
     await waitFor(() => {
-      expect(screen.getByText(/No status changes recorded yet/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/No status changes recorded yet/)
+      ).toBeInTheDocument();
     });
   });
 
@@ -70,7 +74,9 @@ describe('StatusAuditTrail Component', () => {
     unifiedStatusService.getHistory.mockResolvedValue({});
     render(<StatusAuditTrail taskId="task-1" />);
     await waitFor(() => {
-      expect(screen.getByText(/No status changes recorded yet/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/No status changes recorded yet/)
+      ).toBeInTheDocument();
     });
   });
 
@@ -107,7 +113,9 @@ describe('StatusAuditTrail Component', () => {
   });
 
   it('shows error message when fetch fails', async () => {
-    unifiedStatusService.getHistory.mockRejectedValue(new Error('Network error'));
+    unifiedStatusService.getHistory.mockRejectedValue(
+      new Error('Network error')
+    );
     render(<StatusAuditTrail taskId="task-1" />);
     await waitFor(() => {
       expect(screen.getByText(/Network error/)).toBeInTheDocument();
@@ -124,7 +132,7 @@ describe('StatusAuditTrail Component', () => {
       {
         old_status: 'pending',
         new_status: 'in_progress',
-        timestamp: new Date().toISOString(),
+        timestamp: '2026-01-15T10:00:00.000Z',
         metadata: { agent: 'content_agent' },
       },
     ]);
@@ -143,17 +151,19 @@ describe('StatusTimeline Component', () => {
 
   it('shows "Status Progression" heading when history is provided', () => {
     const history = [
-      { new_status: 'pending', timestamp: new Date().toISOString() },
-      { new_status: 'in_progress', timestamp: new Date().toISOString() },
+      { new_status: 'pending', timestamp: '2026-01-15T10:00:00.000Z' },
+      { new_status: 'in_progress', timestamp: '2026-01-15T10:00:00.000Z' },
     ];
-    render(<StatusTimeline currentStatus="in_progress" statusHistory={history} />);
+    render(
+      <StatusTimeline currentStatus="in_progress" statusHistory={history} />
+    );
     expect(screen.getByText('Status Progression')).toBeInTheDocument();
   });
 
   it('renders status entries in non-compact mode', () => {
     const history = [
-      { new_status: 'pending', timestamp: new Date().toISOString() },
-      { new_status: 'in_progress', timestamp: new Date().toISOString() },
+      { new_status: 'pending', timestamp: '2026-01-15T10:00:00.000Z' },
+      { new_status: 'in_progress', timestamp: '2026-01-15T10:00:00.000Z' },
     ];
     render(
       <StatusTimeline
@@ -168,8 +178,8 @@ describe('StatusTimeline Component', () => {
 
   it('renders Chips in compact mode', () => {
     const history = [
-      { new_status: 'pending', timestamp: new Date().toISOString() },
-      { new_status: 'completed', timestamp: new Date().toISOString() },
+      { new_status: 'pending', timestamp: '2026-01-15T10:00:00.000Z' },
+      { new_status: 'completed', timestamp: '2026-01-15T10:00:00.000Z' },
     ];
     render(
       <StatusTimeline
@@ -185,7 +195,7 @@ describe('StatusTimeline Component', () => {
 
   it('defaults to non-compact mode', () => {
     const history = [
-      { new_status: 'pending', timestamp: new Date().toISOString() },
+      { new_status: 'pending', timestamp: '2026-01-15T10:00:00.000Z' },
     ];
     render(<StatusTimeline currentStatus="pending" statusHistory={history} />);
     // In non-compact mode the raw status text is displayed
@@ -271,14 +281,19 @@ describe('ValidationFailureUI Component', () => {
     unifiedStatusService.getFailures.mockResolvedValue([]);
     render(<ValidationFailureUI taskId="task-1" />);
     await waitFor(() => {
-      expect(unifiedStatusService.getFailures).toHaveBeenCalledWith('task-1', 50);
+      expect(unifiedStatusService.getFailures).toHaveBeenCalledWith(
+        'task-1',
+        50
+      );
     });
   });
 
   it('shows loading spinner during fetch', () => {
     unifiedStatusService.getFailures.mockReturnValue(new Promise(() => {}));
     render(<ValidationFailureUI taskId="task-1" />);
-    expect(document.querySelector('.MuiCircularProgress-root')).toBeInTheDocument();
+    expect(
+      document.querySelector('.MuiCircularProgress-root')
+    ).toBeInTheDocument();
   });
 
   it('shows error when fetch fails', async () => {
@@ -316,11 +331,15 @@ describe('StatusDashboardMetrics Component', () => {
   it('shows loading spinner while fetching', () => {
     unifiedStatusService.getMetrics.mockReturnValue(new Promise(() => {}));
     render(<StatusDashboardMetrics />);
-    expect(document.querySelector('.MuiCircularProgress-root')).toBeInTheDocument();
+    expect(
+      document.querySelector('.MuiCircularProgress-root')
+    ).toBeInTheDocument();
   });
 
   it('shows error when fetch fails', async () => {
-    unifiedStatusService.getMetrics.mockRejectedValue(new Error('Server error'));
+    unifiedStatusService.getMetrics.mockRejectedValue(
+      new Error('Server error')
+    );
     render(<StatusDashboardMetrics />);
     await waitFor(() => {
       expect(screen.getByText(/Server error/)).toBeInTheDocument();

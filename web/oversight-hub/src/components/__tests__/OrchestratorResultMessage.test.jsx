@@ -5,21 +5,35 @@ import OrchestratorResultMessage from '../OrchestratorResultMessage';
 
 // Mock OrchestratorMessageCard to avoid icon rendering issues with MUI Button startIcon
 vi.mock('../OrchestratorMessageCard', () => ({
-  default: ({ children, headerLabel, metadata, expandedContent, footerActions }) => (
+  default: ({
+    children,
+    headerLabel,
+    metadata,
+    expandedContent,
+    footerActions,
+  }) => (
     <div data-testid="orchestrator-card">
       <div data-testid="header-label">{headerLabel}</div>
-      {metadata && metadata.map((m, i) => (
-        <span key={i} data-testid={`meta-${m.label}`}>{m.value}</span>
-      ))}
+      {metadata &&
+        metadata.map((m, i) => (
+          <span key={i} data-testid={`meta-${m.label}`}>
+            {m.value}
+          </span>
+        ))}
       <div data-testid="card-content">{children}</div>
       {expandedContent && (
         <div data-testid="expanded-content">{expandedContent}</div>
       )}
-      {footerActions && footerActions.map((action, i) => (
-        <button key={i} onClick={action.onClick} data-testid={`action-${action.label}`}>
-          {action.label}
-        </button>
-      ))}
+      {footerActions &&
+        footerActions.map((action, i) => (
+          <button
+            key={i}
+            onClick={action.onClick}
+            data-testid={`action-${action.label}`}
+          >
+            {action.label}
+          </button>
+        ))}
     </div>
   ),
 }));
@@ -45,7 +59,7 @@ const baseMessage = {
     model: 'claude-3-5-sonnet',
     provider: 'Anthropic',
   },
-  timestamp: Date.now(),
+  timestamp: 1737032400000, // 2026-01-15T10:00:00.000Z — fixed for determinism
 };
 
 describe('OrchestratorResultMessage', () => {
@@ -63,7 +77,9 @@ describe('OrchestratorResultMessage', () => {
 
   it('renders "Result Ready" header label', () => {
     render(<OrchestratorResultMessage message={baseMessage} />);
-    expect(screen.getByTestId('header-label')).toHaveTextContent('Result Ready');
+    expect(screen.getByTestId('header-label')).toHaveTextContent(
+      'Result Ready'
+    );
   });
 
   it('displays result preview text', () => {
@@ -145,7 +161,9 @@ describe('OrchestratorResultMessage', () => {
     );
     fireEvent.click(screen.getByTestId('action-Approve'));
 
-    const textarea = screen.getByPlaceholderText('Enter your feedback (optional)');
+    const textarea = screen.getByPlaceholderText(
+      'Enter your feedback (optional)'
+    );
     fireEvent.change(textarea, { target: { value: 'Great work!' } });
 
     // Submit button in dialog
@@ -163,7 +181,9 @@ describe('OrchestratorResultMessage', () => {
     );
     fireEvent.click(screen.getByTestId('action-Reject'));
 
-    const textarea = screen.getByPlaceholderText('Enter your feedback (optional)');
+    const textarea = screen.getByPlaceholderText(
+      'Enter your feedback (optional)'
+    );
     fireEvent.change(textarea, { target: { value: 'Not relevant enough.' } });
 
     const rejectButtons = screen.getAllByText('Reject');
@@ -182,7 +202,9 @@ describe('OrchestratorResultMessage', () => {
   it('copies result to clipboard when Copy is clicked', () => {
     render(<OrchestratorResultMessage message={baseMessage} />);
     fireEvent.click(screen.getByTestId('action-Copy'));
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(baseMessage.result);
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      baseMessage.result
+    );
   });
 
   it('shows "Copied!" temporarily after copying', async () => {
@@ -209,7 +231,9 @@ describe('OrchestratorResultMessage', () => {
     fireEvent.click(screen.getByTestId('action-Approve'));
     // Dialog opens — click the "Approve" button inside the dialog (MUI DialogActions)
     // The dialog has "Cancel" and "Approve" buttons
-    const dialogSubmitButton = screen.getAllByRole('button', { name: 'Approve' });
+    const dialogSubmitButton = screen.getAllByRole('button', {
+      name: 'Approve',
+    });
     // Click the last Approve button (in dialog, not in card)
     fireEvent.click(dialogSubmitButton[dialogSubmitButton.length - 1]);
     expect(mockState.completeExecution).toHaveBeenCalledWith({
