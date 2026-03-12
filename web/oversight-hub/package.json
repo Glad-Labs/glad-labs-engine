@@ -6,14 +6,14 @@
   "license": "MIT",
   "author": "Matthew M. Gladding (Glad Labs, LLC)",
   "scripts": {
-    "build": "react-scripts build",
+    "build": "craco build",
     "eject": "react-scripts eject",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "dev": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation react-scripts start",
-    "start": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation react-scripts start",
-    "test": "react-scripts test --passWithNoTests",
-    "test:coverage": "react-scripts test --coverage --passWithNoTests"
+    "dev": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation craco start",
+    "start": "cross-env PORT=3001 NODE_OPTIONS=--no-deprecation craco start",
+    "test": "craco test --passWithNoTests",
+    "test:coverage": "craco test --coverage --passWithNoTests"
   },
   "browserslist": {
     "production": [
@@ -67,6 +67,7 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
+    "@craco/craco": "^7.1.0",
     "@eslint/js": "^9.17.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
