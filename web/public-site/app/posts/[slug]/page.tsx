@@ -1,4 +1,3 @@
-import logger from '@/lib/logger';
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,23 +7,13 @@ import {
   BreadcrumbSchema,
 } from '../../../components/StructuredData';
 import { generateBlogPostingSchema } from '../../../lib/structured-data';
-import { AuthorCard } from '../../../components/AuthorCard';
 import { GiscusWrapper } from '../../../components/GiscusWrapper';
-import { PostMetadata } from '../../../components/PostMetadata';
-import { PostNavigation } from '../../../components/PostNavigation';
-import { ShareButtons } from '../../../components/ShareButtons';
-import { TableOfContents } from '../../../components/TableOfContents';
+import sanitizeHtml from 'sanitize-html';
 import {
   buildMetaDescription,
   buildSEOTitle,
   generateCanonicalURL,
 } from '../../../lib/seo';
-import { generateTableOfContents } from '../../../lib/content-utils';
-import {
-  getPreviousPost,
-  getNextPost,
-  getRelatedPosts,
-} from '../../../lib/posts';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
@@ -63,7 +52,7 @@ async function getPost(slug: string): Promise<Post | null> {
       if (response.status === 404) {
         return null;
       }
-      logger.error(`Failed to fetch post: ${response.status}`);
+      console.error(`Failed to fetch post: ${response.status}`);
       return null;
     }
 
@@ -72,7 +61,7 @@ async function getPost(slug: string): Promise<Post | null> {
 
     return post || null;
   } catch (error) {
-    logger.error(`Error fetching post "${slug}":`, error);
+    console.error(`Error fetching post "${slug}":`, error);
     return null;
   }
 }
@@ -157,21 +146,6 @@ export default async function PostPage({
   const imageUrl = post.cover_image_url || post.featured_image_url;
   const publishDate = post.published_at || post.created_at;
 
-  // Fetch previous and next posts for navigation
-  const [previousPost, nextPost] = await Promise.all([
-    getPreviousPost(slug),
-    getNextPost(slug),
-  ]);
-
-  // Fetch related posts (by category if available)
-  let relatedPosts: Post[] = [];
-  if (post.category_id) {
-    relatedPosts = await getRelatedPosts(post.category_id, post.id, 3);
-  }
-
-  // Generate table of contents from post content
-  const toc = generateTableOfContents(post.content);
-
   const breadcrumbs = [
     { label: 'Home', url: '/' },
     { label: 'Articles', url: '/archive/1' },
@@ -210,7 +184,7 @@ export default async function PostPage({
         />
       )}
 
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         {/* Header with Featured Image */}
         <div className="pt-20 pb-12">
           {imageUrl && (
@@ -237,22 +211,17 @@ export default async function PostPage({
               </h1>
 
               {/* Meta Information */}
-              <PostMetadata
-                publishedAt={post.published_at}
-                createdAt={post.created_at}
-                content={post.content}
-                viewCount={post.view_count}
-              />
-              <div className="mb-4"></div>
-
-              {/* Share Buttons */}
-              <ShareButtons
-                title={post.seo_title || post.title}
-                description={post.seo_description || post.excerpt}
-                slug={post.slug}
-                siteUrl={SITE_URL}
-              />
-              <div className="mb-8"></div>
+              <div className="flex flex-wrap items-center gap-4 text-slate-400 mb-8">
+                <time dateTime={post.published_at || post.created_at}>
+                  {publishDate}
+                </time>
+                {post.view_count > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>{post.view_count} views</span>
+                  </>
+                )}
+              </div>
 
               {/* Excerpt */}
               {post.excerpt && (
@@ -267,8 +236,6 @@ export default async function PostPage({
         {/* Article Content */}
         <div className="px-4 sm:px-6 lg:px-8 pb-20">
           <div className="max-w-4xl mx-auto">
-            {/* Table of Contents */}
-            {toc && <TableOfContents headings={toc} />}
             <article
               className="prose prose-invert max-w-none
                        prose-headings:font-bold
@@ -288,16 +255,56 @@ export default async function PostPage({
             >
               <div
                 dangerouslySetInnerHTML={{
-                  __html: post.content,
+                  __html: sanitizeHtml(post.content, {
+                    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+                      'img',
+                      'h1',
+                      'h2',
+                      'details',
+                      'summary',
+                      'figure',
+                      'figcaption',
+                    ]),
+                    allowedAttributes: {
+                      ...sanitizeHtml.defaults.allowedAttributes,
+                      img: [
+                        'src',
+                        'alt',
+                        'title',
+                        'width',
+                        'height',
+                        'loading',
+                      ],
+                      a: ['href', 'name', 'target', 'rel'],
+                      '*': ['class', 'id'],
+                    },
+                  }),
                 }}
               />
             </article>
 
-            {/* Author Card */}
-            <AuthorCard authorId={post.author_id} authorName={post.title} />
-
             {/* Bottom Navigation */}
-            <PostNavigation previousPost={previousPost} nextPost={nextPost} />
+            <div className="mt-12 pt-8 border-t border-slate-700">
+              <Link
+                href="/archive/1"
+                className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 font-semibold transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back to Archive
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -308,49 +315,13 @@ export default async function PostPage({
           </div>
         </div>
 
-        {/* Related Posts */}
-        {relatedPosts && relatedPosts.length > 0 && (
-          <div className="px-4 sm:px-6 lg:px-8 pb-16">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl font-bold text-white mb-8">
-                Related Articles
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {relatedPosts.map((relatedPost) => (
-                  <Link
-                    key={relatedPost.id}
-                    href={`/posts/${relatedPost.slug}`}
-                    className="group p-4 rounded-lg border border-slate-700 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10"
-                  >
-                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors line-clamp-2 mb-2">
-                      {relatedPost.title}
-                    </h3>
-                    {relatedPost.published_at && (
-                      <div className="text-xs text-slate-400">
-                        {new Date(relatedPost.published_at).toLocaleDateString(
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          }
-                        )}
-                      </div>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Comments Section */}
         <div className="px-4 sm:px-6 lg:px-8 pb-20 bg-slate-800/30">
           <div className="max-w-4xl mx-auto">
             <GiscusWrapper postSlug={post.slug} postTitle={post.title} />
           </div>
         </div>
-      </div>
+      </main>
     </>
   );
 }

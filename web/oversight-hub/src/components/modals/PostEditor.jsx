@@ -1,5 +1,5 @@
-import logger from '@/lib/logger';
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import './PostEditor.css';
 
 /**
@@ -55,7 +55,7 @@ function PostEditor({ post, onClose, onSave }) {
     try {
       await onSave({ ...post, ...formData });
     } catch (error) {
-      logger.error('Save failed:', error);
+      console.error('Save failed:', error);
       alert('Failed to save changes. Please try again.');
     } finally {
       setSaving(false);
@@ -82,7 +82,7 @@ function PostEditor({ post, onClose, onSave }) {
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br/>');
 
-    return `<p>${html}</p>`;
+    return DOMPurify.sanitize(`<p>${html}</p>`);
   };
 
   return (
