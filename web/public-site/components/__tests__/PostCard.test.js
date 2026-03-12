@@ -114,7 +114,9 @@ describe('PostCard Component', () => {
 
   it('should apply category styling when provided', () => {
     render(<PostCard post={mockPost} category="Technology" />);
-    expect(screen.getByText(/technology|tech/i) || true).toBeTruthy();
+    // Verify that either the category prop is rendered somewhere in the card
+    const categoryEl = screen.queryByText(/technology|tech/i);
+    expect(categoryEl).not.toBeNull();
   });
 
   it('should not render unpublished posts', () => {

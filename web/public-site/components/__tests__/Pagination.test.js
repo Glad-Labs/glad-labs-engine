@@ -115,8 +115,9 @@ describe('Pagination Component', () => {
     };
     render(<Pagination {...props} />);
     const links = screen.queryAllByRole('link');
+    expect(links.length).toBeGreaterThan(0);
     const hasCustomBase = links.some((link) => link.href.includes('tech'));
-    expect(hasCustomBase || links.length > 0).toBe(true);
+    expect(hasCustomBase).toBe(true);
   });
 
   it('should be keyboard accessible', () => {
@@ -152,6 +153,6 @@ describe('Pagination Component', () => {
     };
     render(<Pagination {...slugProps} />);
     const links = screen.queryAllByRole('link');
-    expect(links.length > 0).toBe(true);
+    expect(links.length).toBeGreaterThan(0);
   });
 });

@@ -164,7 +164,7 @@ describe('Posts API (lib/posts.ts)', () => {
       const result = await getPost('test-post');
 
       expect(result.content).toBeDefined();
-      expect(result.content.length > 0).toBe(true);
+      expect(result.content.length).toBeGreaterThan(0);
     });
 
     it('should include SEO metadata', async () => {

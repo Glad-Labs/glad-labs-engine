@@ -76,7 +76,7 @@ describe('SEO Utility (lib/seo.js)', () => {
       };
       const tags = generateMetaTags(minimalPost);
       expect(tags).toBeDefined();
-      expect(tags.length > 0).toBe(true);
+      expect(tags.length).toBeGreaterThan(0);
     });
 
     it('should escape HTML special characters', () => {
@@ -173,12 +173,10 @@ describe('SEO Utility (lib/seo.js)', () => {
 
     it('should be absolute URL', () => {
       const canonical = getCanonicalUrl(mockPost);
-      try {
-        const url = new URL(canonical);
-        expect(url.hostname).toBeDefined();
-      } catch (_err) {
-        expect(true).toBe(false); // URL should be valid
-      }
+      // expect() outside try/catch ensures the test fails if URL is invalid
+      expect(() => new URL(canonical)).not.toThrow();
+      const url = new URL(canonical);
+      expect(url.hostname.length).toBeGreaterThan(0);
     });
   });
 

@@ -8,9 +8,12 @@ describe('API Client', () => {
     // Setup: Clear any global state between tests
   });
 
-  it('should have API utilities available', () => {
-    // Import check - if the module imports without error, this passes
-    expect(true).toBe(true);
+  it('should have API utilities available', async () => {
+    // Verify the module exports the expected API functions
+    const api = await import('../api');
+    expect(typeof api.getPaginatedPosts).toBe('function');
+    expect(typeof api.getPostBySlug).toBe('function');
+    expect(typeof api.getCategories).toBe('function');
   });
 
   describe('Data Fetching', () => {

@@ -112,7 +112,8 @@ describe('Footer Component', () => {
     const linkGroups = footer?.querySelectorAll(
       'nav, [role="navigation"], ul, div'
     );
-    expect(linkGroups && linkGroups.length > 0).toBeTruthy();
+    expect(linkGroups).not.toBeNull();
+    expect(linkGroups.length).toBeGreaterThan(0);
   });
 
   it('should have accessible link structure', () => {
