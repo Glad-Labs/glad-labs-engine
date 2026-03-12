@@ -90,7 +90,7 @@ npm run build                 # Build all workspaces
 
 ### Backend (`src/cofounder_agent/`)
 
-**Entry point:** `main.py` — FastAPI app initializing service container, database pools, orchestrator, and registering all 26 route modules via `register_all_routes()`.
+**Entry point:** `main.py` — FastAPI app initializing service container, database pools, orchestrator, and registering all 28 route modules via `register_all_routes()`.
 
 **Key services:**
 
@@ -102,13 +102,13 @@ npm run build                 # Build all workspaces
 
 **Agent system:** Four core agent types in `src/cofounder_agent/agents/` (Content, Financial, Market Insight, Compliance). The content agent runs a 6-stage self-critiquing pipeline: Research → Creative Draft → QA Critique → Creative Refinement → Image Selection → Publishing Prep (with DB Storage). QA agents critique without rewriting; Creative agents apply the feedback.
 
-**Database:** SQLAlchemy 2.0 async ORM + Alembic migrations. Five domain modules delegate from `DatabaseService`.
+**Database:** asyncpg for direct PostgreSQL interaction + raw SQL migration files in `services/migrations/`. Five domain modules delegate from `DatabaseService`.
 
-**Python toolchain:** Poetry for dependency management. Run with `poetry run` inside `src/cofounder_agent/`. pytest markers: `unit`, `integration`, `e2e`, `smoke`, `websocket`, `performance`.
+**Python toolchain:** Poetry for dependency management. Run with `poetry run` inside `src/cofounder_agent/`. pytest markers: `unit`, `integration`, `api`, `e2e`, `performance`, `slow`, `voice`.
 
 ### Frontend
 
-**Oversight Hub** (`web/oversight-hub/`): Vite build tool, Vitest for tests. Path alias `@/` → `src/`. State managed with Zustand. Real-time updates via WebSocket to `ws://localhost:8000/api/workflow-progress/{id}`.
+**Oversight Hub** (`web/oversight-hub/`): Create React App (CRA) with CRACO for build/dev. Vitest for unit tests. Path alias `@/` → `src/`. State managed with Zustand. Real-time updates via WebSocket to `ws://localhost:8000/api/workflow-progress/{id}`.
 
 **Public Site** (`web/public-site/`): Next.js 15 app router (no `pages/` directory). Markdown content via gray-matter + marked. Static generation with ISR. Jest + React Testing Library for tests.
 
