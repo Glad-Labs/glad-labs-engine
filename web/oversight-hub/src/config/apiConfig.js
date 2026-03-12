@@ -11,13 +11,10 @@ import logger from '@/lib/logger';
  */
 
 /**
- * Read environment variables from Vite's import.meta.env.
+ * Read environment variables, supporting both CRA (REACT_APP_*) and Vite (VITE_*).
  * Priority:
- * 1) Vite-prefixed keys (VITE_*) via import.meta.env
- * 2) process.env fallback for test environments (Jest/Node)
- *
- * Note: REACT_APP_* keys are NOT supported — Vite only exposes VITE_* prefixed
- * vars through import.meta.env. Use VITE_API_URL, VITE_OLLAMA_URL, etc.
+ * 1) process.env — CRA exposes REACT_APP_* vars here at build time
+ * 2) import.meta.env — Vite exposes VITE_* vars here (kept for compatibility)
  */
 function getEnv(...keys) {
   const viteEnv =
@@ -28,11 +25,11 @@ function getEnv(...keys) {
     typeof process !== 'undefined' && process.env ? process.env : {};
 
   for (const key of keys) {
-    if (viteEnv[key] !== undefined && viteEnv[key] !== '') {
-      return viteEnv[key];
-    }
     if (procEnv[key] !== undefined && procEnv[key] !== '') {
       return procEnv[key];
+    }
+    if (viteEnv[key] !== undefined && viteEnv[key] !== '') {
+      return viteEnv[key];
     }
   }
 
@@ -101,12 +98,15 @@ function validateUrl(url, envVarName, allowLocalhost = false) {
  */
 export function getApiUrl() {
   const url =
+    getEnv('REACT_APP_API_URL') ||
+    getEnv('REACT_APP_API_BASE_URL') ||
+    getEnv('REACT_APP_AGENT_URL') ||
     getEnv('VITE_API_URL') ||
     getEnv('VITE_API_BASE_URL') ||
     getEnv('VITE_AGENT_URL');
 
   try {
-    return validateUrl(url, 'VITE_API_URL', false);
+    return validateUrl(url, 'REACT_APP_API_URL', false);
   } catch (error) {
     // In development, provide helpful error message
     if (getRuntimeMode() === 'development') {
@@ -114,7 +114,7 @@ export function getApiUrl() {
         '\n❌ Missing API Configuration!\n\n' +
           'To fix this:\n' +
           '1. Copy .env.example to web/oversight-hub/.env.local\n' +
-          '2. Set VITE_API_URL=http://localhost:8000\n' +
+          '2. Set REACT_APP_API_URL=http://localhost:8000\n' +
           '3. Restart the dev server\n'
       );
     }
@@ -131,6 +131,8 @@ export function getApiUrl() {
  */
 export function getOllamaUrl(required = false) {
   const url =
+    getEnv('REACT_APP_OLLAMA_URL') ||
+    getEnv('REACT_APP_OLLAMA_BASE_URL') ||
     getEnv('VITE_OLLAMA_URL') ||
     getEnv('VITE_OLLAMA_BASE_URL');
 
@@ -178,6 +180,8 @@ export function getWebSocketUrl() {
  */
 export function getPublicSiteUrl() {
   const url =
+    getEnv('REACT_APP_PUBLIC_SITE_URL') ||
+    getEnv('REACT_APP_SITE_URL') ||
     getEnv('VITE_PUBLIC_SITE_URL') ||
     getEnv('VITE_SITE_URL');
 
@@ -186,9 +190,7 @@ export function getPublicSiteUrl() {
   } catch (error) {
     // Fallback to localhost in development only
     if (getRuntimeMode() === 'development') {
-      logger.warn(
-        '⚠️  VITE_PUBLIC_SITE_URL not set, using localhost:3000'
-      );
+      logger.warn('⚠️  VITE_PUBLIC_SITE_URL not set, using localhost:3000');
       return 'http://localhost:3000';
     }
     throw error;
