@@ -37,8 +37,9 @@ const TaskFilters = ({
   return (
     <Box sx={filterBox}>
       <FormControl size="small" sx={{ minWidth: 150 }}>
-        <InputLabel>Sort By</InputLabel>
+        <InputLabel id="task-sort-by-label">Sort By</InputLabel>
         <Select
+          labelId="task-sort-by-label"
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
           label="Sort By"
@@ -52,8 +53,9 @@ const TaskFilters = ({
       </FormControl>
 
       <FormControl size="small" sx={{ minWidth: 120 }}>
-        <InputLabel>Direction</InputLabel>
+        <InputLabel id="task-sort-direction-label">Direction</InputLabel>
         <Select
+          labelId="task-sort-direction-label"
           value={sortDirection}
           onChange={(e) => onDirectionChange(e.target.value)}
           label="Direction"
@@ -65,8 +67,9 @@ const TaskFilters = ({
       </FormControl>
 
       <FormControl size="small" sx={{ minWidth: 150 }}>
-        <InputLabel>Status</InputLabel>
+        <InputLabel id="task-status-filter-label">Status</InputLabel>
         <Select
+          labelId="task-status-filter-label"
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}
           label="Status"

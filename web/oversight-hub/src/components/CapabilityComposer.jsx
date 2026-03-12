@@ -538,7 +538,7 @@ export default function CapabilityComposer() {
                           placeholder="Add tag..."
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
-                          onKeyPress={(e) => {
+                          onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               handleAddTag();
                             }

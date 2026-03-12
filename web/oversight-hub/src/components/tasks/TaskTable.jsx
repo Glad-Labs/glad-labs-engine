@@ -80,6 +80,7 @@ const TaskTable = ({
                   indeterminate={isIndeterminate}
                   checked={isAllSelected}
                   onChange={(e) => onSelectAll(e.target.checked)}
+                  inputProps={{ 'aria-label': 'Select all tasks' }}
                 />
               </TableCell>
               <TableCell>Name</TableCell>
@@ -100,6 +101,9 @@ const TaskTable = ({
                   <Checkbox
                     checked={selectedTasks.includes(task.id)}
                     onChange={(e) => onSelectOne(task.id, e.target.checked)}
+                    inputProps={{
+                      'aria-label': `Select task ${task.task_name || task.topic || 'Untitled'}`,
+                    }}
                   />
                 </TableCell>
                 <TableCell>
@@ -180,7 +184,11 @@ const TaskTable = ({
                     )}
 
                   <Tooltip title="Edit">
-                    <IconButton size="small" aria-label="Edit task" onClick={() => onEditTask(task)}>
+                    <IconButton
+                      size="small"
+                      aria-label="Edit task"
+                      onClick={() => onEditTask(task)}
+                    >
                       <EditIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>

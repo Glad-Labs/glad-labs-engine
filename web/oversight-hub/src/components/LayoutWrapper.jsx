@@ -609,7 +609,7 @@ const LayoutWrapper = ({ children }) => {
               type="text"
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && !isLoading) {
                   handleSendMessage();
                 }

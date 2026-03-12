@@ -139,6 +139,8 @@ const PostCard = ({ post }) => {
           <Link
             href={href}
             className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 group/link focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:rounded-lg px-2 py-1 transition-all duration-300"
+            tabIndex={isClickable ? 0 : -1}
+            aria-disabled={!isClickable}
             aria-label={`Read full article: ${title}`}
           >
             Read Article
