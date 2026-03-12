@@ -39,10 +39,13 @@ import { withSentryConfig } from '@sentry/nextjs';
     parsed.hostname === '127.0.0.1' ||
     parsed.hostname === '0.0.0.0';
 
-  if (IS_PROD && isLocalhost) {
+  // Allow localhost in production builds only when explicitly opted out (e.g. local `npm run build` testing)
+  const skipLocalhostCheck = process.env.SKIP_ENV_VALIDATION === 'true';
+  if (IS_PROD && isLocalhost && !skipLocalhostCheck) {
     throw new Error(
       `\n[next.config] NEXT_PUBLIC_API_BASE_URL="${raw}" points to localhost in production.\n` +
-        'Set a real backend URL in your environment config.\n'
+        'Set a real backend URL in your environment config.\n' +
+        'To bypass this check locally, set SKIP_ENV_VALIDATION=true.\n'
     );
   }
 })();

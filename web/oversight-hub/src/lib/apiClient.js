@@ -34,6 +34,7 @@ import logger from '@/lib/logger';
 
 import axios from 'axios';
 import { getApiUrl } from '../config/apiConfig';
+import { authClient } from './authClient';
 import { serviceStatus } from './serviceStatus';
 
 // ============================================================================
@@ -50,9 +51,6 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// Import centralized auth client for token management
-import { authClient } from './authClient';
 
 // Transient HTTP status codes that warrant a retry
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
