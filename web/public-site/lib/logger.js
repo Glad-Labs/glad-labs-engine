@@ -17,9 +17,7 @@ function initLogDir() {
   if (_initDone) return _logDir;
   _initDone = true;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const path = require('path');
     const dir = path.join(process.cwd(), 'logs');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -51,9 +49,7 @@ function buildLine(level, message, args) {
 
 function writeToFile(filename, line) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const path = require('path');
     fs.appendFileSync(path.join(_logDir, filename), line + '\n');
   } catch (_) {

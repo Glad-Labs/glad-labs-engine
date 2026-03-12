@@ -35,7 +35,6 @@ export default function CookieConsentBanner() {
         setTempConsent(parsed);
         setIsVisible(false);
       } catch (_e) {
-        console.error('Error parsing saved consent');
         setIsVisible(true);
       }
     } else {
