@@ -479,7 +479,7 @@ export const StatusDashboardMetrics = () => {
             Success Rate
           </Typography>
           <Typography variant="body2">
-            {Number(metrics.success_rate).toFixed(1)}%
+            {(Number(metrics.success_rate) * 100).toFixed(1)}%
           </Typography>
         </Paper>
       )}
