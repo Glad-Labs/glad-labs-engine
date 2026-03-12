@@ -26,6 +26,7 @@ export default function TopNavigation() {
           <div className="flex gap-8">
             <Link
               href="/archive/1"
+              aria-label="Browse articles"
               className="text-slate-300 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 rounded px-1"
             >
               Articles
@@ -39,6 +40,7 @@ export default function TopNavigation() {
           </div>
           <Link
             href="/archive/1"
+            aria-label="Explore all content"
             className="px-6 py-2.5 bg-cyan-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950"
           >
             Explore
