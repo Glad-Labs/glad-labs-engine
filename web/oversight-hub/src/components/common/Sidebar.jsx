@@ -88,6 +88,7 @@ const Sidebar = () => {
     <nav
       className={`sidebar ${isCompressed ? 'compressed' : ''}`}
       ref={sidebarRef}
+      aria-label="Main navigation"
     >
       <div className="sidebar-header">
         {/* span not h2 — heading levels in the sidebar should not precede the page h1 (WCAG 1.3.1) */}

@@ -676,14 +676,23 @@ const LayoutWrapper = ({ children }) => {
               </div>
             ))}
             {isLoading && (
-              <div className="message message-ai">
-                <div className="message-avatar">🤖</div>
+              <div
+                className="message message-ai"
+                role="status"
+                aria-label="AI is typing"
+                aria-live="polite"
+              >
+                <div className="message-avatar" aria-hidden="true">
+                  🤖
+                </div>
                 <div className="message-content">
-                  <div className="typing-indicator">
+                  <div className="typing-indicator" aria-hidden="true">
                     <span></span>
                     <span></span>
                     <span></span>
                   </div>
+                  {/* sr-only text is announced once when the element appears */}
+                  <span className="sr-only">AI is typing a response</span>
                 </div>
               </div>
             )}
