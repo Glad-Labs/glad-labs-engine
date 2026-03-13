@@ -54,28 +54,39 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>Glad Labs</h1>
-          <h2>Oversight Hub</h2>
-        </div>
-        <div className="login-body">
-          <button
-            className="github-login-btn"
-            onClick={handleGitHubLogin}
-            type="button"
-          >
-            {useMockAuth && isDevelopment
-              ? 'Sign in (Mock - Dev Only)'
-              : 'Sign in with GitHub'}
-          </button>
-          <div style={{ marginTop: '20px', fontSize: '11px', opacity: 0.5 }}>
-            <pre>{debugInfo}</pre>
+    <>
+      {/* Skip link — navigates keyboard users past the decorative header to the sign-in form */}
+      <a href="#login-form" className="skip-to-main">
+        Skip to sign-in form
+      </a>
+      <main id="login-form" className="login-container" aria-label="Sign in">
+        <div className="login-card">
+          <div className="login-header">
+            <h1>Glad Labs</h1>
+            <h2>Oversight Hub</h2>
+          </div>
+          <div className="login-body">
+            <button
+              className="github-login-btn"
+              onClick={handleGitHubLogin}
+              type="button"
+            >
+              {useMockAuth && isDevelopment
+                ? 'Sign in (Mock - Dev Only)'
+                : 'Sign in with GitHub'}
+            </button>
+            {/* aria-hidden: debug info is for sighted developers only —
+                screen readers must not announce environment state */}
+            <div
+              style={{ marginTop: '20px', fontSize: '11px', opacity: 0.5 }}
+              aria-hidden="true"
+            >
+              <pre>{debugInfo}</pre>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </main>
+    </>
   );
 };
 
