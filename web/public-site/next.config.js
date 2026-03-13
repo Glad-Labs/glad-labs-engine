@@ -125,16 +125,24 @@ const nextConfig = {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
           },
-          // Enable XSS filter in browsers
+          // Disable legacy XSS auditor — modern browsers removed it; setting to 1 can
+          // introduce new vulnerabilities in older browsers. Backend already sets this to 0.
           {
             key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            value: '0',
           },
-          // Content Security Policy - Prevent XSS and injection attacks
+          // Content Security Policy - Prevent XSS and injection attacks.
+          //
+          // Note on 'unsafe-inline' in script-src: GTM, AdSense, and Giscus inject inline
+          // scripts that require this directive. To remove it, implement nonce-based CSP via
+          // middleware.ts (see Next.js docs on CSP with nonces). Tracked in issue #740.
+          //
+          // 'unsafe-eval' has been removed — production Next.js builds do not need it.
+          // It was only required by webpack HMR in development mode.
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://giscus.app https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' http://localhost:8000 https://www.google-analytics.com https://cofounder-production.up.railway.app https://api.railway.app https://va.vercel-scripts.com https://vitals.vercel-insights.com; frame-src 'self' https://pagead2.googlesyndication.com https://giscus.app;",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://giscus.app https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' http://localhost:8000 https://www.google-analytics.com https://cofounder-production.up.railway.app https://api.railway.app https://va.vercel-scripts.com https://vitals.vercel-insights.com; frame-src 'self' https://pagead2.googlesyndication.com https://giscus.app;",
           },
           // Control referrer information
           {
