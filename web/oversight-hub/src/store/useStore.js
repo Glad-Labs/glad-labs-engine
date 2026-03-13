@@ -140,14 +140,6 @@ const useStore = create(
         executionHistory: [],
       },
 
-      setOrchestratorMode: (mode) =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            mode: mode === 'agent' ? 'agent' : 'conversation',
-          },
-        })),
-
       setActiveHost: (host) =>
         set((state) => ({
           orchestrator: {
@@ -161,17 +153,6 @@ const useStore = create(
           orchestrator: {
             ...state.orchestrator,
             selectedModel: model,
-          },
-        })),
-
-      updateHostConfig: (host, config) =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            hostConfigs: {
-              ...state.orchestrator.hostConfigs,
-              [host]: { ...state.orchestrator.hostConfigs[host], ...config },
-            },
           },
         })),
 
@@ -248,32 +229,6 @@ const useStore = create(
           },
         })),
 
-      resetExecution: () =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            currentExecution: {
-              executionId: null,
-              status: 'idle',
-              commandType: null,
-              startedAt: null,
-              completedAt: null,
-              phases: [],
-              currentPhaseIndex: 0,
-              progress: 0,
-              error: null,
-            },
-          },
-        })),
-
-      clearExecutionHistory: () =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            executionHistory: [],
-          },
-        })),
-
       // ===== MESSAGE STREAM STATE (Phase 3B) =====
       messages: [], // Unified message stream for CommandPane integration
 
@@ -315,18 +270,6 @@ const useStore = create(
           }
           return { messages: newMessages };
         }),
-
-      /**
-       * Update message by ID (alternative to index-based update)
-       * @param {string} messageId - Message ID to update
-       * @param {Object} updates - Fields to update
-       */
-      updateMessageById: (messageId, updates) =>
-        set((state) => ({
-          messages: state.messages.map((msg) =>
-            msg.id === messageId ? { ...msg, ...updates } : msg
-          ),
-        })),
 
       /**
        * Clear all messages from stream
