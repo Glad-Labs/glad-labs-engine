@@ -108,3 +108,49 @@ describe('LayoutWrapper Component', () => {
     expect(screen.getByRole('banner')).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// a11y — issue #771: nav menu button aria-expanded and Escape close
+// ---------------------------------------------------------------------------
+
+describe('LayoutWrapper — a11y: nav menu aria-expanded and Escape close (issue #771)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('nav menu button has aria-expanded="false" when closed', () => {
+    renderWithRouter(<LayoutWrapper />);
+    const navBtn = screen.getByRole('button', { name: /Navigation menu/i });
+    expect(navBtn).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('nav menu button has aria-expanded="true" when opened', async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<LayoutWrapper />);
+    const navBtn = screen.getByRole('button', { name: /Navigation menu/i });
+    await user.click(navBtn);
+    expect(navBtn).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('nav menu button has aria-controls="nav-menu-dropdown"', () => {
+    renderWithRouter(<LayoutWrapper />);
+    const navBtn = screen.getByRole('button', { name: /Navigation menu/i });
+    expect(navBtn).toHaveAttribute('aria-controls', 'nav-menu-dropdown');
+  });
+
+  it('nav dropdown has id="nav-menu-dropdown"', () => {
+    renderWithRouter(<LayoutWrapper />);
+    const nav = document.getElementById('nav-menu-dropdown');
+    expect(nav).toBeInTheDocument();
+  });
+
+  it('pressing Escape while menu is open closes the menu', async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<LayoutWrapper />);
+    const navBtn = screen.getByRole('button', { name: /Navigation menu/i });
+    await user.click(navBtn); // open
+    expect(navBtn).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{Escape}');
+    expect(navBtn).toHaveAttribute('aria-expanded', 'false');
+  });
+});

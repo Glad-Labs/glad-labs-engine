@@ -29,6 +29,7 @@ const LayoutWrapper = ({ children }) => {
   const chatEndRef = useRef(null);
   const chatPanelRef = useRef(null);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
+  const navMenuBtnRef = useRef(null);
   const [chatMessages, setChatMessages] = useState([
     {
       id: generateMessageId(),
@@ -115,6 +116,19 @@ const LayoutWrapper = ({ children }) => {
     },
   ];
 
+  // Close nav menu on Escape key press and return focus to trigger (issue #771)
+  useEffect(() => {
+    if (!navMenuOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setNavMenuOpen(false);
+        navMenuBtnRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navMenuOpen]);
+
   // Check Ollama availability on mount only in development (local dev mode)
   useEffect(() => {
     if (authLoading || !isAuthenticated) {
@@ -169,7 +183,10 @@ const LayoutWrapper = ({ children }) => {
 
     // Only add if last message isn't already a mode help (avoid duplicates)
     setChatMessages((prev) => {
-      if (prev.length > 0 && prev[prev.length - 1]?.text === modeHelpMessage.text) {
+      if (
+        prev.length > 0 &&
+        prev[prev.length - 1]?.text === modeHelpMessage.text
+      ) {
         return prev; // Already have this message
       }
       return [...prev, modeHelpMessage];
@@ -374,7 +391,11 @@ const LayoutWrapper = ({ children }) => {
 
   const handleClearHistory = () => {
     setChatMessages([
-      { id: generateMessageId(), sender: 'system', text: 'Poindexter ready. How can I help?' },
+      {
+        id: generateMessageId(),
+        sender: 'system',
+        text: 'Poindexter ready. How can I help?',
+      },
     ]);
   };
 
@@ -437,11 +458,14 @@ const LayoutWrapper = ({ children }) => {
       <header className="oversight-header">
         <div className="header-top">
           <button
+            ref={navMenuBtnRef}
             className="nav-menu-btn"
             aria-label="Navigation menu"
+            aria-expanded={navMenuOpen}
+            aria-controls="nav-menu-dropdown"
             onClick={() => setNavMenuOpen(!navMenuOpen)}
           >
-            ☰
+            <span aria-hidden="true">☰</span>
           </button>
           {/* Use span not h1 — page route components define the single h1 (WCAG 1.3.1) */}
           <span className="oversight-hub-title" aria-label="Oversight Hub">
@@ -462,6 +486,7 @@ const LayoutWrapper = ({ children }) => {
 
       {/* Navigation Menu */}
       <nav
+        id="nav-menu-dropdown"
         className={`nav-menu-dropdown${navMenuOpen ? '' : ' nav-menu-hidden'}`}
         aria-label="Main navigation"
       >
@@ -584,7 +609,10 @@ const LayoutWrapper = ({ children }) => {
                     <div className="message-task-composition">
                       {/* Render markdown-style text */}
                       {msg.text.split('\n\n').map((paragraph, idx) => (
-                        <div key={`${msg.id}-para-${idx}`} style={{ marginBottom: '8px' }}>
+                        <div
+                          key={`${msg.id}-para-${idx}`}
+                          style={{ marginBottom: '8px' }}
+                        >
                           {paragraph.split('\n').map((line, lineIdx) => {
                             // Bold for **text**
                             const boldRegex = /\*\*([^*]+)\*\*/g;

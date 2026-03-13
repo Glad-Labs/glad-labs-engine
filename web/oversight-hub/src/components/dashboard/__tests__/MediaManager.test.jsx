@@ -247,3 +247,102 @@ describe('MediaManager — health check', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// a11y — issue #770: Tabs component has aria-label
+// ---------------------------------------------------------------------------
+
+describe('MediaManager — a11y: Tabs aria-label (issue #770)', () => {
+  beforeEach(() => {
+    mockListMedia.mockResolvedValue([]);
+    mockGetMediaHealth.mockResolvedValue({ healthy: true });
+  });
+
+  it('Tabs component has aria-label="Media manager sections"', () => {
+    const { container } = render(<MediaManager />);
+    // MUI Tabs renders a <div role="tablist">
+    const tablist = container.querySelector('[role="tablist"]');
+    expect(tablist).toBeInTheDocument();
+    expect(tablist).toHaveAttribute('aria-label', 'Media manager sections');
+  });
+
+  it('Generate Image tab has id="media-tab-0"', () => {
+    const { container } = render(<MediaManager />);
+    expect(container.querySelector('#media-tab-0')).toBeInTheDocument();
+  });
+
+  it('Media Gallery tab has id="media-tab-1"', () => {
+    const { container } = render(<MediaManager />);
+    expect(container.querySelector('#media-tab-1')).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// a11y — issue #768: gallery images are real <img> elements with alt text
+// ---------------------------------------------------------------------------
+
+describe('MediaManager — a11y: gallery images accessible (issue #768)', () => {
+  const mockMedia = [
+    {
+      id: 'img-1',
+      url: 'https://example.com/img1.png',
+      title: 'Test Image',
+      created_at: '2026-01-01T00:00:00Z',
+    },
+    {
+      id: 'img-2',
+      url: 'https://example.com/img2.png',
+      title: '',
+      created_at: '2026-01-02T00:00:00Z',
+    },
+  ];
+
+  beforeEach(() => {
+    mockListMedia.mockResolvedValue({ media: mockMedia });
+    mockGetMediaHealth.mockResolvedValue({ healthy: true });
+  });
+
+  it('gallery images are rendered as <img> elements (not CSS background)', async () => {
+    const { container } = render(<MediaManager />);
+    const galleryTab = screen.getByRole('tab', { name: /Media Gallery/i });
+    fireEvent.click(galleryTab);
+
+    await waitFor(
+      () => {
+        const images = container.querySelectorAll(
+          'img[src="https://example.com/img1.png"]'
+        );
+        expect(images.length).toBeGreaterThan(0);
+      },
+      { timeout: 5000 }
+    );
+  });
+
+  it('gallery images have alt text from title', async () => {
+    const { container } = render(<MediaManager />);
+    const galleryTab = screen.getByRole('tab', { name: /Media Gallery/i });
+    fireEvent.click(galleryTab);
+
+    await waitFor(
+      () => {
+        const img = container.querySelector('img[alt="Test Image"]');
+        expect(img).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+  });
+
+  it('gallery images with no title use fallback alt text', async () => {
+    const { container } = render(<MediaManager />);
+    const galleryTab = screen.getByRole('tab', { name: /Media Gallery/i });
+    fireEvent.click(galleryTab);
+
+    await waitFor(
+      () => {
+        const img = container.querySelector('img[alt="Media image"]');
+        expect(img).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+  });
+});

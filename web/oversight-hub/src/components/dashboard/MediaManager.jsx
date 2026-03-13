@@ -145,9 +145,21 @@ export const MediaManager = () => {
         <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
           Media Manager
         </Typography>
-        <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
-          <Tab label="Generate Image" />
-          <Tab label="Media Gallery" />
+        <Tabs
+          value={activeTab}
+          onChange={(e, v) => setActiveTab(v)}
+          aria-label="Media manager sections"
+        >
+          <Tab
+            label="Generate Image"
+            id="media-tab-0"
+            aria-controls="media-tabpanel-0"
+          />
+          <Tab
+            label="Media Gallery"
+            id="media-tab-1"
+            aria-controls="media-tabpanel-1"
+          />
         </Tabs>
       </Box>
 
@@ -259,14 +271,20 @@ export const MediaManager = () => {
                   >
                     {item.url && (
                       <Box
-                        sx={{
-                          width: '100%',
-                          height: 200,
-                          backgroundImage: `url(${item.url})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }}
-                      />
+                        sx={{ width: '100%', height: 200, overflow: 'hidden' }}
+                      >
+                        <img
+                          src={item.url}
+                          alt={item.title || 'Media image'}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            objectPosition: 'center',
+                            display: 'block',
+                          }}
+                        />
+                      </Box>
                     )}
                     <CardContent>
                       <Typography variant="subtitle2" noWrap>
@@ -321,12 +339,22 @@ export const MediaManager = () => {
               sx={{
                 width: '100%',
                 height: 300,
-                backgroundImage: `url(${selectedMedia.url})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
               }}
-            />
+            >
+              <img
+                src={selectedMedia.url}
+                alt={selectedMedia.title || 'Media preview'}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '300px',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+            </Box>
           )}
         </DialogContent>
         <DialogActions>
