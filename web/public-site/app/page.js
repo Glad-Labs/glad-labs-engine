@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import * as Sentry from '@sentry/nextjs';
 
 // SEO Metadata
 export const metadata = {
@@ -51,8 +52,9 @@ async function getPosts() {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error(
-          `❌ Failed to fetch posts: ${response.status} ${response.statusText}`
+        Sentry.captureMessage(
+          `Failed to fetch posts: ${response.status} ${response.statusText}`,
+          'error'
         );
         return [];
       }
@@ -67,16 +69,19 @@ async function getPosts() {
       return posts;
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      // Specific handling for timeout vs other errors
+      // Specific handling for timeout vs other errors — both reported to Sentry
       if (fetchError.name === 'AbortError') {
-        console.error('❌ Request timeout (10s) fetching posts from', url);
+        Sentry.captureMessage(
+          `Homepage posts fetch timed out (10s) from ${url}`,
+          'error'
+        );
       } else {
-        console.error('❌ Network error fetching posts:', fetchError.message);
+        Sentry.captureException(fetchError, { extra: { url } });
       }
       return [];
     }
   } catch (error) {
-    console.error('❌ Error fetching posts for homepage:', error.message);
+    Sentry.captureException(error);
     return [];
   }
 }

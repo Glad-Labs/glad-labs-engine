@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getPaginatedPosts } from '../lib/api-fastapi';
+import * as Sentry from '@sentry/nextjs';
 
 interface Post {
   id: string | number;
@@ -28,7 +29,8 @@ export default function NotFound() {
         const posts = data?.data || [];
         setSuggestedPosts(posts.slice(0, 3));
       } catch (error) {
-        console.error('Failed to fetch suggested posts:', error);
+        // Client-side error — report to Sentry for visibility (non-critical: page still renders)
+        Sentry.captureException(error);
       } finally {
         setIsLoading(false);
       }

@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import * as Sentry from '@sentry/nextjs';
 import {
   BlogPostingSchema,
   BreadcrumbSchema,
@@ -59,7 +60,11 @@ const getPost = cache(async function getPost(
       if (response.status === 404) {
         return null;
       }
-      console.error(`Failed to fetch post: ${response.status}`);
+      // Non-404 API errors reported to Sentry so backend outages are visible
+      Sentry.captureMessage(
+        `Failed to fetch post "${slug}": HTTP ${response.status}`,
+        'error'
+      );
       return null;
     }
 
@@ -68,7 +73,8 @@ const getPost = cache(async function getPost(
 
     return post || null;
   } catch (error) {
-    console.error(`Error fetching post "${slug}":`, error);
+    // Network/timeout errors reported to Sentry
+    Sentry.captureException(error, { extra: { slug } });
     return null;
   }
 });
