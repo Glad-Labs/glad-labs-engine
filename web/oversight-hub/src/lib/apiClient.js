@@ -33,6 +33,7 @@
 
 import axios from 'axios';
 import { clearPersistedAuthState } from '../services/authService';
+import { logErrorToSentry } from '../services/errorLoggingService';
 
 // ============================================================================
 // API CLIENT CONFIGURATION
@@ -112,7 +113,7 @@ export const listTasks = async (skip = 0, limit = 20, status = null) => {
     const response = await apiClient.get(`/api/tasks?${params.toString()}`);
     return response.data;
   } catch (error) {
-    console.error('Error listing tasks:', error);
+    logErrorToSentry(error, { context: 'Error listing tasks:' });
     throw error;
   }
 };
@@ -131,7 +132,7 @@ export const createTask = async (taskData) => {
     const response = await apiClient.post('/api/tasks', taskData);
     return response.data;
   } catch (error) {
-    console.error('Error creating task:', error);
+    logErrorToSentry(error, { context: 'Error creating task:' });
     throw error;
   }
 };
@@ -146,7 +147,7 @@ export const getTask = async (taskId) => {
     const response = await apiClient.get(`/api/tasks/${taskId}`);
     return response.data;
   } catch (error) {
-    console.error(`Error getting task ${taskId}:`, error);
+    logErrorToSentry(error, { context: `Error getting task ${taskId}:` });
     throw error;
   }
 };
@@ -164,7 +165,7 @@ export const updateTask = async (taskId, updates) => {
     const response = await apiClient.patch(`/api/tasks/${taskId}`, updates);
     return response.data;
   } catch (error) {
-    console.error(`Error updating task ${taskId}:`, error);
+    logErrorToSentry(error, { context: `Error updating task ${taskId}:` });
     throw error;
   }
 };
@@ -218,7 +219,7 @@ export const listPosts = async (
     });
     return response.data;
   } catch (error) {
-    console.error('Error listing posts:', error);
+    logErrorToSentry(error, { context: 'Error listing posts:' });
     throw error;
   }
 };
@@ -244,7 +245,7 @@ export const createPost = async (postData) => {
     const response = await apiClient.post('/api/posts', postData);
     return response.data;
   } catch (error) {
-    console.error('Error creating post:', error);
+    logErrorToSentry(error, { context: 'Error creating post:' });
     throw error;
   }
 };
@@ -259,7 +260,7 @@ export const getPost = async (postId) => {
     const response = await apiClient.get(`/api/posts/${postId}`);
     return response.data;
   } catch (error) {
-    console.error(`Error getting post ${postId}:`, error);
+    logErrorToSentry(error, { context: `Error getting post ${postId}:` });
     throw error;
   }
 };
@@ -276,7 +277,7 @@ export const getPostBySlug = async (slug) => {
     });
     return response.data?.data?.[0] || null;
   } catch (error) {
-    console.error(`Error getting post by slug ${slug}:`, error);
+    logErrorToSentry(error, { context: `Error getting post by slug ${slug}:` });
     throw error;
   }
 };
@@ -292,7 +293,7 @@ export const updatePost = async (postId, updates) => {
     const response = await apiClient.patch(`/api/posts/${postId}`, updates);
     return response.data;
   } catch (error) {
-    console.error(`Error updating post ${postId}:`, error);
+    logErrorToSentry(error, { context: `Error updating post ${postId}:` });
     throw error;
   }
 };
@@ -328,7 +329,7 @@ export const deletePost = async (postId) => {
     const response = await apiClient.delete(`/api/posts/${postId}`);
     return response.data;
   } catch (error) {
-    console.error(`Error deleting post ${postId}:`, error);
+    logErrorToSentry(error, { context: `Error deleting post ${postId}:` });
     throw error;
   }
 };
@@ -346,7 +347,7 @@ export const listCategories = async () => {
     const response = await apiClient.get('/api/categories');
     return response.data;
   } catch (error) {
-    console.error('Error listing categories:', error);
+    logErrorToSentry(error, { context: 'Error listing categories:' });
     throw error;
   }
 };
@@ -360,7 +361,7 @@ export const listTags = async () => {
     const response = await apiClient.get('/api/tags');
     return response.data;
   } catch (error) {
-    console.error('Error listing tags:', error);
+    logErrorToSentry(error, { context: 'Error listing tags:' });
     throw error;
   }
 };
@@ -378,7 +379,7 @@ export const getHealth = async () => {
     const response = await apiClient.get('/api/health');
     return response.data;
   } catch (error) {
-    console.error('Error getting health status:', error);
+    logErrorToSentry(error, { context: 'Error getting health status:' });
     throw error;
   }
 };
@@ -392,7 +393,7 @@ export const getMetrics = async () => {
     const response = await apiClient.get('/api/metrics');
     return response.data;
   } catch (error) {
-    console.error('Error getting metrics:', error);
+    logErrorToSentry(error, { context: 'Error getting metrics:' });
     throw error;
   }
 };
@@ -406,7 +407,7 @@ export const getTaskMetrics = async () => {
     const response = await apiClient.get('/api/tasks/metrics');
     return response.data;
   } catch (error) {
-    console.error('Error getting task metrics:', error);
+    logErrorToSentry(error, { context: 'Error getting task metrics:' });
     throw error;
   }
 };
@@ -420,7 +421,7 @@ export const getContentMetrics = async () => {
     const response = await apiClient.get('/api/metrics');
     return response.data;
   } catch (error) {
-    console.error('Error getting metrics:', error);
+    logErrorToSentry(error, { context: 'Error getting metrics:' });
     throw error;
   }
 };
@@ -438,7 +439,7 @@ export const listModels = async () => {
     const response = await apiClient.get('/api/models');
     return response.data;
   } catch (error) {
-    console.error('Error listing models:', error);
+    logErrorToSentry(error, { context: 'Error listing models:' });
     throw error;
   }
 };
@@ -457,7 +458,9 @@ export const testModel = async (provider, model) => {
     });
     return response.data;
   } catch (error) {
-    console.error(`Error testing model ${provider}/${model}:`, error);
+    logErrorToSentry(error, {
+      context: `Error testing model ${provider}/${model}:`,
+    });
     throw error;
   }
 };
@@ -471,7 +474,7 @@ export const getModelStatus = async () => {
     const response = await apiClient.get('/api/models/status');
     return response.data;
   } catch (error) {
-    console.error('Error getting model status:', error);
+    logErrorToSentry(error, { context: 'Error getting model status:' });
     throw error;
   }
 };
@@ -490,7 +493,9 @@ export const generateContent = async (taskId) => {
     const response = await apiClient.post(`/api/tasks/${taskId}/generate`);
     return response.data;
   } catch (error) {
-    console.error(`Error generating content for task ${taskId}:`, error);
+    logErrorToSentry(error, {
+      context: `Error generating content for task ${taskId}:`,
+    });
     throw error;
   }
 };
@@ -505,7 +510,9 @@ export const getTaskResult = async (taskId) => {
     const response = await apiClient.get(`/api/tasks/${taskId}/result`);
     return response.data;
   } catch (error) {
-    console.error(`Error getting task result ${taskId}:`, error);
+    logErrorToSentry(error, {
+      context: `Error getting task result ${taskId}:`,
+    });
     throw error;
   }
 };
@@ -520,7 +527,9 @@ export const previewContent = async (taskId) => {
     const response = await apiClient.get(`/api/tasks/${taskId}/preview`);
     return response.data;
   } catch (error) {
-    console.error(`Error previewing content for task ${taskId}:`, error);
+    logErrorToSentry(error, {
+      context: `Error previewing content for task ${taskId}:`,
+    });
     throw error;
   }
 };
@@ -539,7 +548,9 @@ export const publishTaskAsPost = async (taskId, postData = {}) => {
     );
     return response.data;
   } catch (error) {
-    console.error(`Error publishing task ${taskId} as post:`, error);
+    logErrorToSentry(error, {
+      context: `Error publishing task ${taskId} as post:`,
+    });
     throw error;
   }
 };
@@ -558,7 +569,7 @@ export const getTasksBatch = async (taskIds) => {
     const response = await apiClient.post('/api/tasks/batch', { ids: taskIds });
     return response.data;
   } catch (error) {
-    console.error('Error getting tasks batch:', error);
+    logErrorToSentry(error, { context: 'Error getting tasks batch:' });
     throw error;
   }
 };
@@ -577,7 +588,7 @@ export const exportTasks = async (filters = {}, format = 'csv') => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error exporting tasks:', error);
+    logErrorToSentry(error, { context: 'Error exporting tasks:' });
     throw error;
   }
 };

@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import './ExecutiveDashboard.css';
 import CreateTaskModal from '../tasks/CreateTaskModal';
 import CostBreakdownCards from '../CostBreakdownCards';
+import { logError } from '../../services/errorLoggingService';
 
 const ExecutiveDashboard = () => {
   const navigate = useNavigate();
@@ -237,7 +238,10 @@ const ExecutiveDashboard = () => {
         setDashboardData(normalizedData);
         setError(null);
       } catch (err) {
-        console.error('Dashboard data fetch error:', err);
+        logError(err, {
+          severity: 'error',
+          customContext: { component: 'ExecutiveDashboard' },
+        });
         setError(err.message);
         // Set mock data for development
         setDashboardData(getMockDashboardData());

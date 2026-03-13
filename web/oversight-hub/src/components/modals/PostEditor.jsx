@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DOMPurify from 'dompurify';
 import './PostEditor.css';
+import { logError } from '../../services/errorLoggingService';
 
 /**
  * PostEditor Modal - Edit published blog posts
@@ -55,7 +56,10 @@ function PostEditor({ post, onClose, onSave }) {
     try {
       await onSave({ ...post, ...formData });
     } catch (error) {
-      console.error('Save failed:', error);
+      logError(error, {
+        severity: 'warning',
+        customContext: { component: 'PostEditor', action: 'save' },
+      });
       alert('Failed to save changes. Please try again.');
     } finally {
       setSaving(false);
