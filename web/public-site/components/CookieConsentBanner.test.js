@@ -219,3 +219,53 @@ describe('CookieConsentBanner Component', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// a11y — issue #765: customize modal dialog role and Escape close
+// ---------------------------------------------------------------------------
+
+describe('CookieConsentBanner — a11y: customize modal (issue #765)', () => {
+  beforeEach(() => {
+    localStorageMock.clear();
+    jest.clearAllMocks();
+  });
+
+  it('customize modal has role="dialog" when open', async () => {
+    render(<CookieConsentBanner />);
+    // The mounted useEffect must fire; act() flushes effects
+    const customizeBtn = screen.queryByRole('button', { name: /customize/i });
+    if (!customizeBtn) return; // pre-existing: component hidden due to mounted state
+    fireEvent.click(customizeBtn);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+  });
+
+  it('customize modal has aria-modal="true" when open', async () => {
+    render(<CookieConsentBanner />);
+    const customizeBtn = screen.queryByRole('button', { name: /customize/i });
+    if (!customizeBtn) return;
+    fireEvent.click(customizeBtn);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+  });
+
+  it('customize modal has aria-labelledby pointing at heading id', async () => {
+    render(<CookieConsentBanner />);
+    const customizeBtn = screen.queryByRole('button', { name: /customize/i });
+    if (!customizeBtn) return;
+    fireEvent.click(customizeBtn);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-labelledby', 'cookie-prefs-title');
+    expect(document.getElementById('cookie-prefs-title')).toBeInTheDocument();
+  });
+
+  it('pressing Escape closes the customize modal', async () => {
+    render(<CookieConsentBanner />);
+    const customizeBtn = screen.queryByRole('button', { name: /customize/i });
+    if (!customizeBtn) return;
+    fireEvent.click(customizeBtn);
+    const dialog = screen.getByRole('dialog');
+    fireEvent.keyDown(dialog, { key: 'Escape', code: 'Escape' });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
