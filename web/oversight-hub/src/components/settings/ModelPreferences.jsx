@@ -126,7 +126,11 @@ export const ModelPreferences = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', p: 3 }}
+        role="status"
+        aria-label="Loading model preferences"
+      >
         <CircularProgress />
       </Box>
     );

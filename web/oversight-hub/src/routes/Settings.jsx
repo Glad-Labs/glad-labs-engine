@@ -135,7 +135,12 @@ function Settings() {
 
       {/* Loading State */}
       {loading && (
-        <Container maxWidth="md" sx={{ py: 3, textAlign: 'center' }}>
+        <Container
+          maxWidth="md"
+          sx={{ py: 3, textAlign: 'center' }}
+          role="status"
+          aria-label="Loading settings"
+        >
           <CircularProgress />
           <p>Loading settings...</p>
         </Container>

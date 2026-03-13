@@ -46,7 +46,8 @@ export const StatusAuditTrail = ({ taskId, limit = 100 }) => {
     }
   }, [taskId, limit]);
 
-  if (loading) return <CircularProgress size={24} />;
+  if (loading)
+    return <CircularProgress size={24} aria-label="Loading audit trail" />;
   if (error) return <Typography color="error">{error}</Typography>;
 
   if (!history || history.length === 0) {
@@ -287,7 +288,10 @@ const ValidationFailureUIFetcher = ({ taskId, limit = 50 }) => {
     }
   }, [taskId, limit]);
 
-  if (loading) return <CircularProgress size={24} />;
+  if (loading)
+    return (
+      <CircularProgress size={24} aria-label="Loading validation failures" />
+    );
   if (error) return <Typography color="error">{error}</Typography>;
 
   if (!failures || failures.length === 0) {
@@ -443,7 +447,10 @@ export const StatusDashboardMetrics = ({ tasks = _EMPTY_TASKS }) => {
     fetchMetrics();
   }, [tasks]);
 
-  if (loading) return <CircularProgress size={24} />;
+  if (loading)
+    return (
+      <CircularProgress size={24} aria-label="Loading dashboard metrics" />
+    );
   if (error) return <Typography color="error">{error}</Typography>;
 
   if (!metrics) {

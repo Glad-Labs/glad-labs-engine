@@ -503,7 +503,11 @@ const ApprovalQueue = () => {
 
       {/* Loading State */}
       {queue.loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'center', py: 4 }}
+          role="status"
+          aria-label="Loading approval queue"
+        >
           <CircularProgress />
         </Box>
       )}

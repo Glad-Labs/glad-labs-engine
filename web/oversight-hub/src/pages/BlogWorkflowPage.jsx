@@ -583,7 +583,7 @@ function BlogWorkflowPage() {
                   )}
                 </Stack>
               ) : (
-                <CircularProgress />
+                <CircularProgress aria-label="Loading blog workflow" />
               )}
             </CardContent>
           </Card>

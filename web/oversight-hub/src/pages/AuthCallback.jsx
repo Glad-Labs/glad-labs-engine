@@ -95,8 +95,13 @@ const AuthCallback = () => {
           gap: 2,
         }}
       >
-        <CircularProgress sx={{ color: 'white' }} />
-        <div style={{ textAlign: 'center', color: 'white' }}>
+        {/* role="status" aria-live: screen readers announce the auth loading state (WCAG 4.1.3) */}
+        <CircularProgress sx={{ color: 'white' }} aria-hidden="true" />
+        <div
+          role="status"
+          aria-live="polite"
+          style={{ textAlign: 'center', color: 'white' }}
+        >
           <h2>Authenticating...</h2>
           <p>Please wait while we verify your credentials.</p>
         </div>

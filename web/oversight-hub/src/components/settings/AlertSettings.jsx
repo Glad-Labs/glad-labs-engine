@@ -136,7 +136,11 @@ export const AlertSettings = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', p: 3 }}
+        role="status"
+        aria-label="Loading alert settings"
+      >
         <CircularProgress />
       </Box>
     );

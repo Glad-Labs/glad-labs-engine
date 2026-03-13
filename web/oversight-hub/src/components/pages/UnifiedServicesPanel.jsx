@@ -680,6 +680,8 @@ const UnifiedServicesPanel = () => {
                 alignItems: 'center',
                 minHeight: 600,
               }}
+              role="status"
+              aria-label="Loading workflows"
             >
               <CircularProgress />
             </Box>
