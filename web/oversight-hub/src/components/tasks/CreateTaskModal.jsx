@@ -624,7 +624,13 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
                   <button
                     key={key}
                     onClick={() => handleTaskTypeSelect(key)}
-                    className="p-4 border-2 border-gray-600 rounded-lg hover:border-cyan-500 hover:bg-gray-700 transition text-left group"
+                    aria-pressed={taskType === key}
+                    className={[
+                      'p-4 border-2 rounded-lg transition text-left group',
+                      taskType === key
+                        ? 'border-cyan-500 bg-gray-700'
+                        : 'border-gray-600 hover:border-cyan-500 hover:bg-gray-700',
+                    ].join(' ')}
                   >
                     <div className="text-xl font-bold text-cyan-400 group-hover:text-cyan-300">
                       {typeConfig.label}
