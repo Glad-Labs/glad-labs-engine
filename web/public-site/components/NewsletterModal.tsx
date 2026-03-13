@@ -41,6 +41,7 @@ const NewsletterModal = ({ isOpen, onClose }: NewsletterModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<Message>({ type: '', text: '' });
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   // Cleanup timeout on unmount or when modal closes
   useEffect(() => {
@@ -50,6 +51,45 @@ const NewsletterModal = ({ isOpen, onClose }: NewsletterModalProps) => {
       }
     };
   }, []);
+
+  // Focus trap, initial focus, and Escape close (issue #762)
+  useEffect(() => {
+    if (!isOpen || !dialogRef.current) return;
+
+    const dialog = dialogRef.current;
+    const focusable = dialog.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    first?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+          }
+        }
+      }
+    };
+
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => {
+      dialog.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   const interestOptions = [
     'AI',
@@ -144,10 +184,19 @@ const NewsletterModal = ({ isOpen, onClose }: NewsletterModalProps) => {
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md max-h-96 overflow-y-auto">
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="newsletter-dialog-title"
+          className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md max-h-96 overflow-y-auto"
+        >
           {/* Header */}
           <div className="sticky top-0 bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
-            <h2 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <h2
+              id="newsletter-dialog-title"
+              className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent"
+            >
               Stay Updated
             </h2>
             <button

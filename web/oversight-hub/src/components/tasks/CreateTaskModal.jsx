@@ -1,6 +1,6 @@
 import logger from '@/lib/logger';
 import { extractApiError } from '@/lib/extractApiError';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createTask, makeRequest } from '../../services/cofounderAgentClient';
 import ModelSelectionPanel from '../ModelSelectionPanel';
 import { WritingStyleSelector } from '../WritingStyleSelector';
@@ -48,6 +48,47 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
     qualityPreference: 'balanced',
     estimatedCost: 0.015,
   });
+
+  const dialogRef = useRef(null);
+
+  // Focus trap, initial focus, and Escape close (issue #761)
+  useEffect(() => {
+    if (!isOpen || !dialogRef.current) return;
+
+    const dialog = dialogRef.current;
+    const focusable = dialog.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    first?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+          }
+        }
+      }
+    };
+
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => {
+      dialog.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   // Memoize the model selection callback to prevent infinite re-renders
   const handleModelSelectionChange = useCallback((selection) => {
@@ -539,18 +580,28 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-task-dialog-title"
+        className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-gray-900 border-b border-cyan-500 p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-cyan-400">
+          <h2
+            id="create-task-dialog-title"
+            className="text-2xl font-bold text-cyan-400"
+          >
             {taskType ? currentTaskType.label : '🚀 Create New Task'}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white text-2xl"
+            aria-label="Close dialog"
             disabled={submitting}
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 

@@ -337,3 +337,55 @@ describe('NewsletterModal loading state', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// a11y — issue #762: modal dialog semantics
+// ---------------------------------------------------------------------------
+
+describe('NewsletterModal — a11y: dialog role and Escape close (issue #762)', () => {
+  const onClose = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  it('modal container has role="dialog"', () => {
+    render(<NewsletterModal isOpen={true} onClose={onClose} />);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('modal container has aria-modal="true"', () => {
+    render(<NewsletterModal isOpen={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+  });
+
+  it('modal container has aria-labelledby="newsletter-dialog-title"', () => {
+    render(<NewsletterModal isOpen={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute(
+      'aria-labelledby',
+      'newsletter-dialog-title'
+    );
+  });
+
+  it('h2 heading has id="newsletter-dialog-title"', () => {
+    render(<NewsletterModal isOpen={true} onClose={onClose} />);
+    const heading = document.getElementById('newsletter-dialog-title');
+    expect(heading).toBeInTheDocument();
+    expect(heading.tagName).toBe('H2');
+  });
+
+  it('pressing Escape calls onClose', () => {
+    render(<NewsletterModal isOpen={true} onClose={onClose} />);
+    const dialog = screen.getByRole('dialog');
+    fireEvent.keyDown(dialog, { key: 'Escape', code: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
