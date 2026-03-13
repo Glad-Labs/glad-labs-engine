@@ -55,7 +55,6 @@ function TaskManagement() {
 
   // Handler to open detail modal for editing
   const handleEditTask = (task) => {
-    console.log('👁️ handleEditTask called with task:', task);
     setSelectedTask(task);
     setShowDetailModal(true);
   };

@@ -255,14 +255,9 @@ export const logout = async () => {
  */
 export const getStoredUser = () => {
   const userStr = localStorage.getItem('user');
-  console.log(
-    '[authService.getStoredUser] Looking for user...',
-    userStr ? 'FOUND' : 'NOT FOUND'
-  );
   try {
     const parsed = userStr ? JSON.parse(userStr) : null;
     if (parsed) {
-      console.log('[authService.getStoredUser] Parsed user:', parsed.login);
     }
     return parsed;
   } catch (e) {
@@ -284,9 +279,6 @@ export const isTokenExpired = (token) => {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) {
-      console.log(
-        '[authService.isTokenExpired] Invalid token format (not 3 parts)'
-      );
       return true;
     }
 
@@ -301,21 +293,12 @@ export const isTokenExpired = (token) => {
 
     const payload = JSON.parse(atob(base64Payload));
     if (!payload.exp) {
-      console.log(
-        '[authService.isTokenExpired] No expiry in token, assuming valid'
-      );
       return false;
     }
 
     const expiryTime = payload.exp * 1000; // Convert to milliseconds
     const now = Date.now();
     const isExpired = now > expiryTime;
-
-    console.log('[authService.isTokenExpired]', {
-      expiryTime: new Date(expiryTime).toISOString(),
-      now: new Date(now).toISOString(),
-      isExpired,
-    });
 
     return isExpired;
   } catch (e) {
@@ -350,26 +333,16 @@ export const getAuthToken = () => {
     token = localStorage.getItem('auth_token');
   }
 
-  console.log(
-    '[authService.getAuthToken] Looking for token...',
-    token ? 'FOUND' : 'NOT FOUND'
-  );
-
   if (!token) {
-    console.log(
-      '[authService.getAuthToken] No token in localStorage or Zustand'
-    );
     return null;
   }
 
   if (isTokenExpired(token)) {
-    console.log('[authService.getAuthToken] Token is expired, removing');
     // Token is expired, remove it
     clearPersistedAuthState();
     return null;
   }
 
-  console.log('[authService.getAuthToken] Token is valid');
   return token;
 };
 
@@ -395,11 +368,9 @@ export const initializeDevToken = async (options = {}) => {
           );
           clearPersistedAuthState();
         } else {
-          console.log('[authService] Using existing backend-validated token');
           return existingToken;
         }
       } else {
-        console.log('[authService] Using existing valid token');
         return existingToken;
       }
     }
@@ -424,9 +395,6 @@ export const initializeDevToken = async (options = {}) => {
       localStorage.setItem('auth_token', backendToken);
       localStorage.setItem('user', JSON.stringify(backendUser));
 
-      console.log(
-        '[authService] Development token initialized from backend signer'
-      );
       return backendToken;
     } catch (backendError) {
       console.warn(
@@ -437,7 +405,6 @@ export const initializeDevToken = async (options = {}) => {
 
     if (existingToken && !isTokenExpired(existingToken)) {
       // Token is still valid
-      console.log('[authService] Using existing valid token');
       return existingToken;
     }
 
@@ -453,26 +420,14 @@ export const initializeDevToken = async (options = {}) => {
     };
 
     // Generate proper JWT token for development (awaiting async signing)
-    console.log('[authService] Creating new mock JWT token...');
     const mockToken = await createMockJWTToken(mockUser);
-    console.log(
-      '[authService] Mock token created successfully, storing in localStorage...'
-    );
 
     // Store token and user BEFORE anything else
     localStorage.setItem('auth_token', mockToken);
     localStorage.setItem('user', JSON.stringify(mockUser));
 
-    console.log(
-      '[authService] Items set in localStorage, waiting for persistence...'
-    );
-
     // Small delay to ensure localStorage is actually persisted
     await new Promise((resolve) => setTimeout(resolve, 50));
-
-    console.log(
-      '[authService] Development token initialized/refreshed with proper JWT format'
-    );
 
     // Verify token was actually stored
     const storedToken = localStorage.getItem('auth_token');
@@ -485,25 +440,16 @@ export const initializeDevToken = async (options = {}) => {
         const zustandData = localStorage.getItem(PERSIST_KEY);
         if (zustandData) {
           const parsed = JSON.parse(zustandData);
-          console.log(
-            '[authService] Zustand state exists:',
-            Object.keys(parsed.state || {})
-          );
         }
-      } catch {
-        console.log('[authService] Could not parse Zustand data');
-      }
+      } catch {}
       throw new Error('Failed to store token in localStorage');
     }
-
-    console.log('[authService] ✅ Token verified in localStorage');
 
     // Set up auto-refresh every 14 minutes (token expires in 15 minutes)
     // This prevents token expiry during long sessions
     setTimeout(
       () => {
         if (process.env.NODE_ENV === 'development') {
-          console.log('[authService] Auto-refreshing development token...');
           initializeDevToken().catch((e) => {
             console.error('[authService] Failed to auto-refresh token:', e);
           });

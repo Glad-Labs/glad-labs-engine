@@ -197,7 +197,6 @@ export const revalidatePublicSite = async (paths = []) => {
     }
 
     const data = await response.json();
-    console.log('✅ Frontend cache revalidated:', data);
     return data;
   } catch (error) {
     console.warn('⚠️  Could not trigger frontend revalidation:', error.message);

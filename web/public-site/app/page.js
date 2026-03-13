@@ -32,7 +32,6 @@ async function getPosts() {
     }
 
     const url = `${FASTAPI_URL}/api/posts?offset=0&limit=20&published_only=true`;
-    console.log('📡 Fetching posts from:', url);
 
     // Add timeout support using AbortController
     const controller = new AbortController();
@@ -65,7 +64,6 @@ async function getPosts() {
           ? data.data
           : [];
 
-      console.log('✅ Posts fetched successfully, got', posts.length, 'posts');
       return posts;
     } catch (fetchError) {
       clearTimeout(timeoutId);

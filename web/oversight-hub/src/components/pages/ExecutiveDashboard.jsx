@@ -879,8 +879,6 @@ const ExecutiveDashboard = () => {
         onClose={() => setTaskModalOpen(false)}
         onTaskCreated={(task) => {
           setTaskModalOpen(false);
-          // Optionally refresh dashboard data
-          console.log('Task created:', task);
         }}
       />
     </div>
