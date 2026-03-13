@@ -1,5 +1,5 @@
 import logger from '@/lib/logger';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   AlertCircle,
   Filter,
@@ -17,6 +17,8 @@ const TrainingDataDashboard = () => {
   const [trainingJobs, setTrainingJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const isFetchingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -79,21 +81,31 @@ const TrainingDataDashboard = () => {
   }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     const loadAll = async () => {
+      // Skip if a fetch is already in flight to prevent overlapping requests
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
       try {
         setLoading(true);
         await Promise.all([loadStats(), loadDatasets(), loadJobs()]);
-        setError(null);
+        if (isMountedRef.current) setError(null);
       } catch (err) {
-        setError(err.message);
+        if (isMountedRef.current) setError(err.message);
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) setLoading(false);
+        isFetchingRef.current = false;
       }
     };
 
     loadAll();
-    const interval = setInterval(loadAll, 10000); // Refresh every 10s
-    return () => clearInterval(interval);
+    // Increased from 10 s to 15 s to reduce API call rate and overlap risk
+    const interval = setInterval(loadAll, 15000);
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(interval);
+    };
   }, [loadStats, loadDatasets, loadJobs]);
 
   const handleTagByDate = async () => {

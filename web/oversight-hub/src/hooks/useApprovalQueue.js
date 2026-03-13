@@ -6,7 +6,7 @@
  *
  * Extracted from ApprovalQueue.jsx (#311).
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import logger from '@/lib/logger';
 import { getApiUrl } from '../config/apiConfig';
 
@@ -41,6 +41,17 @@ const useApprovalQueue = ({ onSuccess, onError } = {}) => {
   // Preview dialog
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+
+  // ---- WebSocket refs (persist across renders without triggering re-render) --
+  // Using refs instead of local variables inside useEffect prevents the
+  // reconnect-on-every-message cycle described in issue #817.
+  const wsConnectionsRef = useRef(new Map());
+  const subscribedIdsRef = useRef(new Set());
+  const onSuccessRef = useRef(onSuccess);
+  // Keep onSuccessRef in sync with the latest prop without triggering re-runs
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
 
   // ---- Fetch ----------------------------------------------------------------
 
@@ -95,106 +106,112 @@ const useApprovalQueue = ({ onSuccess, onError } = {}) => {
 
   // ---- WebSocket real-time updates ------------------------------------------
 
+  // Subscribe to new tasks whenever the task list changes.
+  // wsConnectionsRef and subscribedIdsRef persist across renders so adding
+  // new subscriptions never tears down existing ones — fixing the
+  // reconnect-on-every-message cycle (issue #817).
   useEffect(() => {
-    const wsConnections = new Map();
+    if (tasks.length === 0) return;
 
-    const subscribeToUpdates = () => {
-      const apiBaseUrl = getApiBaseUrl();
-      const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss' : 'ws';
-      const wsHost = apiBaseUrl.replace(/^https?:\/\//, '');
+    const apiBaseUrl = getApiBaseUrl();
+    const wsProtocol = apiBaseUrl.startsWith('https') ? 'wss' : 'ws';
+    const wsHost = apiBaseUrl.replace(/^https?:\/\//, '');
 
-      tasks.forEach((task) => {
-        if (!wsConnections.has(task.task_id)) {
-          try {
-            const ws = new WebSocket(
-              `${wsProtocol}://${wsHost}/api/ws/approval/${task.task_id}`
+    tasks.forEach((task) => {
+      if (subscribedIdsRef.current.has(task.task_id)) return;
+
+      subscribedIdsRef.current.add(task.task_id);
+      try {
+        const ws = new WebSocket(
+          `${wsProtocol}://${wsHost}/api/ws/approval/${task.task_id}`
+        );
+
+        ws.onopen = () => {
+          if (process.env.NODE_ENV === 'development') {
+            logger.log(
+              `[useApprovalQueue] WebSocket connected for task: ${task.task_id}`
             );
+          }
+        };
 
-            ws.onopen = () => {
-              if (process.env.NODE_ENV === 'development') {
-                logger.log(
-                  `[useApprovalQueue] WebSocket connected for task: ${task.task_id}`
-                );
-              }
-            };
-
-            ws.onmessage = (event) => {
-              try {
-                const message = JSON.parse(event.data);
-                if (message.type === 'approval_status') {
-                  setTasks((prevTasks) =>
-                    prevTasks.map((t) => {
-                      if (t.task_id === message.task_id) {
-                        return {
-                          ...t,
-                          status: message.status,
-                          approval_feedback: message.feedback,
-                          approval_timestamp: message.timestamp,
-                        };
-                      }
-                      return t;
-                    })
-                  );
-                  if (onSuccess) {
-                    onSuccess(
-                      `Task ${message.status}: ${message.task_id.substring(0, 8)}`
-                    );
+        ws.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            if (message.type === 'approval_status') {
+              setTasks((prevTasks) =>
+                prevTasks.map((t) => {
+                  if (t.task_id === message.task_id) {
+                    return {
+                      ...t,
+                      status: message.status,
+                      approval_feedback: message.feedback,
+                      approval_timestamp: message.timestamp,
+                    };
                   }
-                }
-              } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                  logger.error(
-                    '[useApprovalQueue] Failed to parse WebSocket message:',
-                    err
-                  );
-                }
-              }
-            };
-
-            ws.onerror = (err) => {
-              if (process.env.NODE_ENV === 'development') {
-                logger.error(
-                  `[useApprovalQueue] WebSocket error for task ${task.task_id}:`,
-                  err
+                  return t;
+                })
+              );
+              // Use ref so the callback is always current without re-subscribing
+              if (onSuccessRef.current) {
+                onSuccessRef.current(
+                  `Task ${message.status}: ${message.task_id.substring(0, 8)}`
                 );
               }
-            };
-
-            ws.onclose = () => {
-              if (process.env.NODE_ENV === 'development') {
-                logger.log(
-                  `[useApprovalQueue] WebSocket disconnected for task: ${task.task_id}`
-                );
-              }
-              wsConnections.delete(task.task_id);
-            };
-
-            wsConnections.set(task.task_id, ws);
+            }
           } catch (err) {
             if (process.env.NODE_ENV === 'development') {
               logger.error(
-                `[useApprovalQueue] Failed to connect WebSocket for ${task.task_id}:`,
+                '[useApprovalQueue] Failed to parse WebSocket message:',
                 err
               );
             }
           }
+        };
+
+        ws.onerror = (err) => {
+          if (process.env.NODE_ENV === 'development') {
+            logger.error(
+              `[useApprovalQueue] WebSocket error for task ${task.task_id}:`,
+              err
+            );
+          }
+        };
+
+        ws.onclose = () => {
+          if (process.env.NODE_ENV === 'development') {
+            logger.log(
+              `[useApprovalQueue] WebSocket disconnected for task: ${task.task_id}`
+            );
+          }
+          wsConnectionsRef.current.delete(task.task_id);
+          subscribedIdsRef.current.delete(task.task_id);
+        };
+
+        wsConnectionsRef.current.set(task.task_id, ws);
+      } catch (err) {
+        subscribedIdsRef.current.delete(task.task_id);
+        if (process.env.NODE_ENV === 'development') {
+          logger.error(
+            `[useApprovalQueue] Failed to connect WebSocket for ${task.task_id}:`,
+            err
+          );
         }
-      });
-    };
+      }
+    });
+  }, [tasks]); // tasks changes: only subscribe to NEW tasks; existing ones untouched
 
-    if (tasks.length > 0) {
-      subscribeToUpdates();
-    }
-
+  // Cleanup all WebSocket connections on unmount
+  useEffect(() => {
     return () => {
-      wsConnections.forEach((ws) => {
+      wsConnectionsRef.current.forEach((ws) => {
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.close();
         }
       });
-      wsConnections.clear();
+      wsConnectionsRef.current.clear();
+      subscribedIdsRef.current.clear();
     };
-  }, [tasks, onSuccess]);
+  }, []); // run cleanup only on unmount
 
   // ---- Single approve -------------------------------------------------------
 

@@ -1,5 +1,5 @@
 import logger from '@/lib/logger';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   AlertCircle,
   RefreshCw,
@@ -24,6 +24,8 @@ const OrchestratorPage = () => {
   const [approvalMode, setApprovalMode] = useState(false);
   const [learningPatterns, setLearningPatterns] = useState(null);
   const [executionStats, setExecutionStats] = useState(null);
+  const isFetchingRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   const statusColors = {
     pending_approval: 'bg-yellow-100 text-yellow-800',
@@ -42,34 +44,52 @@ const OrchestratorPage = () => {
   };
 
   useEffect(() => {
-    loadOrchestrations();
-    loadExecutionStats();
-    const interval = setInterval(() => {
-      loadOrchestrations();
-      loadExecutionStats();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    isMountedRef.current = true;
+
+    const poll = () => {
+      // Skip poll if a fetch is already in flight — prevents concurrent requests
+      // piling up when the backend is slow relative to the poll interval.
+      if (!isFetchingRef.current) {
+        loadOrchestrations();
+        loadExecutionStats();
+      }
+    };
+
+    poll();
+    // Increased from 5 s to 15 s — reduces API call rate from 720/hr to 240/hr
+    const interval = setInterval(poll, 15000);
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(interval);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadOrchestrations = async () => {
+    isFetchingRef.current = true;
     try {
       const response = await makeRequest(
         '/api/orchestrator/executions?limit=50',
         'GET'
       );
+      if (!isMountedRef.current) return;
       setOrchestrations(response.executions || []);
       setError(null);
     } catch (err) {
+      if (!isMountedRef.current) return;
       setError(err.message);
       logger.error('Error loading orchestrations:', err);
+    } finally {
+      isFetchingRef.current = false;
     }
   };
 
   const loadExecutionStats = async () => {
     try {
       const response = await makeRequest('/api/orchestrator/stats', 'GET');
+      if (!isMountedRef.current) return;
       setExecutionStats(response.stats);
     } catch (err) {
+      if (!isMountedRef.current) return;
       logger.error('Error loading stats:', err);
     }
   };
