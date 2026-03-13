@@ -8,9 +8,13 @@
  * Used for development/testing without a real OAuth provider.
  */
 
-// Development secret - MUST MATCH backend JWT_SECRET environment variable
-// This is read from .env.local as JWT_SECRET=development-secret-key-change-in-production
-const DEV_JWT_SECRET = 'dev-jwt-secret-change-in-production-to-random-64-chars';
+// Development secret — read from REACT_APP_DEV_JWT_SECRET in .env.local.
+// This file must NEVER be imported outside of dev-only code paths so that
+// the secret is tree-shaken from production bundles.  See authService.js for
+// the dynamic-import pattern that enforces this.
+const DEV_JWT_SECRET =
+  process.env.REACT_APP_DEV_JWT_SECRET ||
+  'dev-jwt-secret-for-local-testing-only-not-production';
 
 /**
  * Create a mock JWT token that matches backend expectations

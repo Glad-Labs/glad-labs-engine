@@ -3,7 +3,10 @@
  * Handles OAuth flow, token exchange, and user verification
  */
 
-import { createMockJWTToken } from '../utils/mockTokenGenerator';
+// mockTokenGenerator is intentionally NOT imported statically.
+// Use dynamic import inside dev-only code paths (see calls below) so that
+// the file — including its signing secret — is tree-shaken from production
+// bundles.  Never add a static import of mockTokenGenerator at module level.
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -126,7 +129,10 @@ export const exchangeCodeForToken = async (code) => {
         avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
       };
 
-      // Generate a proper JWT token for development (awaiting async signing)
+      // Dynamic import keeps mockTokenGenerator (and its secret) out of the
+      // production bundle — this branch only runs for mock_auth_code_ codes.
+      const { createMockJWTToken } =
+        await import('../utils/mockTokenGenerator');
       const mockToken = await createMockJWTToken(mockUser);
 
       // Store token and user data
@@ -419,7 +425,8 @@ export const initializeDevToken = async (options = {}) => {
       auth_provider: 'mock',
     };
 
-    // Generate proper JWT token for development (awaiting async signing)
+    // Dynamic import — keeps the signing secret out of the production bundle.
+    const { createMockJWTToken } = await import('../utils/mockTokenGenerator');
     const mockToken = await createMockJWTToken(mockUser);
 
     // Store token and user BEFORE anything else
@@ -596,6 +603,9 @@ export async function handleOAuthCallbackNew(provider, code, state) {
         avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
       };
 
+      // Dynamic import — keeps the signing secret out of the production bundle.
+      const { createMockJWTToken } =
+        await import('../utils/mockTokenGenerator');
       const mockToken = await createMockJWTToken(mockUser);
 
       // Store tokens
