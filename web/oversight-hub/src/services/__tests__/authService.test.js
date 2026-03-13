@@ -105,13 +105,13 @@ describe('clearPersistedAuthState', () => {
   });
 
   it('removes auth_token, refresh_token and user keys', () => {
-    localStorage.setItem('auth_token', 'tok');
-    localStorage.setItem('refresh_token', 'ref');
-    localStorage.setItem('user', '{"id":"1"}');
+    sessionStorage.setItem('auth_token', 'tok');
+    sessionStorage.setItem('refresh_token', 'ref');
+    sessionStorage.setItem('user', '{"id":"1"}');
     clearPersistedAuthState();
-    expect(localStorage.getItem('auth_token')).toBeNull();
-    expect(localStorage.getItem('refresh_token')).toBeNull();
-    expect(localStorage.getItem('user')).toBeNull();
+    expect(sessionStorage.getItem('auth_token')).toBeNull();
+    expect(sessionStorage.getItem('refresh_token')).toBeNull();
+    expect(sessionStorage.getItem('user')).toBeNull();
   });
 
   it('clears auth fields in Zustand persist storage', () => {
@@ -203,9 +203,9 @@ describe('exchangeCodeForToken', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('mock code path: stores token in localStorage', async () => {
+  it('mock code path: stores token in sessionStorage', async () => {
     await exchangeCodeForToken('mock_auth_code_99999');
-    expect(localStorage.getItem('auth_token')).toBe('mock.jwt.token');
+    expect(sessionStorage.getItem('auth_token')).toBe('mock.jwt.token');
   });
 
   it('real code path: throws when CSRF state not found in sessionStorage', async () => {
@@ -235,7 +235,7 @@ describe('exchangeCodeForToken', () => {
       json: () => Promise.resolve({ token: 'server-tok', user: { id: '2' } }),
     });
     await exchangeCodeForToken('real-code-2');
-    expect(localStorage.getItem('auth_token')).toBe('server-tok');
+    expect(sessionStorage.getItem('auth_token')).toBe('server-tok');
   });
 
   it('real code path: throws when server returns non-ok', async () => {
@@ -264,23 +264,23 @@ describe('verifySession', () => {
   it('returns parsed user for a valid unexpired JWT', async () => {
     const token = makeJWT(futureExp());
     const user = { id: '1', login: 'alice' };
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('auth_token', token);
+    sessionStorage.setItem('user', JSON.stringify(user));
     const result = await verifySession();
     expect(result).toEqual(user);
   });
 
   it('clears storage and returns null for expired token', async () => {
     const token = makeJWT(pastExp());
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('user', '{"id":"1"}');
+    sessionStorage.setItem('auth_token', token);
+    sessionStorage.setItem('user', '{"id":"1"}');
     const result = await verifySession();
     expect(result).toBeNull();
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(sessionStorage.getItem('auth_token')).toBeNull();
   });
 
   it('clears storage and returns null for non-JWT formatted token', async () => {
-    localStorage.setItem('auth_token', 'not-a-jwt');
+    sessionStorage.setItem('auth_token', 'not-a-jwt');
     const result = await verifySession();
     expect(result).toBeNull();
   });
@@ -298,7 +298,7 @@ describe('logout', () => {
   });
 
   it('calls /api/auth/logout with bearer token', async () => {
-    localStorage.setItem('auth_token', 'my-token');
+    sessionStorage.setItem('auth_token', 'my-token');
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({}),
@@ -314,12 +314,12 @@ describe('logout', () => {
   });
 
   it('clears localStorage even when API call fails', async () => {
-    localStorage.setItem('auth_token', 'tok');
-    localStorage.setItem('user', '{"id":"1"}');
+    sessionStorage.setItem('auth_token', 'tok');
+    sessionStorage.setItem('user', '{"id":"1"}');
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
     await logout();
-    expect(localStorage.getItem('auth_token')).toBeNull();
-    expect(localStorage.getItem('user')).toBeNull();
+    expect(sessionStorage.getItem('auth_token')).toBeNull();
+    expect(sessionStorage.getItem('user')).toBeNull();
   });
 
   it('removes oauth_state from sessionStorage', async () => {
@@ -345,11 +345,12 @@ describe('logout', () => {
 describe('getStoredUser', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('returns parsed user object when stored', () => {
     const user = { id: '1', login: 'bob' };
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user', JSON.stringify(user));
     expect(getStoredUser()).toEqual(user);
   });
 
@@ -358,7 +359,7 @@ describe('getStoredUser', () => {
   });
 
   it('returns null when stored user JSON is malformed', () => {
-    localStorage.setItem('user', '{NOT VALID JSON}');
+    sessionStorage.setItem('user', '{NOT VALID JSON}');
     expect(getStoredUser()).toBeNull();
   });
 });
@@ -413,15 +414,15 @@ describe('getAuthToken', () => {
 
   it('returns token from direct localStorage key when valid', () => {
     const token = makeJWT(futureExp());
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
     expect(getAuthToken()).toBe(token);
   });
 
   it('returns null and clears storage when token is expired', () => {
     const expired = makeJWT(pastExp());
-    localStorage.setItem('auth_token', expired);
+    sessionStorage.setItem('auth_token', expired);
     expect(getAuthToken()).toBeNull();
-    expect(localStorage.getItem('auth_token')).toBeNull();
+    expect(sessionStorage.getItem('auth_token')).toBeNull();
   });
 
   it('returns null when no token stored', () => {
@@ -438,7 +439,7 @@ describe('getAuthToken', () => {
   it('falls back to direct key if Zustand state is malformed JSON', () => {
     const token = makeJWT(futureExp());
     localStorage.setItem(PERSIST_KEY, 'BAD_JSON');
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
     expect(getAuthToken()).toBe(token);
   });
 });
@@ -456,7 +457,7 @@ describe('authenticatedFetch', () => {
 
   it('calls fetch with Authorization header when token is present', async () => {
     const token = makeJWT(futureExp());
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
     mockFetch.mockResolvedValue({
       ok: true,
       status: 200,
@@ -506,12 +507,12 @@ describe('isAuthenticated', () => {
   });
 
   it('returns true when a valid unexpired token is stored', () => {
-    localStorage.setItem('auth_token', makeJWT(futureExp()));
+    sessionStorage.setItem('auth_token', makeJWT(futureExp()));
     expect(isAuthenticated()).toBe(true);
   });
 
   it('returns false when stored token is expired', () => {
-    localStorage.setItem('auth_token', makeJWT(pastExp()));
+    sessionStorage.setItem('auth_token', makeJWT(pastExp()));
     expect(isAuthenticated()).toBe(false);
   });
 });
@@ -604,9 +605,9 @@ describe('handleOAuthCallbackNew', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('mock code path: stores token in localStorage', async () => {
+  it('mock code path: stores token in sessionStorage', async () => {
     await handleOAuthCallbackNew('github', 'mock_auth_code_456', 'any-state');
-    expect(localStorage.getItem('auth_token')).toBe('mock.jwt.token');
+    expect(sessionStorage.getItem('auth_token')).toBe('mock.jwt.token');
   });
 
   it('mock code path: clears oauth_state from sessionStorage', async () => {
@@ -662,7 +663,7 @@ describe('validateAndGetCurrentUser', () => {
 
   it('returns user data when /api/auth/me responds ok', async () => {
     const token = makeJWT(futureExp());
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
     const user = { id: '1', login: 'alice' };
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -675,7 +676,7 @@ describe('validateAndGetCurrentUser', () => {
 
   it('updates localStorage user on success', async () => {
     const token = makeJWT(futureExp());
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
     const user = { id: '42', login: 'charlie' };
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -683,12 +684,12 @@ describe('validateAndGetCurrentUser', () => {
       json: () => Promise.resolve({ user }),
     });
     await validateAndGetCurrentUser();
-    expect(JSON.parse(localStorage.getItem('user'))).toEqual(user);
+    expect(JSON.parse(sessionStorage.getItem('user'))).toEqual(user);
   });
 
   it('returns null and clears state when server returns 401', async () => {
     const token = makeJWT(futureExp());
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
     mockFetch
       .mockResolvedValueOnce({
         ok: false,
@@ -703,7 +704,7 @@ describe('validateAndGetCurrentUser', () => {
 
   it('returns null when fetch throws (network error)', async () => {
     const token = makeJWT(futureExp());
-    localStorage.setItem('auth_token', token);
+    sessionStorage.setItem('auth_token', token);
     mockFetch.mockRejectedValueOnce(new Error('Network down'));
     const result = await validateAndGetCurrentUser();
     expect(result).toBeNull();

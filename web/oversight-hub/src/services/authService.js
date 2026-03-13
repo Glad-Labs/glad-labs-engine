@@ -13,9 +13,11 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 const PERSIST_KEY = 'oversight-hub-storage';
 
 export const clearPersistedAuthState = () => {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user');
+  // auth_token and user are stored in sessionStorage (not localStorage) to limit
+  // XSS exposure — a stolen token cannot persist across sessions. (#726)
+  sessionStorage.removeItem('auth_token');
+  sessionStorage.removeItem('refresh_token');
+  sessionStorage.removeItem('user');
 
   const persistedData = localStorage.getItem(PERSIST_KEY);
   if (!persistedData) {
@@ -135,9 +137,9 @@ export const exchangeCodeForToken = async (code) => {
         await import('../utils/mockTokenGenerator');
       const mockToken = await createMockJWTToken(mockUser);
 
-      // Store token and user data
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      // Store token in sessionStorage (not localStorage) to limit XSS exposure (#726)
+      sessionStorage.setItem('auth_token', mockToken);
+      sessionStorage.setItem('user', JSON.stringify(mockUser));
 
       return {
         token: mockToken,
@@ -166,10 +168,10 @@ export const exchangeCodeForToken = async (code) => {
 
     const data = await response.json();
 
-    // Store token and user data
+    // Store token in sessionStorage (not localStorage) to limit XSS exposure (#726)
     if (data.token) {
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('auth_token', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
     }
 
     return data;
@@ -185,8 +187,8 @@ export const exchangeCodeForToken = async (code) => {
  */
 export const verifySession = async () => {
   try {
-    const token = localStorage.getItem('auth_token');
-    const user = localStorage.getItem('user');
+    const token = sessionStorage.getItem('auth_token');
+    const user = sessionStorage.getItem('user');
 
     if (!token) {
       return null;
@@ -232,7 +234,7 @@ export const verifySession = async () => {
  */
 export const logout = async () => {
   try {
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
 
     if (token) {
       await fetch(`${API_BASE_URL}/api/auth/logout`, {
@@ -260,7 +262,7 @@ export const logout = async () => {
  * @returns {object|null} - Parsed user object or null
  */
 export const getStoredUser = () => {
-  const userStr = localStorage.getItem('user');
+  const userStr = sessionStorage.getItem('user');
   try {
     const parsed = userStr ? JSON.parse(userStr) : null;
     if (parsed) {
@@ -334,9 +336,9 @@ export const getAuthToken = () => {
     }
   }
 
-  // Fallback to direct localStorage key if not found in Zustand
+  // Fallback to sessionStorage if not found in Zustand persist store
   if (!token) {
-    token = localStorage.getItem('auth_token');
+    token = sessionStorage.getItem('auth_token');
   }
 
   if (!token) {
@@ -363,7 +365,7 @@ export const initializeDevToken = async (options = {}) => {
     const { forceRefresh = false, validateWithBackend = true } = options;
 
     // Check if token exists and is still valid
-    const existingToken = localStorage.getItem('auth_token');
+    const existingToken = sessionStorage.getItem('auth_token');
 
     if (!forceRefresh && existingToken && !isTokenExpired(existingToken)) {
       if (validateWithBackend) {
@@ -398,8 +400,9 @@ export const initializeDevToken = async (options = {}) => {
         auth_provider: 'mock',
       };
 
-      localStorage.setItem('auth_token', backendToken);
-      localStorage.setItem('user', JSON.stringify(backendUser));
+      // Store in sessionStorage (not localStorage) to limit XSS exposure (#726)
+      sessionStorage.setItem('auth_token', backendToken);
+      sessionStorage.setItem('user', JSON.stringify(backendUser));
 
       return backendToken;
     } catch (backendError) {
@@ -429,18 +432,18 @@ export const initializeDevToken = async (options = {}) => {
     const { createMockJWTToken } = await import('../utils/mockTokenGenerator');
     const mockToken = await createMockJWTToken(mockUser);
 
-    // Store token and user BEFORE anything else
-    localStorage.setItem('auth_token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    // Store token in sessionStorage (not localStorage) to limit XSS exposure (#726)
+    sessionStorage.setItem('auth_token', mockToken);
+    sessionStorage.setItem('user', JSON.stringify(mockUser));
 
-    // Small delay to ensure localStorage is actually persisted
+    // Small delay to ensure sessionStorage is actually persisted
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     // Verify token was actually stored
-    const storedToken = localStorage.getItem('auth_token');
+    const storedToken = sessionStorage.getItem('auth_token');
     if (!storedToken) {
       console.error(
-        '[authService] ERROR: Token was not actually stored in localStorage! Zustand may be interfering.'
+        '[authService] ERROR: Token was not actually stored in sessionStorage!'
       );
       // Try to check if it's in Zustand store instead
       try {
@@ -449,7 +452,7 @@ export const initializeDevToken = async (options = {}) => {
           const parsed = JSON.parse(zustandData);
         }
       } catch {}
-      throw new Error('Failed to store token in localStorage');
+      throw new Error('Failed to store token in sessionStorage');
     }
 
     // Set up auto-refresh every 14 minutes (token expires in 15 minutes)
@@ -608,9 +611,9 @@ export async function handleOAuthCallbackNew(provider, code, state) {
         await import('../utils/mockTokenGenerator');
       const mockToken = await createMockJWTToken(mockUser);
 
-      // Store tokens
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      // Store tokens in sessionStorage to limit XSS exposure (#726)
+      sessionStorage.setItem('auth_token', mockToken);
+      sessionStorage.setItem('user', JSON.stringify(mockUser));
 
       // Clear state
       sessionStorage.removeItem('oauth_state');
@@ -637,15 +640,15 @@ export async function handleOAuthCallbackNew(provider, code, state) {
 
     const data = await response.json();
 
-    // Store tokens
+    // Store tokens in sessionStorage to limit XSS exposure (#726)
     if (data.token) {
-      localStorage.setItem('auth_token', data.token);
+      sessionStorage.setItem('auth_token', data.token);
     }
     if (data.refresh_token) {
-      localStorage.setItem('refresh_token', data.refresh_token);
+      sessionStorage.setItem('refresh_token', data.refresh_token);
     }
     if (data.user) {
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('user', JSON.stringify(data.user));
     }
 
     // Clear state
@@ -689,7 +692,7 @@ export async function validateAndGetCurrentUser() {
 
     const data = await response.json();
     if (data.user) {
-      localStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem('user', JSON.stringify(data.user));
     }
     return data.user;
   } catch (error) {
