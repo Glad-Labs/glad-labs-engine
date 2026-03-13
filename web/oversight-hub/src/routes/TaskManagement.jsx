@@ -44,6 +44,7 @@ function TaskManagement() {
     total,
     loading,
     refetch: refreshTasks,
+    updateTask,
   } = useFetchTasks(
     page,
     limit,
@@ -51,24 +52,40 @@ function TaskManagement() {
     { status: statusFilter || undefined, search: searchQuery || undefined }
   );
 
-  // 🔥 NEW: Listen to WebSocket task progress events for real-time updates
+  // Listen to WebSocket task progress events for real-time updates.
+  // Rather than re-fetching the full task list on every WS message (which caused
+  // a double-refresh — once from the 5 s poll and once per event), we apply an
+  // optimistic in-place status update from the WebSocket payload. A full refetch
+  // is only triggered for terminal states (COMPLETED/FAILED) where we need the
+  // final server-side data (e.g., result, output_data).
   const handleTaskProgressUpdate = useCallback(
     (data) => {
-      logger.log('🔔 TaskManagement: Received task progress update:', data);
+      logger.log('TaskManagement: Received task progress update:', data);
 
-      // Trigger refetch when task status changes
-      // This ensures UI shows tasks in 'in_progress' state immediately
-      if (
-        data?.status &&
-        ['RUNNING', 'COMPLETED', 'FAILED', 'PAUSED'].includes(data.status)
-      ) {
+      if (!data?.task_id || !data?.status) return;
+
+      const terminalStates = ['COMPLETED', 'FAILED'];
+      const inProgressStates = ['RUNNING', 'PAUSED'];
+
+      if (terminalStates.includes(data.status)) {
+        // Terminal state — refetch once to get final server-side data
         logger.log(
-          '🔄 TaskManagement: Triggering task list refresh due to status change'
+          'TaskManagement: Terminal state reached, triggering full refresh'
         );
         refreshTasks();
+      } else if (inProgressStates.includes(data.status)) {
+        // In-progress state — apply optimistic update in place, no API call needed
+        logger.log(
+          'TaskManagement: Applying optimistic status update for task',
+          data.task_id
+        );
+        updateTask(data.task_id, {
+          status: data.status,
+          progress: data.progress,
+        });
       }
     },
-    [refreshTasks]
+    [refreshTasks, updateTask]
   );
 
   // Subscribe to all task progress events (not just specific task IDs)

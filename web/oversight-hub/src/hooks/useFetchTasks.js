@@ -36,10 +36,31 @@ export const useFetchTasks = (
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { setTasks: setStoreTasks } = useStore();
+
+  // Apply an optimistic in-place update to a single task by id.
+  // Avoids a full API re-fetch for intermediate state changes (e.g. RUNNING, PAUSED).
+  const updateTask = useCallback((taskId, patch) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId || t.task_id === taskId ? { ...t, ...patch } : t
+      )
+    );
+  }, []);
+  const setStoreTasks = useStore((state) => state.setTasks);
+  const isAuthenticated = useStore((state) => state.isAuthenticated);
+  const authInitialized = useStore((state) => state.authInitialized);
 
   // Core fetch function
   const fetchTasks = useCallback(async () => {
+    if (!authInitialized || !isAuthenticated) {
+      setLoading(false);
+      setError(null);
+      setTasks([]);
+      setTotal(0);
+      setStoreTasks([]);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -84,10 +105,22 @@ export const useFetchTasks = (
     } finally {
       setLoading(false);
     }
-  }, [page, limit, status, search, setStoreTasks]);
+  }, [
+    page,
+    limit,
+    status,
+    search,
+    setStoreTasks,
+    isAuthenticated,
+    authInitialized,
+  ]);
 
   // Auto-refresh effect
   useEffect(() => {
+    if (!authInitialized || !isAuthenticated) {
+      return;
+    }
+
     // Fetch immediately on mount or when page/limit changes
     fetchTasks();
 
@@ -96,7 +129,7 @@ export const useFetchTasks = (
       const interval = setInterval(fetchTasks, autoRefreshInterval);
       return () => clearInterval(interval);
     }
-  }, [fetchTasks, autoRefreshInterval]);
+  }, [fetchTasks, autoRefreshInterval, isAuthenticated, authInitialized]);
 
   return {
     tasks,
@@ -104,6 +137,7 @@ export const useFetchTasks = (
     loading,
     error,
     refetch: fetchTasks,
+    updateTask,
   };
 };
 

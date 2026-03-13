@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import * as cofounderAgentClient from '../services/cofounderAgentClient';
 import { modelService } from '../services/modelService';
 import { composeAndExecuteTask } from '../services/naturalLanguageComposerService';
+import useAuth from '../hooks/useAuth';
 import ModelSelectDropdown from './ModelSelectDropdown';
 import BackendStatusBanner from './BackendStatusBanner';
 import '../OversightHub.css';
@@ -43,6 +44,7 @@ const LayoutWrapper = ({ children }) => {
   // const [selectedOllamaModel, setSelectedOllamaModel] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [, setAvailableModels] = useState([]);
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [modelsByProvider, setModelsByProvider] = useState({
     ollama: [],
     openai: [],
@@ -110,6 +112,11 @@ const LayoutWrapper = ({ children }) => {
 
   // Check Ollama availability on mount only in development (local dev mode)
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      setOllamaConnected(false);
+      return;
+    }
+
     // Only check Ollama in development environment
     const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -135,7 +142,7 @@ const LayoutWrapper = ({ children }) => {
     // Optionally check every 5 minutes in development
     const interval = setInterval(checkOllama, 300000); // 5 minutes
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -165,6 +172,13 @@ const LayoutWrapper = ({ children }) => {
 
   // Initialize available models from API
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      const defaults = modelService.getDefaultModels();
+      setAvailableModels(defaults);
+      setModelsByProvider(modelService.groupModelsByProvider(defaults));
+      return;
+    }
+
     const loadModels = async () => {
       try {
         const models = await modelService.getAvailableModels(true); // Force refresh
@@ -189,7 +203,7 @@ const LayoutWrapper = ({ children }) => {
     };
 
     loadModels();
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   const handleNavigate = (page) => {
     setNavMenuOpen(false);

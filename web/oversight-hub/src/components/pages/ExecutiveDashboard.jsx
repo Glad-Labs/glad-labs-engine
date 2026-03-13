@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import './ExecutiveDashboard.css';
 import CreateTaskModal from '../tasks/CreateTaskModal';
 import CostBreakdownCards from '../CostBreakdownCards';
+import useAuth from '../../hooks/useAuth';
 
 const ExecutiveDashboard = () => {
   const navigate = useNavigate();
@@ -28,9 +29,17 @@ const ExecutiveDashboard = () => {
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('30d');
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   // Fetch dashboard data from API
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      setLoading(false);
+      setError(null);
+      setDashboardData(getMockDashboardData());
+      return;
+    }
+
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
@@ -65,7 +74,7 @@ const ExecutiveDashboard = () => {
     };
 
     fetchDashboardData();
-  }, [timeRange]);
+  }, [timeRange, isAuthenticated, authLoading]);
 
   const transformApiDataToComponentFormat = (apiData) => {
     /**

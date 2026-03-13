@@ -23,8 +23,16 @@ const { mockSetTasks, mockGetTasks } = vi.hoisted(() => ({
   mockGetTasks: vi.fn(),
 }));
 
+const mockStoreState = {
+  setTasks: mockSetTasks,
+  isAuthenticated: true,
+  authInitialized: true,
+};
+
 vi.mock('../../store/useStore', () => ({
-  default: vi.fn(() => ({ setTasks: mockSetTasks })),
+  default: vi.fn((selector) =>
+    typeof selector === 'function' ? selector(mockStoreState) : mockStoreState
+  ),
 }));
 
 vi.mock('../../services/cofounderAgentClient', () => ({

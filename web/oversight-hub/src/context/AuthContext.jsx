@@ -19,10 +19,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Get Zustand store functions
   const setStoreUser = useStore((state) => state.setUser);
   const setStoreIsAuthenticated = useStore((state) => state.setIsAuthenticated);
+  const setStoreAuthInitialized = useStore((state) => state.setAuthInitialized);
   const storeLogout = useStore((state) => state.logout);
 
   // Initialize auth state ONCE on mount
@@ -34,19 +36,24 @@ export const AuthProvider = ({ children }) => {
         );
         const startTime = Date.now();
 
+        setStoreAuthInitialized(false);
+
         // Optimistically clear stale Zustand-persisted auth state so ProtectedRoute
         // doesn't render protected pages using a cached isAuthenticated=true before
         // the async session check completes.
         setStoreIsAuthenticated(false);
+        setIsAuthenticated(false);
 
         // Validate active cookie-based session first.
         const currentUser = await validateAndGetCurrentUser();
         if (currentUser) {
           setStoreUser(currentUser);
           setStoreIsAuthenticated(true);
+          setIsAuthenticated(true);
           setUser(currentUser);
           setError(null);
           setLoading(false);
+          setStoreAuthInitialized(true);
           const elapsed = Date.now() - startTime;
           logger.log(`✅ [AuthContext] Session restored (${elapsed}ms)`);
           return;
@@ -57,26 +64,31 @@ export const AuthProvider = ({ children }) => {
         if (storedUser) {
           setStoreUser(storedUser);
           setStoreIsAuthenticated(false);
+          setIsAuthenticated(false);
           setUser(storedUser);
         } else {
           setStoreIsAuthenticated(false);
+          setIsAuthenticated(false);
           setUser(null);
         }
         setError(null);
         setLoading(false);
+        setStoreAuthInitialized(true);
         const elapsed = Date.now() - startTime;
         logger.log(`✅ [AuthContext] Initialization complete (${elapsed}ms)`);
       } catch (err) {
         logger.error('❌ [AuthContext] Initialization error:', err);
         setError(err.message);
         setStoreIsAuthenticated(false);
+        setIsAuthenticated(false);
         setUser(null);
         setLoading(false);
+        setStoreAuthInitialized(true);
       }
     };
 
     initializeAuth();
-  }, [setStoreUser, setStoreIsAuthenticated]);
+  }, [setStoreUser, setStoreIsAuthenticated, setStoreAuthInitialized]);
 
   // Logout handler - sync with both AuthContext and Zustand
   const logout = useCallback(async () => {
@@ -84,6 +96,7 @@ export const AuthProvider = ({ children }) => {
       logger.log('🚪 [AuthContext] Logging out...');
       await authLogout();
       setUser(null);
+      setIsAuthenticated(false);
       storeLogout(); // Clear Zustand store
       logger.log('✅ [AuthContext] Logout complete');
     } catch (err) {
@@ -99,6 +112,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       setStoreUser(userData);
       setStoreIsAuthenticated(!!userData);
+      setIsAuthenticated(!!userData);
     },
     [setStoreUser, setStoreIsAuthenticated]
   );
@@ -140,6 +154,7 @@ export const AuthProvider = ({ children }) => {
         return user;
       } else {
         setUser(null);
+        setIsAuthenticated(false);
         storeLogout();
         return null;
       }
@@ -154,7 +169,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     error,
-    isAuthenticated: !!user,
+    isAuthenticated,
     logout,
     setAuthUser,
     handleOAuthCallback,

@@ -9,11 +9,14 @@ const useStore = create(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      authInitialized: false,
 
       setUser: (user) => set({ user }),
       setAccessToken: (token) => set({ accessToken: token }),
       setRefreshToken: (token) => set({ refreshToken: token }),
       setIsAuthenticated: (isAuth) => set({ isAuthenticated: isAuth }),
+      setAuthInitialized: (initialized) =>
+        set({ authInitialized: initialized }),
 
       logout: () =>
         set({
@@ -21,6 +24,7 @@ const useStore = create(
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
+          authInitialized: true,
           tasks: [],
           selectedTask: null,
         }),
