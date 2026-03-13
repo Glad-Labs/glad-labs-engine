@@ -39,10 +39,10 @@ class ErrorBoundary extends React.Component {
       errorCount: prevState.errorCount + 1,
     }));
 
-    // Log to error tracking service in production
-    if (process.env.NODE_ENV === 'production') {
-      this.logErrorToService(error, errorInfo);
-    }
+    // Log to error tracking service — DSN gate in index.js handles environments
+    // where Sentry should not fire. Removing the NODE_ENV guard here ensures
+    // staging and other non-production environments still capture errors (issue #683).
+    this.logErrorToService(error, errorInfo);
   }
 
   logErrorToService = (error, errorInfo) => {

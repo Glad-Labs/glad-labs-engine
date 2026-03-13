@@ -8,6 +8,7 @@
  * - formatTaskForDisplay (centralized task formatting)
  */
 import React, { useState } from 'react';
+import logger from '@/lib/logger';
 import useStore from '../store/useStore';
 import { bulkUpdateTasks } from '../services/cofounderAgentClient';
 import useFetchTasks from '../hooks/useFetchTasks';
@@ -83,7 +84,7 @@ function TaskManagement() {
         setError('Failed to reject task');
       }
     } catch (err) {
-      console.error('Error rejecting task:', err);
+      logger.error('Error rejecting task:', err);
       setError(`Failed to reject task: ${err.message}`);
     } finally {
       setDeleting(false);
@@ -112,7 +113,7 @@ function TaskManagement() {
         setError(`Failed to ${action} task`);
       }
     } catch (err) {
-      console.error(`Error performing ${action} on task:`, err);
+      logger.error(`Error performing ${action} on task:`, err);
       setError(`Failed to ${action} task: ${err.message}`);
     }
   };
