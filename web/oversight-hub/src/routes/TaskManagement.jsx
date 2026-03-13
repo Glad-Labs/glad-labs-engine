@@ -575,6 +575,7 @@ function TaskManagement() {
                     disabled={page === 1}
                     className="pagination-btn"
                     title="Previous page"
+                    aria-label="Previous page"
                   >
                     ← Previous
                   </button>
@@ -603,6 +604,8 @@ function TaskManagement() {
                               page === pageNum ? 'active' : ''
                             }`}
                             title={`Go to page ${pageNum}`}
+                            aria-label={`Go to page ${pageNum}`}
+                            aria-current={page === pageNum ? 'page' : undefined}
                           >
                             {pageNum}
                           </button>
@@ -620,6 +623,7 @@ function TaskManagement() {
                     disabled={page === Math.ceil(total / limit)}
                     className="pagination-btn"
                     title="Next page"
+                    aria-label="Next page"
                   >
                     Next →
                   </button>

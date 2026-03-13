@@ -36,7 +36,10 @@ const AppContent = () => {
           color: '#666',
         }}
       >
-        <div>Initializing...</div>
+        {/* role="status" + aria-live ensures screen readers announce when loading resolves (WCAG 4.1.3) */}
+        <div role="status" aria-live="polite" aria-label="Loading application">
+          Initializing...
+        </div>
       </div>
     );
   }
