@@ -86,7 +86,31 @@ function PostEditor({ post, onClose, onSave }) {
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br/>');
 
-    return DOMPurify.sanitize(`<p>${html}</p>`);
+    // Explicit allowlist narrows the attack surface vs the default blocklist.
+    // AI-generated content may contain prompt-injected HTML — blocklist-only sanitization
+    // is insufficient when the attacker controls content that flows through the LLM pipeline.
+    return DOMPurify.sanitize(`<p>${html}</p>`, {
+      ALLOWED_TAGS: [
+        'p',
+        'b',
+        'i',
+        'em',
+        'strong',
+        'a',
+        'ul',
+        'ol',
+        'li',
+        'code',
+        'pre',
+        'blockquote',
+        'h1',
+        'h2',
+        'h3',
+        'br',
+      ],
+      ALLOWED_ATTR: ['href', 'title'],
+      FORCE_BODY: true,
+    });
   };
 
   return (

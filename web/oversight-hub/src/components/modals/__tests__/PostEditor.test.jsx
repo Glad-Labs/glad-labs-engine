@@ -172,3 +172,89 @@ describe('PostEditor — preview toggle', () => {
     expect(document.body.textContent).toMatch(/Edit|Preview/i);
   });
 });
+
+describe('PostEditor — a11y and security: DOMPurify called with explicit allowlist (#737)', () => {
+  /**
+   * Verify that renderPreview passes an explicit ALLOWED_TAGS / ALLOWED_ATTR
+   * allowlist to DOMPurify.sanitize rather than relying solely on the default
+   * blocklist.  AI-generated content can contain prompt-injected HTML; an
+   * allowlist provides defence-in-depth on top of the blocklist.
+   */
+  const onClose = vi.fn();
+  const onSave = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls DOMPurify.sanitize with ALLOWED_TAGS option when preview is shown', async () => {
+    const DOMPurify = (await import('dompurify')).default;
+
+    render(<PostEditor post={SAMPLE_POST} onClose={onClose} onSave={onSave} />);
+
+    const previewBtn = screen.getByRole('button', { name: /Preview/i });
+    fireEvent.click(previewBtn);
+
+    expect(DOMPurify.sanitize).toHaveBeenCalled();
+    const callArgs = DOMPurify.sanitize.mock.calls[0];
+    // Second argument must be an options object with ALLOWED_TAGS
+    expect(callArgs[1]).toBeDefined();
+    expect(callArgs[1]).toHaveProperty('ALLOWED_TAGS');
+    expect(Array.isArray(callArgs[1].ALLOWED_TAGS)).toBe(true);
+  });
+
+  it('calls DOMPurify.sanitize with ALLOWED_ATTR option when preview is shown', async () => {
+    const DOMPurify = (await import('dompurify')).default;
+
+    render(<PostEditor post={SAMPLE_POST} onClose={onClose} onSave={onSave} />);
+
+    const previewBtn = screen.getByRole('button', { name: /Preview/i });
+    fireEvent.click(previewBtn);
+
+    expect(DOMPurify.sanitize).toHaveBeenCalled();
+    const callArgs = DOMPurify.sanitize.mock.calls[0];
+    expect(callArgs[1]).toHaveProperty('ALLOWED_ATTR');
+    expect(Array.isArray(callArgs[1].ALLOWED_ATTR)).toBe(true);
+  });
+
+  it('ALLOWED_TAGS includes expected safe markdown tags', async () => {
+    const DOMPurify = (await import('dompurify')).default;
+
+    render(<PostEditor post={SAMPLE_POST} onClose={onClose} onSave={onSave} />);
+
+    const previewBtn = screen.getByRole('button', { name: /Preview/i });
+    fireEvent.click(previewBtn);
+
+    const callArgs = DOMPurify.sanitize.mock.calls[0];
+    const allowedTags = callArgs[1].ALLOWED_TAGS;
+    for (const tag of [
+      'p',
+      'strong',
+      'em',
+      'code',
+      'h1',
+      'h2',
+      'h3',
+      'ul',
+      'ol',
+      'li',
+    ]) {
+      expect(allowedTags).toContain(tag);
+    }
+  });
+
+  it('ALLOWED_TAGS does not include script or iframe', async () => {
+    const DOMPurify = (await import('dompurify')).default;
+
+    render(<PostEditor post={SAMPLE_POST} onClose={onClose} onSave={onSave} />);
+
+    const previewBtn = screen.getByRole('button', { name: /Preview/i });
+    fireEvent.click(previewBtn);
+
+    const callArgs = DOMPurify.sanitize.mock.calls[0];
+    const allowedTags = callArgs[1].ALLOWED_TAGS;
+    expect(allowedTags).not.toContain('script');
+    expect(allowedTags).not.toContain('iframe');
+    expect(allowedTags).not.toContain('object');
+  });
+});
