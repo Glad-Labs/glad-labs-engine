@@ -419,3 +419,97 @@ describe('TaskManagement — Clear Filters button', () => {
     expect(screen.getByText('Blog Post Beta')).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// a11y — issue #766: keyboard-operable rows
+// ---------------------------------------------------------------------------
+
+describe('TaskManagement — a11y: keyboard-operable task rows (issue #766)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupHook();
+  });
+
+  it('task rows have role="button"', () => {
+    renderComponent();
+    const rows = screen.getAllByRole('button', { name: /View details for/i });
+    expect(rows.length).toBeGreaterThan(0);
+  });
+
+  it('task rows have tabIndex=0', () => {
+    renderComponent();
+    const rows = screen.getAllByRole('button', { name: /View details for/i });
+    rows.forEach((row) => {
+      expect(row).toHaveAttribute('tabIndex', '0');
+    });
+  });
+
+  it('task rows have aria-label containing task name', () => {
+    renderComponent();
+    const row = screen.getByRole('button', {
+      name: /View details for Blog Post Alpha/i,
+    });
+    expect(row).toBeInTheDocument();
+  });
+
+  it('pressing Enter on a task row opens the detail modal', async () => {
+    renderComponent();
+    const row = screen.getByRole('button', {
+      name: /View details for Blog Post Alpha/i,
+    });
+    fireEvent.keyDown(row, { key: 'Enter', code: 'Enter' });
+    await waitFor(() => {
+      expect(screen.getByTestId('task-detail-modal')).toBeInTheDocument();
+    });
+  });
+
+  it('pressing Space on a task row opens the detail modal', async () => {
+    renderComponent();
+    const row = screen.getByRole('button', {
+      name: /View details for Blog Post Alpha/i,
+    });
+    fireEvent.keyDown(row, { key: ' ', code: 'Space' });
+    await waitFor(() => {
+      expect(screen.getByTestId('task-detail-modal')).toBeInTheDocument();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// a11y — issue #759: action buttons need aria-label (not emoji only)
+// ---------------------------------------------------------------------------
+
+describe('TaskManagement — a11y: action button accessible names (issue #759)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupHook();
+  });
+
+  it('View Details button has aria-label', () => {
+    renderComponent();
+    const viewButtons = screen.getAllByRole('button', { name: 'View Details' });
+    expect(viewButtons.length).toBeGreaterThan(0);
+  });
+
+  it('Reject Task button has aria-label', () => {
+    renderComponent();
+    const deleteButtons = screen.getAllByRole('button', {
+      name: 'Reject Task',
+    });
+    expect(deleteButtons.length).toBeGreaterThan(0);
+  });
+
+  it('Pause Task button has aria-label for running tasks', () => {
+    renderComponent();
+    // task-2 has status 'running'
+    const pauseButtons = screen.getAllByRole('button', { name: 'Pause Task' });
+    expect(pauseButtons.length).toBeGreaterThan(0);
+  });
+
+  it('Retry Task button has aria-label for failed tasks', () => {
+    renderComponent();
+    // task-3 has status 'failed'
+    const retryButtons = screen.getAllByRole('button', { name: 'Retry Task' });
+    expect(retryButtons.length).toBeGreaterThan(0);
+  });
+});

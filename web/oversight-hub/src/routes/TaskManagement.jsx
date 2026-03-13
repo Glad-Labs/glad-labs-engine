@@ -328,7 +328,16 @@ function TaskManagement() {
                   <tr
                     key={task.id}
                     className={`status-${task.status?.toLowerCase()} clickable-row`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${task.task_name || task.topic || 'task'}`}
                     onClick={() => handleEditTask(task)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleEditTask(task);
+                      }
+                    }}
                     title="Click to view details"
                   >
                     <td className="task-name">
@@ -400,9 +409,10 @@ function TaskManagement() {
                         className="action-btn view"
                         onClick={() => handleEditTask(task)}
                         title="View Details"
+                        aria-label="View Details"
                         disabled={deleting}
                       >
-                        👁️
+                        <span aria-hidden="true">👁️</span>
                       </button>
                       {task.status?.toLowerCase() === 'running' && (
                         <>
@@ -410,17 +420,19 @@ function TaskManagement() {
                             className="action-btn pause"
                             onClick={() => handleTaskAction(task.id, 'pause')}
                             title="Pause Task"
+                            aria-label="Pause Task"
                             disabled={deleting}
                           >
-                            ⏸️
+                            <span aria-hidden="true">⏸️</span>
                           </button>
                           <button
                             className="action-btn cancel"
                             onClick={() => handleTaskAction(task.id, 'cancel')}
                             title="Cancel Task"
+                            aria-label="Cancel Task"
                             disabled={deleting}
                           >
-                            ⏹️
+                            <span aria-hidden="true">⏹️</span>
                           </button>
                         </>
                       )}
@@ -429,9 +441,10 @@ function TaskManagement() {
                           className="action-btn resume"
                           onClick={() => handleTaskAction(task.id, 'resume')}
                           title="Resume Task"
+                          aria-label="Resume Task"
                           disabled={deleting}
                         >
-                          ▶️
+                          <span aria-hidden="true">▶️</span>
                         </button>
                       )}
                       {task.status?.toLowerCase() === 'failed' && (
@@ -439,18 +452,20 @@ function TaskManagement() {
                           className="action-btn retry"
                           onClick={() => handleTaskAction(task.id, 'retry')}
                           title="Retry Task"
+                          aria-label="Retry Task"
                           disabled={deleting}
                         >
-                          🔄
+                          <span aria-hidden="true">🔄</span>
                         </button>
                       )}
                       <button
                         className="action-btn delete"
                         onClick={(e) => handleDeleteTask(e, task.id)}
                         title="Reject Task"
+                        aria-label="Reject Task"
                         disabled={deleting}
                       >
-                        🗑️
+                        <span aria-hidden="true">🗑️</span>
                       </button>
                     </td>
                   </tr>
