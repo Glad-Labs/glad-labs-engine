@@ -296,6 +296,7 @@ export const MediaManager = () => {
                       <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                         <IconButton
                           size="small"
+                          aria-label={`Download ${item.title || 'media item'}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (item.url) {
@@ -308,6 +309,7 @@ export const MediaManager = () => {
                         <IconButton
                           size="small"
                           color="error"
+                          aria-label={`Delete ${item.title || 'media item'}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteMedia(item.id);

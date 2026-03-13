@@ -346,3 +346,75 @@ describe('MediaManager — a11y: gallery images accessible (issue #768)', () => 
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// a11y — issue #757: icon-only gallery buttons have aria-label (WCAG 4.1.2)
+// ---------------------------------------------------------------------------
+
+describe('MediaManager — a11y: gallery icon buttons have aria-label (issue #757)', () => {
+  const mockMedia = [
+    {
+      id: 'btn-test-1',
+      url: 'https://example.com/photo.png',
+      title: 'My Photo',
+      created_at: '2026-03-01T00:00:00Z',
+    },
+    {
+      id: 'btn-test-2',
+      url: 'https://example.com/unnamed.png',
+      title: '',
+      created_at: '2026-03-02T00:00:00Z',
+    },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockListMedia.mockResolvedValue({ media: mockMedia });
+    mockGetMediaHealth.mockResolvedValue({ healthy: true });
+  });
+
+  it('Download button includes item title in aria-label', async () => {
+    render(<MediaManager />);
+    fireEvent.click(screen.getByRole('tab', { name: /Media Gallery/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /Download My Photo/i })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('Delete button includes item title in aria-label', async () => {
+    render(<MediaManager />);
+    fireEvent.click(screen.getByRole('tab', { name: /Media Gallery/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /Delete My Photo/i })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('Download button uses fallback label when title is empty', async () => {
+    render(<MediaManager />);
+    fireEvent.click(screen.getByRole('tab', { name: /Media Gallery/i }));
+
+    await waitFor(() => {
+      const dlButtons = screen.getAllByRole('button', { name: /Download/i });
+      // One for 'My Photo', one for fallback 'media item'
+      expect(dlButtons.length).toBe(2);
+      expect(dlButtons[1]).toHaveAttribute('aria-label', 'Download media item');
+    });
+  });
+
+  it('Delete button uses fallback label when title is empty', async () => {
+    render(<MediaManager />);
+    fireEvent.click(screen.getByRole('tab', { name: /Media Gallery/i }));
+
+    await waitFor(() => {
+      const delButtons = screen.getAllByRole('button', { name: /Delete/i });
+      expect(delButtons.length).toBe(2);
+      expect(delButtons[1]).toHaveAttribute('aria-label', 'Delete media item');
+    });
+  });
+});
