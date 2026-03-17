@@ -85,30 +85,24 @@ export const getTask = async (taskId) => {
  * @throws {Error} If creation fails
  */
 export const createTask = async (taskData) => {
-  // Service layer expects action request format: {params, context}
-  const serviceRequest = {
-    params: taskData,
-    context: {
-      source: 'manual_form',
-      timestamp: new Date().toISOString(),
-    },
-  };
-
+  // Call the unified task endpoint directly — it creates the DB record AND
+  // triggers background content generation via asyncio.create_task().
+  // The service layer (/api/services/tasks/actions/create_task) only creates
+  // the record without triggering generation.
   const result = await makeRequest(
-    '/api/services/tasks/actions/create_task',
+    '/api/tasks',
     'POST',
-    serviceRequest,
+    taskData,
     false,
     null,
-    API_TIMEOUT
+    60000 // 60s — content generation starts in background
   );
 
   if (result.error) {
     throw new Error(`Could not create task: ${result.error}`);
   }
 
-  // Service layer returns ActionResult with .data property
-  return result.data?.id || result.id || result;
+  return result.id || result.task_id || result;
 };
 
 /**

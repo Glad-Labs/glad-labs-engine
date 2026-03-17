@@ -42,6 +42,11 @@ export const generateMockGitHubAuthURL = (_clientId) => {
   // Store the code for the callback to retrieve
   sessionStorage.setItem('mock_auth_code', mockCode);
 
+  // Store the mock state so the CSRF check in handleOAuthCallbackNew passes.
+  // Without this, a stale oauth_state from a previous real GitHub attempt
+  // causes a "CSRF state mismatch" error on the callback page.
+  sessionStorage.setItem('oauth_state', 'mock_state');
+
   // In real flow, this would be:
   // https://github.com/login/oauth/authorize?client_id=...
   // But in mock mode, we redirect directly to callback with the code

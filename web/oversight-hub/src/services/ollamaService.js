@@ -8,6 +8,7 @@
  */
 
 import { getApiUrl } from '../config/apiConfig';
+import { getAuthToken } from './authService';
 
 const API_BASE_URL = getApiUrl();
 const OLLAMA_TIMEOUT = 10000; // 10 second timeout for Ollama operations
@@ -18,6 +19,15 @@ const OLLAMA_TIMEOUT = 10000; // 10 second timeout for Ollama operations
  */
 function getOllamaEndpoint() {
   return `${API_BASE_URL}/api/ollama`;
+}
+
+/** Build headers with auth token for Ollama proxy calls. */
+function getAuthHeaders() {
+  const token = getAuthToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 }
 
 /**
@@ -31,6 +41,7 @@ export async function getOllamaModels() {
 
     const response = await fetch(`${getOllamaEndpoint()}/tags`, {
       method: 'GET',
+      headers: getAuthHeaders(),
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
@@ -61,6 +72,7 @@ export async function isOllamaAvailable() {
 
     const response = await fetch(`${getOllamaEndpoint()}/health`, {
       method: 'GET',
+      headers: getAuthHeaders(),
       signal: controller.signal,
     });
 
@@ -92,9 +104,7 @@ export async function generateWithOllamaModel(modelId, prompt, options = {}) {
     const response = await fetch(`${getOllamaEndpoint()}/generate`, {
       method: 'POST',
       signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         model: modelId,
         prompt,
@@ -142,9 +152,7 @@ export async function streamOllamaGeneration(
     const response = await fetch(`${getOllamaEndpoint()}/generate`, {
       method: 'POST',
       signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         model: modelId,
         prompt,
@@ -209,9 +217,7 @@ export async function getOllamaModelInfo(modelId) {
   const response = await fetch(`${getOllamaEndpoint()}/show`, {
     method: 'POST',
     signal: controller.signal,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       name: modelId,
     }),
