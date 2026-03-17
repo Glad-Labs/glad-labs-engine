@@ -120,20 +120,29 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* CTA */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/posts"
-                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 text-center"
-              >
-                Read the blog
-              </Link>
-              <Link
-                href="/"
-                className="px-6 py-3 border border-slate-600 text-slate-300 font-semibold rounded-xl hover:border-cyan-500/50 hover:text-cyan-400 transition-all duration-300 text-center"
-              >
-                Back to home
-              </Link>
+            {/* CTA Section */}
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-6 text-white">
+                Ready to Scale Your AI Operations?
+              </h2>
+              <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+                Explore how Glad Labs orchestrates autonomous agents, optimizes
+                LLM costs, and delivers enterprise-ready AI at scale.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/posts"
+                  className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300"
+                >
+                  Read Our Blog
+                </Link>
+                <Link
+                  href="/"
+                  className="px-8 py-4 border border-cyan-500/50 text-cyan-400 font-semibold rounded-xl hover:bg-cyan-500/10 transition-all duration-300"
+                >
+                  Back to Home
+                </Link>
+              </div>
             </div>
           </div>
         </section>
