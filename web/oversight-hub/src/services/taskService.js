@@ -102,7 +102,7 @@ export const createTask = async (taskData) => {
     throw new Error(`Could not create task: ${result.error}`);
   }
 
-  return result.id || result.task_id || result;
+  return result;
 };
 
 /**
