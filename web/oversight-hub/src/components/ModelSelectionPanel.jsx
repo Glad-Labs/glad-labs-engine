@@ -49,26 +49,12 @@ const PHASE_NAMES = {
 // Power consumption estimates (watts) for different model sizes
 // Based on typical GPU/CPU usage patterns for local LLM inference
 const MODEL_POWER_CONSUMPTION = {
-  // Small models (7B parameters) - ~30W average
-  'mistral:latest': 30,
-  'neural-chat:latest': 30,
-  'llama2:latest': 30,
-  'qwen2:7b': 30,
-  'gemma3:12b': 40,
+  // Small models (8B parameters) - ~30W average
+  'qwen3:8b': 30,
 
-  // Medium models (14B parameters) - ~50W average
-  'qwen2.5:14b': 50,
-  'qwen3:14b': 50,
-
-  // Large models (30B+ parameters) - ~80W+ average
-  'qwen3-coder:30b': 80,
-  'qwen3-vl:30b': 80,
-  'mixtral:latest': 90, // 8x7B - higher power due to MoE
-  'deepseek-coder:33b': 85,
-
-  // Very Large models (70B parameters) - ~120W+ average
-  'llama3:70b-instruct': 120,
-  'gpt-oss:120b': 150,
+  // Large models (27-35B parameters) - ~80W+ average
+  'gemma3:27b': 80,
+  'qwen3.5:35b': 85,
 
   // Default for unknown models
   default: 50,
@@ -113,23 +99,24 @@ const QUALITY_PRESETS = {
     label: 'Fast (Cheapest)',
     icon: <FastIcon />,
     color: 'success',
-    description:
-      'Ollama for research/outline, GPT-3.5 for draft/assess, GPT-4 for refine/finalize',
-    avgCost: '$0.003 per post',
+    description: 'Qwen 3 8B for all phases — fastest local inference',
+    avgCost: 'Free (local)',
   },
   balanced: {
     label: 'Balanced',
     icon: <BalanceIcon />,
     color: 'warning',
-    description: 'Mix of GPT-3.5, GPT-4, and Claude Sonnet for best value',
-    avgCost: '$0.015 per post',
+    description:
+      'Qwen 3 8B for research/outline/finalize, Qwen 3.5 35B for draft/refine, Gemma 3 27B for assess',
+    avgCost: 'Free (local)',
   },
   quality: {
     label: 'Quality (Best)',
     icon: <QualityIcon />,
     color: 'info',
-    description: 'GPT-4 and Claude Opus for all phases',
-    avgCost: '$0.040 per post',
+    description:
+      'Qwen 3.5 35B for outline/draft/refine, Gemma 3 27B for assess, Qwen 3 8B for research/finalize',
+    avgCost: 'Free (local)',
   },
 };
 
@@ -285,13 +272,9 @@ export function ModelSelectionPanel({
   const getDefaultPhaseModels = () => {
     // Fallback models when Ollama API is not available
     const defaultOllamaModels = [
-      { id: 'mistral:latest', name: 'Mistral 7B', cost: 0 },
-      { id: 'neural-chat:latest', name: 'Neural Chat 7B', cost: 0 },
-      { id: 'llama2:latest', name: 'Llama 2 7B', cost: 0 },
-      { id: 'qwen2:7b', name: 'Qwen 2 7B', cost: 0 },
-      { id: 'qwen2.5:14b', name: 'Qwen 2.5 14B', cost: 0 },
-      { id: 'mixtral:latest', name: 'Mixtral 8x7B', cost: 0 },
-      { id: 'gemma3:12b', name: 'Gemma 3 12B', cost: 0 },
+      { id: 'qwen3:8b', name: 'Qwen 3 8B', cost: 0 },
+      { id: 'qwen3.5:35b', name: 'Qwen 3.5 35B', cost: 0 },
+      { id: 'gemma3:27b', name: 'Gemma 3 27B', cost: 0 },
     ];
 
     const defaultModels = { ...AVAILABLE_MODELS };
@@ -318,8 +301,9 @@ export function ModelSelectionPanel({
       llama2: 'Llama 2 7B',
       llama3: 'Llama 3',
       qwen2: 'Qwen 2 7B',
-      'qwen2.5': 'Qwen 2.5 14B',
-      qwen3: 'Qwen 3 14B',
+      'qwen2.5': 'Qwen 2.5',
+      qwen3: 'Qwen 3',
+      'qwen3.5': 'Qwen 3.5',
       'qwen3-coder': 'Qwen 3 Coder 30B',
       'qwen3-vl': 'Qwen 3 Vision 30B',
       mixtral: 'Mixtral 8x7B',
@@ -489,37 +473,37 @@ export function ModelSelectionPanel({
     let newSelections;
     switch (preset) {
       case 'fast':
-        // Fast: Use lightweight Ollama models
+        // Fast: Use lightweight Ollama models for all phases
         newSelections = {
-          research: 'mistral:latest',
-          outline: 'mistral:latest',
-          draft: 'neural-chat:latest',
-          assess: 'qwen2.5:14b',
-          refine: 'qwen2.5:14b',
-          finalize: 'qwen2.5:14b',
+          research: 'qwen3:8b',
+          outline: 'qwen3:8b',
+          draft: 'qwen3:8b',
+          assess: 'qwen3:8b',
+          refine: 'qwen3:8b',
+          finalize: 'qwen3:8b',
         };
         break;
       case 'balanced':
         // Balanced: Mix of capable models
         newSelections = {
-          research: 'qwen2.5:14b',
-          outline: 'qwen2.5:14b',
-          draft: 'qwen3:14b',
-          assess: 'qwen3-coder:30b',
-          refine: 'mixtral:latest',
-          finalize: 'mixtral:latest',
+          research: 'qwen3:8b',
+          outline: 'qwen3:8b',
+          draft: 'qwen3.5:35b',
+          assess: 'gemma3:27b',
+          refine: 'qwen3.5:35b',
+          finalize: 'qwen3:8b',
         };
         break;
       case 'quality':
       default:
         // Quality: Use the best available models
         newSelections = {
-          research: 'mixtral:latest',
-          outline: 'mixtral:latest',
-          draft: 'qwen3-coder:30b',
-          assess: 'llama3:70b-instruct',
-          refine: 'llama3:70b-instruct',
-          finalize: 'llama3:70b-instruct',
+          research: 'qwen3:8b',
+          outline: 'qwen3.5:35b',
+          draft: 'qwen3.5:35b',
+          assess: 'gemma3:27b',
+          refine: 'qwen3.5:35b',
+          finalize: 'qwen3:8b',
         };
     }
 
