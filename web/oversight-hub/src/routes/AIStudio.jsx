@@ -61,7 +61,8 @@ function AIStudio() {
     },
   ];
 
-  const [models] = useState(FALLBACK_MODELS);
+  const [models, setModels] = useState(FALLBACK_MODELS);
+  const [modelsLoading, setModelsLoading] = useState(true);
   const [ollamaModels, setOllamaModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [testPrompt, setTestPrompt] = useState('What is AI?');
@@ -194,6 +195,39 @@ function AIStudio() {
     hasInitializedRef.current = true;
     fetchOllamaModels();
   }, [selectedModel]);
+
+  // Fetch cloud provider models from API
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setModelsLoading(true);
+        const response = await makeRequest('/api/models/available', 'GET');
+        const fetched = response?.models || response;
+        if (Array.isArray(fetched) && fetched.length > 0) {
+          setModels(
+            fetched.map((m, idx) => ({
+              id: m.id || idx + 1,
+              name: m.name || m.model_name || 'Unknown',
+              provider: m.provider || 'Unknown',
+              version: m.version || '-',
+              status: m.status || 'Active',
+              accuracy: m.accuracy ?? '-',
+              latency: m.latency || '-',
+              usage: m.usage ?? 0,
+            }))
+          );
+        }
+      } catch (err) {
+        logger.warn(
+          'Could not fetch models from API, using fallback data:',
+          err
+        );
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+    fetchModels();
+  }, []);
 
   // Load training data
 
@@ -339,6 +373,7 @@ function AIStudio() {
 
           <div className="provider-models-section">
             <h2 className="section-title">☁️ Cloud Provider Models</h2>
+            {modelsLoading && <p className="loading-text">Loading models...</p>}
             <div className="models-grid">
               {models.map((model) => (
                 <div key={model.id} className="model-card">
