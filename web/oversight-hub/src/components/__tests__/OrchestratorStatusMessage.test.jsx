@@ -17,6 +17,19 @@ const baseMessage = {
 };
 
 describe('OrchestratorStatusMessage', () => {
+  // Use fake timers so Date.now() is deterministic and the component's
+  // setInterval-based progress animation doesn't cause flaky assertions (#895).
+  beforeEach(() => {
+    vi.useFakeTimers({
+      now: new Date('2026-03-01T12:00:00Z'),
+      shouldAdvanceTime: true,
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('renders the orchestration header label', () => {
     render(<OrchestratorStatusMessage message={baseMessage} />);
     expect(screen.getByText('Orchestration in Progress')).toBeInTheDocument();
@@ -63,7 +76,7 @@ describe('OrchestratorStatusMessage', () => {
       currentPhaseIndex: 0,
       phases: [{ name: 'Research' }],
       executionId: 'exec-xyz',
-      startedAt: Date.now(),
+      startedAt: '2026-03-01T12:00:00Z',
     };
     render(<OrchestratorStatusMessage message={minimalMessage} />);
     expect(screen.getByText('Orchestration in Progress')).toBeInTheDocument();

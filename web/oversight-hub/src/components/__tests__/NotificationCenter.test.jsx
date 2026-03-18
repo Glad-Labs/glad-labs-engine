@@ -22,7 +22,15 @@ vi.mock('../../context/WebSocketContext', () => ({
 describe('NotificationCenter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({
+      now: new Date('2026-03-01T12:00:00Z'),
+      shouldAdvanceTime: true,
+    });
     mockSubscribe.mockReturnValue(vi.fn()); // fresh unsubscribe fn each test
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders without crashing and subscribes to notification service', () => {
@@ -143,7 +151,15 @@ describe('NotificationCenter', () => {
 describe('NotificationCenter — a11y: notification history button (issue #758)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({
+      now: new Date('2026-03-01T12:00:00Z'),
+      shouldAdvanceTime: true,
+    });
     mockSubscribe.mockReturnValue(vi.fn());
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('history button has an aria-label when there are no notifications', () => {
