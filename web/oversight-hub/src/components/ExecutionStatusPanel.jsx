@@ -106,22 +106,25 @@ const ExecutionStatusPanel = ({
   onSelectExecution,
   onRefreshHistory,
 }) => {
+  // Only announce on meaningful state changes (status transitions, phase completions)
+  // to avoid chatty per-percent progress announcements.
+  const completedCount = Object.values(executionResults || {}).filter(
+    (r) => normalizeExecutionStatus(r?.status) === 'completed'
+  ).length;
+  const totalPhases = Object.keys(executionResults || {}).length;
+
   const statusAnnouncement = useMemo(() => {
-    const completedPhases = Object.entries(executionResults || {}).filter(
-      ([, r]) => normalizeExecutionStatus(r?.status) === 'completed'
-    );
-    const totalPhases = Object.keys(executionResults || {}).length;
     if (executionStatus === 'completed') {
       return `Execution completed. ${totalPhases} phases finished.`;
     }
     if (executionStatus === 'failed') {
-      return `Execution failed at ${executionProgress}% progress.`;
+      return 'Execution failed.';
     }
-    if (completedPhases.length > 0) {
-      return `${completedPhases.length} of ${totalPhases} phases completed. Overall progress: ${executionProgress}%.`;
+    if (completedCount > 0) {
+      return `${completedCount} of ${totalPhases} phases completed.`;
     }
-    return `Execution ${executionStatus || 'pending'}. Progress: ${executionProgress}%.`;
-  }, [executionResults, executionStatus, executionProgress]);
+    return `Execution ${executionStatus || 'pending'}.`;
+  }, [executionStatus, completedCount, totalPhases]);
 
   if (!executionId) {
     return null;

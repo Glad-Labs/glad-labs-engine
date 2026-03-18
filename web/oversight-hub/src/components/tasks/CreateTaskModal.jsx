@@ -610,7 +610,6 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           {error && (
             <div
               role="alert"
-              aria-live="assertive"
               className="mb-4 p-4 bg-red-900 border border-red-500 rounded-md text-red-100"
             >
               {error}
