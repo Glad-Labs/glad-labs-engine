@@ -9,7 +9,7 @@
  *
  * Extracted from WorkflowCanvas.jsx (#295).
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Button,
@@ -106,6 +106,23 @@ const ExecutionStatusPanel = ({
   onSelectExecution,
   onRefreshHistory,
 }) => {
+  const statusAnnouncement = useMemo(() => {
+    const completedPhases = Object.entries(executionResults || {}).filter(
+      ([, r]) => normalizeExecutionStatus(r?.status) === 'completed'
+    );
+    const totalPhases = Object.keys(executionResults || {}).length;
+    if (executionStatus === 'completed') {
+      return `Execution completed. ${totalPhases} phases finished.`;
+    }
+    if (executionStatus === 'failed') {
+      return `Execution failed at ${executionProgress}% progress.`;
+    }
+    if (completedPhases.length > 0) {
+      return `${completedPhases.length} of ${totalPhases} phases completed. Overall progress: ${executionProgress}%.`;
+    }
+    return `Execution ${executionStatus || 'pending'}. Progress: ${executionProgress}%.`;
+  }, [executionResults, executionStatus, executionProgress]);
+
   if (!executionId) {
     return null;
   }
@@ -114,6 +131,19 @@ const ExecutionStatusPanel = ({
     <>
       <Divider />
       <Box>
+        <div
+          aria-live="polite"
+          className="sr-only"
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
+            clip: 'rect(0,0,0,0)',
+          }}
+        >
+          {statusAnnouncement}
+        </div>
         <Typography variant="subtitle2" gutterBottom>
           Execution Status
         </Typography>

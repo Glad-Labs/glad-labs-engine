@@ -608,8 +608,12 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
         {/* Content */}
         <div className="p-6">
           {error && (
-            <div className="mb-4 p-4 bg-red-900 border border-red-500 rounded-md text-red-100">
-              ⚠️ {error}
+            <div
+              role="alert"
+              aria-live="assertive"
+              className="mb-4 p-4 bg-red-900 border border-red-500 rounded-md text-red-100"
+            >
+              {error}
             </div>
           )}
 

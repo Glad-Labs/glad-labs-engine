@@ -148,7 +148,8 @@ export default function NaturalLanguageTaskComposer({
             {!compositionResult ? (
               <Stack spacing={1}>
                 <TextField
-                  placeholder="Describe what you want to accomplish..."
+                  label="Describe a task"
+                  placeholder="E.g., Write a blog post about machine learning"
                   value={request}
                   onChange={(e) => setRequest(e.target.value)}
                   multiline
