@@ -20,10 +20,7 @@ jest.mock('@sentry/nextjs', () => ({
 import { render } from '@testing-library/react';
 import WebVitals from '../WebVitals';
 
-const originalEnv = process.env.NODE_ENV;
-
 afterEach(() => {
-  Object.defineProperty(process.env, 'NODE_ENV', { value: originalEnv });
   delete window.gtag;
   reportCallback = undefined;
 });
