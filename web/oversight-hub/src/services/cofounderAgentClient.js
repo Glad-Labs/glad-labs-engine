@@ -10,7 +10,7 @@
  */
 import { getAuthToken } from './authService';
 import { clearPersistedAuthState } from './authService';
-import { logErrorToSentry } from './errorLoggingService';
+import { logErrorToSentry } from './sentryUtils';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 

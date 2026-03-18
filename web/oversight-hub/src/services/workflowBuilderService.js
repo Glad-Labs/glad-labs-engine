@@ -15,7 +15,6 @@
  */
 
 import { makeRequest } from './cofounderAgentClient';
-import { logErrorToSentry } from './errorLoggingService';
 
 const normalizePhaseName = (name) =>
   typeof name === 'string' ? name.trim() : '';
@@ -96,9 +95,6 @@ export const getAvailablePhases = async () => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, {
-      customContext: { action: 'fetchAvailablePhases' },
-    });
     throw new Error(`Failed to load available phases: ${error.message}`);
   }
 };
@@ -136,7 +132,6 @@ export const createWorkflow = async (workflowDefinition) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'createWorkflow' } });
     throw new Error(`Failed to create workflow: ${error.message}`);
   }
 };
@@ -178,7 +173,6 @@ export const listWorkflows = async (options = {}) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'listWorkflows' } });
     throw new Error(`Failed to load workflows: ${error.message}`);
   }
 };
@@ -200,7 +194,6 @@ export const getWorkflow = async (workflowId) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'getWorkflow' } });
     throw new Error(`Failed to load workflow: ${error.message}`);
   }
 };
@@ -249,7 +242,6 @@ export const updateWorkflow = async (workflowId, updates) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'updateWorkflow' } });
     throw new Error(`Failed to update workflow: ${error.message}`);
   }
 };
@@ -271,7 +263,6 @@ export const deleteWorkflow = async (workflowId) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'deleteWorkflow' } });
     throw new Error(`Failed to delete workflow: ${error.message}`);
   }
 };
@@ -299,7 +290,6 @@ export const executeWorkflow = async (workflowId, inputData = {}) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'executeWorkflow' } });
     throw new Error(`Failed to execute workflow: ${error.message}`);
   }
 };
@@ -321,9 +311,6 @@ export const getExecutionStatus = async (executionId) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, {
-      customContext: { action: 'getExecutionStatus' },
-    });
     throw new Error(`Failed to load execution status: ${error.message}`);
   }
 };
@@ -357,7 +344,6 @@ export const listExecutions = async (workflowId, options = {}) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'listExecutions' } });
     throw new Error(`Failed to load executions: ${error.message}`);
   }
 };
@@ -371,7 +357,6 @@ export const exportWorkflowToJSON = (workflow) => {
   try {
     return JSON.stringify(workflow, null, 2);
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'exportWorkflow' } });
     throw new Error('Failed to export workflow');
   }
 };
@@ -392,7 +377,6 @@ export const importWorkflowFromJSON = (jsonString) => {
 
     return workflow;
   } catch (error) {
-    logErrorToSentry(error, { customContext: { action: 'importWorkflow' } });
     throw new Error(`Failed to import workflow: ${error.message}`);
   }
 };
@@ -414,9 +398,6 @@ export const getWorkflowExecutions = async (workflowId, options = {}) => {
     );
     return response;
   } catch (error) {
-    logErrorToSentry(error, {
-      customContext: { action: 'getWorkflowExecutions' },
-    });
     throw new Error(`Failed to fetch workflow executions: ${error.message}`);
   }
 };
