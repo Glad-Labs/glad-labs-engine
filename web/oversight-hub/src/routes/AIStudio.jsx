@@ -207,13 +207,16 @@ function AIStudio() {
           setModels(
             fetched.map((m, idx) => ({
               id: m.id || idx + 1,
-              name: m.name || m.model_name || 'Unknown',
+              // Prefer backend displayName when available, then fall back to name/model_name
+              name: m.displayName || m.name || m.model_name || 'Unknown',
               provider: m.provider || 'Unknown',
+              // Backend may not provide version/status; use neutral placeholders when absent
               version: m.version || '-',
-              status: m.status || 'Active',
+              status: m.status || '-',
+              // Metrics are optional; avoid fabricating values
               accuracy: m.accuracy ?? '-',
               latency: m.latency || '-',
-              usage: m.usage ?? 0,
+              usage: m.usage ?? null,
             }))
           );
         }
