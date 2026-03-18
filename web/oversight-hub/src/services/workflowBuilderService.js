@@ -339,7 +339,7 @@ export const listExecutions = async (workflowId, options = {}) => {
     }
 
     const response = await makeRequest(
-      `/api/workflows/executions?${queryParams.toString()}`,
+      `/api/workflows/custom-executions?${queryParams.toString()}`,
       'GET'
     );
     return response;
