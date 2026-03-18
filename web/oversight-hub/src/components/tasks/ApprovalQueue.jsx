@@ -418,13 +418,16 @@ const ApprovalQueue = () => {
       {/* Filters & Controls */}
       <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
         <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel id="approval-task-type-label">Task Type</InputLabel>
+          <InputLabel id="approval-task-type-label" shrink>
+            Task Type
+          </InputLabel>
           <Select
             labelId="approval-task-type-label"
             label="Task Type"
             value={queue.taskTypeFilter}
             onChange={queue.handleTaskTypeFilterChange}
             displayEmpty
+            notched
           >
             <MenuItem value="">All Task Types</MenuItem>
             <MenuItem value="blog_post">Blog Posts</MenuItem>
