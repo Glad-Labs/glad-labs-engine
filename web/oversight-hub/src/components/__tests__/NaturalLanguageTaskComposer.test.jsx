@@ -96,9 +96,7 @@ describe('NaturalLanguageTaskComposer — Compact View', () => {
   it('enables buttons after typing a request', async () => {
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a post about AI');
 
     expect(
@@ -158,9 +156,7 @@ describe('NaturalLanguageTaskComposer — Composition Flow', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
 
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
@@ -178,9 +174,7 @@ describe('NaturalLanguageTaskComposer — Composition Flow', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -203,9 +197,7 @@ describe('NaturalLanguageTaskComposer — Composition Flow', () => {
       <NaturalLanguageTaskComposer compact onTaskComposed={onTaskComposed} />
     );
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -219,9 +211,7 @@ describe('NaturalLanguageTaskComposer — Composition Flow', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -252,9 +242,7 @@ describe('NaturalLanguageTaskComposer — Auto-Execute Flow', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /compose & execute/i }));
 
@@ -279,9 +267,7 @@ describe('NaturalLanguageTaskComposer — Auto-Execute Flow', () => {
       <NaturalLanguageTaskComposer compact onTaskExecuted={onTaskExecuted} />
     );
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /compose & execute/i }));
 
@@ -306,9 +292,7 @@ describe('NaturalLanguageTaskComposer — Execute Composed Task', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -333,9 +317,7 @@ describe('NaturalLanguageTaskComposer — Execute Composed Task', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -367,9 +349,7 @@ describe('NaturalLanguageTaskComposer — Error Handling', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -386,9 +366,7 @@ describe('NaturalLanguageTaskComposer — Error Handling', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'do something vague');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -407,9 +385,7 @@ describe('NaturalLanguageTaskComposer — Error Handling', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -441,9 +417,7 @@ describe('NaturalLanguageTaskComposer — Reset Behavior', () => {
 
     render(<NaturalLanguageTaskComposer compact />);
 
-    const textarea = screen.getByPlaceholderText(
-      /describe what you want to accomplish/i
-    );
+    const textarea = screen.getByLabelText(/describe a task/i);
     await userEvent.type(textarea, 'Write a blog post about AI');
     fireEvent.click(screen.getByRole('button', { name: /suggest task/i }));
 
@@ -454,9 +428,7 @@ describe('NaturalLanguageTaskComposer — Reset Behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: /compose another/i }));
 
     // Should be back to the input form
-    expect(
-      screen.getByPlaceholderText(/describe what you want to accomplish/i)
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/describe a task/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /suggest task/i })
     ).toBeInTheDocument();

@@ -95,9 +95,9 @@ export default function AboutPage() {
             {/* Quick facts */}
             <div className="grid sm:grid-cols-2 gap-6 mb-12">
               <div className="bg-slate-800/40 rounded-xl p-6 border border-slate-700/50">
-                <h3 className="text-sm font-mono text-cyan-500 uppercase tracking-widest mb-3">
+                <h2 className="text-sm font-mono text-cyan-500 uppercase tracking-widest mb-3">
                   The Platform
-                </h3>
+                </h2>
                 <ul className="space-y-2 text-slate-300 text-sm">
                   <li>FastAPI backend · async throughout</li>
                   <li>6-stage self-critiquing agent pipeline</li>
@@ -108,9 +108,9 @@ export default function AboutPage() {
               </div>
 
               <div className="bg-slate-800/40 rounded-xl p-6 border border-slate-700/50">
-                <h3 className="text-sm font-mono text-cyan-500 uppercase tracking-widest mb-3">
+                <h2 className="text-sm font-mono text-cyan-500 uppercase tracking-widest mb-3">
                   The Blog
-                </h3>
+                </h2>
                 <ul className="space-y-2 text-slate-300 text-sm">
                   <li>AI · developer tooling · building in public</li>
                   <li>Written with the system, edited by me</li>
