@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import './PostEditor.css';
 import { logError } from '../../services/errorLoggingService';
@@ -28,6 +28,49 @@ function PostEditor({ post, onClose, onSave }) {
 
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const dialogRef = useRef(null);
+
+  // Focus trap and Escape key handler
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    // Move focus into the dialog on mount
+    dialog.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+
+      // Focus trap: cycle focus within the dialog
+      if (e.key === 'Tab') {
+        const focusable = dialog.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => dialog.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     if (post) {
@@ -116,13 +159,22 @@ function PostEditor({ post, onClose, onSave }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="post-editor-title"
+        tabIndex={-1}
         className="modal-container post-editor-modal"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="modal-header">
-          <h2>📝 Edit Post</h2>
-          <button className="close-btn" onClick={onClose}>
+          <h2 id="post-editor-title">Edit Post</h2>
+          <button
+            className="close-btn"
+            onClick={onClose}
+            aria-label="Close dialog"
+          >
             ×
           </button>
         </div>
