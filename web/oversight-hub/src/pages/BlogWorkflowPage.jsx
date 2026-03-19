@@ -216,6 +216,10 @@ function BlogWorkflowPage() {
 
     pollIntervalRef.current = setInterval(async () => {
       try {
+        // Abort any previous in-flight request before starting a new one
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
         abortControllerRef.current = new AbortController();
         const progress = await apiClient.getWorkflowProgress(execId, {
           signal: abortControllerRef.current.signal,
