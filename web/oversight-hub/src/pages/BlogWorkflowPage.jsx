@@ -46,8 +46,8 @@ import {
   getAvailablePhases,
   executeWorkflow as runWorkflow,
   getExecutionStatus,
-  listExecutions,
 } from '../services/workflowBuilderService';
+import { getWorkflowHistory } from '../services/workflowManagementService';
 import phase4Client from '../services/phase4Client';
 
 /**
@@ -121,7 +121,7 @@ function BlogWorkflowPage() {
 
   const loadWorkflowHistory = async () => {
     try {
-      const executions = await listExecutions(null, { limit: 10 });
+      const executions = await getWorkflowHistory({ limit: 10 });
       setWorkflowHistory(executions.executions || executions || []);
     } catch (err) {
       logger.error('Failed to load workflow history:', err);

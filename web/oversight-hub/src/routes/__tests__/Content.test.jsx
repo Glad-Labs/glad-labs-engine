@@ -23,7 +23,7 @@ const { mockGetPosts, mockUpdatePost, mockDeletePost } = vi.hoisted(() => ({
   mockDeletePost: vi.fn(),
 }));
 
-vi.mock('../../lib/apiClient', () => ({
+vi.mock('../../services/postService', () => ({
   getPosts: mockGetPosts,
   updatePost: mockUpdatePost,
   deletePost: mockDeletePost,

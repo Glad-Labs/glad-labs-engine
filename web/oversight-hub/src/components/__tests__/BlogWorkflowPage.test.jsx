@@ -22,6 +22,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import BlogWorkflowPage from '../../pages/BlogWorkflowPage';
 import * as workflowBuilderService from '../../services/workflowBuilderService';
+import * as workflowManagementService from '../../services/workflowManagementService';
 import phase4Client from '../../services/phase4Client';
 
 // Mock the workflow services (previously apiClient)
@@ -29,7 +30,10 @@ vi.mock('../../services/workflowBuilderService', () => ({
   getAvailablePhases: vi.fn(),
   executeWorkflow: vi.fn(),
   getExecutionStatus: vi.fn(),
-  listExecutions: vi.fn(),
+}));
+
+vi.mock('../../services/workflowManagementService', () => ({
+  getWorkflowHistory: vi.fn(),
 }));
 
 vi.mock('../../services/phase4Client', () => ({
@@ -40,13 +44,13 @@ vi.mock('../../services/phase4Client', () => ({
   },
 }));
 
-// Convenience aliases matching old apiClient shape
+// Convenience aliases matching old apiClient shape for existing test assertions
 const apiClient = {
   getAvailablePhases: workflowBuilderService.getAvailablePhases,
   executeWorkflow: workflowBuilderService.executeWorkflow,
   getWorkflowProgress: workflowBuilderService.getExecutionStatus,
   getWorkflowResults: workflowBuilderService.getExecutionStatus,
-  listWorkflowExecutions: workflowBuilderService.listExecutions,
+  listWorkflowExecutions: workflowManagementService.getWorkflowHistory,
   cancelWorkflowExecution: phase4Client.workflowClient.cancelWorkflow,
 };
 
