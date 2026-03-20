@@ -213,7 +213,11 @@ export const WritingStyleManager = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'center', p: 3 }}
+        role="status"
+        aria-label="Loading writing styles"
+      >
         <CircularProgress />
       </Box>
     );
@@ -302,6 +306,8 @@ export const WritingStyleManager = () => {
                   }}
                 >
                   <ListItemText
+                    primaryTypographyProps={{ component: 'div' }}
+                    secondaryTypographyProps={{ component: 'div' }}
                     primary={
                       <Box
                         sx={{ display: 'flex', alignItems: 'center', gap: 1 }}

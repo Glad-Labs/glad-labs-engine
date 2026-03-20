@@ -10,6 +10,7 @@
 
 import { useEffect, useRef, useCallback, useReducer, useMemo } from 'react';
 import { getTasks } from '../services/taskService';
+import { logError } from '../services/errorLoggingService';
 
 /**
  * Reducer for managing task data state
@@ -18,7 +19,7 @@ const taskDataReducer = (state, action) => {
   switch (action.type) {
     case 'FETCH_START':
       return { ...state, loading: true, isFetching: true, error: null };
-    
+
     case 'FETCH_SUCCESS':
       return {
         ...state,
@@ -28,7 +29,7 @@ const taskDataReducer = (state, action) => {
         isFetching: false,
         error: null,
       };
-    
+
     case 'FETCH_ERROR':
       return {
         ...state,
@@ -36,13 +37,17 @@ const taskDataReducer = (state, action) => {
         isFetching: false,
         error: action.payload,
       };
-    
+
     case 'SET_TASKS':
       return { ...state, tasks: action.payload };
-    
+
     case 'SET_ALL_TASKS':
-      return { ...state, allTasks: action.payload, total: action.payload.length };
-    
+      return {
+        ...state,
+        allTasks: action.payload,
+        total: action.payload.length,
+      };
+
     default:
       return state;
   }
@@ -93,7 +98,10 @@ export function useTaskData(
         type: 'FETCH_ERROR',
         payload: `Unable to load tasks: ${errorMessage}`,
       });
-      console.error('Failed to fetch tasks:', err);
+      logError(err, {
+        severity: 'warning',
+        customContext: { component: 'useTaskData' },
+      });
     } finally {
       isFetchingRef.current = false;
     }

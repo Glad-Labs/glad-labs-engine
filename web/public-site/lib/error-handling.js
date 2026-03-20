@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+import logger from './logger';
 /**
  * Error Handling Utilities for Glad Labs
  * Provides error boundary components, error logging, and recovery strategies
@@ -16,17 +18,10 @@ export function logError(error, context = {}) {
     url: typeof window !== 'undefined' ? window.location.href : 'unknown',
   };
 
-  // In production, send to error tracking service
   if (process.env.NODE_ENV === 'production') {
-    // Example: Send to Sentry
-    // Sentry.captureException(error, { extra: context });
-
-    // For now, log to console
-    console.error('Error logged:', errorInfo);
-  } else {
-    // Development: Always log
-    console.error('Error (dev):', errorInfo);
+    Sentry.captureException(error, { extra: context });
   }
+  logger.error('Error:', errorInfo);
 
   return errorInfo;
 }
@@ -151,7 +146,9 @@ export function safeJsonParse(json, fallback = null) {
   try {
     return JSON.parse(json);
   } catch (error) {
-    console.warn('JSON parse error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      logger.warn('JSON parse error:', error);
+    }
     return fallback;
   }
 }
@@ -163,7 +160,9 @@ export function safeJsonStringify(obj, fallback = '{}') {
   try {
     return JSON.stringify(obj);
   } catch (error) {
-    console.warn('JSON stringify error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      logger.warn('JSON stringify error:', error);
+    }
     return fallback;
   }
 }

@@ -1,3 +1,4 @@
+import logger from './logger';
 /**
  * FastAPI CMS Client - Optimized for Performance
  *
@@ -9,11 +10,9 @@
  * - Production-ready caching headers
  */
 
-// API Configuration
-const FASTAPI_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_FASTAPI_URL ||
-  'http://localhost:8000';
+// API Configuration — validated centrally in url.js
+import { getAPIBaseURL } from './url';
+const FASTAPI_URL = getAPIBaseURL();
 const API_BASE = `${FASTAPI_URL}/api`;
 
 // Cache control for static content
@@ -22,14 +21,20 @@ const CACHE_HEADERS = {
 };
 
 /**
- * Generic fetch wrapper with error handling
+ * Generic fetch wrapper with error handling and structured error logging.
+ *
+ * Logs all errors in both dev and production (issue #97). Error context
+ * includes endpoint, method, HTTP status (when available), error message,
+ * and stack trace to aid production debugging.
  */
 async function fetchAPI(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  const method = options.method || 'GET';
 
   try {
     const response = await fetch(url, {
       ...options,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...CACHE_HEADERS,
@@ -38,13 +43,34 @@ async function fetchAPI(endpoint, options = {}) {
     });
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      const httpError = new Error(
+        `API Error: ${response.status} ${response.statusText}`
+      );
+      logger.error('[FastAPI] HTTP error response', {
+        endpoint,
+        method,
+        status: response.status,
+        statusText: response.statusText,
+        message: httpError.message,
+      });
+      throw httpError;
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error(`[FastAPI] Error fetching ${endpoint}:`, error.message);
+    // Log all errors regardless of environment — production failures are
+    // equally important to diagnose (issue #97).
+    if (!(error.message && error.message.startsWith('API Error:'))) {
+      // Avoid double-logging HTTP errors already logged above
+      logger.error('[FastAPI] Network or parse error', {
+        endpoint,
+        method,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString(),
+      });
+    }
     throw error;
   }
 }
@@ -63,18 +89,20 @@ export async function getPaginatedPosts(
   pageSize = 10,
   excludeId = null
 ) {
-  const skip = (page - 1) * pageSize;
+  const offset = (page - 1) * pageSize;
 
-  // Build endpoint: FastAPI uses skip/limit
-  let endpoint = `/posts?skip=${skip}&limit=${pageSize}&published_only=true`;
+  // Build endpoint: FastAPI uses offset/limit
+  let endpoint = `/posts?offset=${offset}&limit=${pageSize}&published_only=true`;
 
   const response = await fetchAPI(endpoint);
 
-  // Filter out excludeId if provided
-  let data = response.data || [];
+  // Support both standard envelope (posts) and legacy Strapi envelope (data)
+  let data = response.posts || response.data || [];
   if (excludeId) {
     data = data.filter((post) => post.id !== excludeId);
   }
+
+  const total = response.total ?? response.meta?.pagination?.total ?? 0;
 
   // Return in format expected by pages
   return {
@@ -83,10 +111,8 @@ export async function getPaginatedPosts(
       pagination: {
         page: page,
         pageSize: pageSize,
-        total: response.meta?.pagination?.total || 0,
-        pageCount: Math.ceil(
-          (response.meta?.pagination?.total || 0) / pageSize
-        ),
+        total: total,
+        pageCount: Math.ceil(total / pageSize),
       },
     },
   };
@@ -99,17 +125,21 @@ export async function getPaginatedPosts(
  */
 export async function getFeaturedPost() {
   try {
-    // Get the most recent post (skip=0, limit=1, published_only=true)
+    // Get the most recent post (offset=0, limit=1, published_only=true)
     const response = await fetchAPI(
-      '/posts?skip=0&limit=1&published_only=true'
+      '/posts?offset=0&limit=1&published_only=true'
     );
 
-    if (response.data && response.data.length > 0) {
-      return response.data[0];
+    const posts = response.posts || response.data || [];
+    if (posts.length > 0) {
+      return posts[0];
     }
     return null;
   } catch (error) {
-    console.error('[FastAPI] Error fetching featured post:', error);
+    logger.error('[FastAPI] Error fetching featured post', {
+      message: error instanceof Error ? error.message : String(error),
+      endpoint: '/posts',
+    });
     return null;
   }
 }
@@ -123,23 +153,24 @@ export async function getFeaturedPost() {
  */
 export async function getPostBySlug(slug) {
   try {
-    // Fetch all published posts and filter by slug (backend doesn't have /by-slug endpoint)
-    const response = await fetchAPI(`/posts?populate=*&status=published`);
+    const response = await fetchAPI(`/posts/${encodeURIComponent(slug)}`);
+    const post = response?.data;
 
-    if (response.data && Array.isArray(response.data)) {
-      const post = response.data.find((p) => p.slug === slug);
-      if (post) {
-        return {
-          ...post,
-          // Normalize meta fields for compatibility
-          category: post.category || null,
-          tags: post.tags || [],
-        };
-      }
+    if (post) {
+      return {
+        ...post,
+        // Normalize meta fields for compatibility
+        category: post.category || null,
+        tags: post.tags || [],
+      };
     }
+
     return null;
   } catch (error) {
-    console.error(`[FastAPI] Error fetching post ${slug}:`, error);
+    logger.error('[FastAPI] Error fetching post by slug', {
+      slug,
+      message: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }
@@ -154,7 +185,9 @@ export async function getCategories() {
     const response = await fetchAPI('/categories');
     return response.data || [];
   } catch (error) {
-    console.error('[FastAPI] Error fetching categories:', error);
+    logger.error('[FastAPI] Error fetching categories', {
+      message: error instanceof Error ? error.message : String(error),
+    });
     return [];
   }
 }
@@ -169,7 +202,7 @@ export async function getTags() {
     const response = await fetchAPI('/tags');
     return response.data || [];
   } catch (error) {
-    console.error('[FastAPI] Error fetching tags:', error);
+    logger.error('[FastAPI] Error fetching tags:', error);
     return [];
   }
 }
@@ -214,21 +247,22 @@ export async function getAllPosts() {
     // Fetch all posts in batches
     while (true) {
       const response = await fetchAPI(
-        `/posts?skip=${skip}&limit=${limit}&published_only=true`
+        `/posts?offset=${skip}&limit=${limit}&published_only=true`
       );
 
-      if (!response.data || response.data.length === 0) {
+      const batch = response.posts || response.data || [];
+      if (batch.length === 0) {
         break; // No more posts
       }
 
       allPosts.push(
-        ...response.data.map((post) => ({
+        ...batch.map((post) => ({
           slug: post.slug,
         }))
       );
 
       // Check if we got fewer posts than requested (end of results)
-      if (response.data.length < limit) {
+      if (batch.length < limit) {
         break;
       }
 
@@ -237,7 +271,7 @@ export async function getAllPosts() {
 
     return allPosts;
   } catch (error) {
-    console.error('[FastAPI] Error fetching all posts:', error);
+    logger.error('[FastAPI] Error fetching all posts:', error);
     return [];
   }
 }
@@ -266,7 +300,7 @@ export async function getRelatedPosts(postId, tagIds = [], limit = 3) {
       .filter((post) => post.id !== postId)
       .slice(0, limit);
   } catch (error) {
-    console.error('[FastAPI] Error fetching related posts:', error);
+    logger.error('[FastAPI] Error fetching related posts:', error);
     return [];
   }
 }
@@ -289,7 +323,7 @@ export async function searchPosts(query, limit = 20) {
 
     return response.data || [];
   } catch (error) {
-    console.error('[FastAPI] Error searching posts:', error);
+    logger.error('[FastAPI] Error searching posts:', error);
     return [];
   }
 }
@@ -305,7 +339,7 @@ export async function getCMSStatus() {
     const response = await fetchAPI('/cms/status');
     return response;
   } catch (error) {
-    console.error('[FastAPI] Error checking CMS status:', error);
+    logger.error('[FastAPI] Error checking CMS status:', error);
     return { status: 'error', message: error.message };
   }
 }
@@ -321,7 +355,7 @@ export async function validateFastAPI() {
     const status = await getCMSStatus();
     return status.status === 'healthy';
   } catch (error) {
-    console.error('[FastAPI] CMS health check failed:', error);
+    logger.error('[FastAPI] CMS health check failed:', error);
     return false;
   }
 }
@@ -409,17 +443,10 @@ export async function handleOAuthCallback(provider, code, state) {
  */
 export async function getCurrentUser() {
   try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) return null;
-
-    const response = await fetchAPI('/auth/verify', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data || null;
+    const response = await fetchAPI('/auth/me');
+    return response || null;
   } catch (error) {
-    console.error('[FastAPI] Error getting current user:', error);
+    logger.error('[FastAPI] Error getting current user:', error);
     return null;
   }
 }
@@ -429,14 +456,8 @@ export async function getCurrentUser() {
  * @returns {Promise<Object>}
  */
 export async function logout() {
-  const token = localStorage.getItem('auth_token');
-  if (!token) return { success: true };
-
   return fetchAPI('/auth/logout', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }
 
@@ -450,14 +471,8 @@ export async function logout() {
  * @returns {Promise<Object>}
  */
 export async function createTask(taskData) {
-  const token = localStorage.getItem('auth_token');
-  if (!token) throw new Error('Not authenticated');
-
   return fetchAPI('/tasks', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(taskData),
   });
 }
@@ -470,19 +485,12 @@ export async function createTask(taskData) {
  * @returns {Promise<Object>} { data: [...tasks], meta: {...} }
  */
 export async function listTasks(limit = 20, offset = 0, status = null) {
-  const token = localStorage.getItem('auth_token');
-  if (!token) throw new Error('Not authenticated');
-
   let endpoint = `/tasks?limit=${limit}&offset=${offset}`;
   if (status) {
     endpoint += `&status=${encodeURIComponent(status)}`;
   }
 
-  return fetchAPI(endpoint, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return fetchAPI(endpoint);
 }
 
 /**
@@ -491,14 +499,7 @@ export async function listTasks(limit = 20, offset = 0, status = null) {
  * @returns {Promise<Object>}
  */
 export async function getTaskById(taskId) {
-  const token = localStorage.getItem('auth_token');
-  if (!token) throw new Error('Not authenticated');
-
-  return fetchAPI(`/tasks/${taskId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return fetchAPI(`/tasks/${taskId}`);
 }
 
 /**
@@ -506,14 +507,7 @@ export async function getTaskById(taskId) {
  * @returns {Promise<Object>}
  */
 export async function getTaskMetrics() {
-  const token = localStorage.getItem('auth_token');
-  if (!token) throw new Error('Not authenticated');
-
-  return fetchAPI('/tasks/metrics', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return fetchAPI('/tasks/metrics/summary');
 }
 
 // ============================================================================
@@ -529,7 +523,7 @@ export async function getAvailableModels() {
     const response = await fetchAPI('/models');
     return response.data || [];
   } catch (error) {
-    console.error('[FastAPI] Error fetching models:', error);
+    logger.error('[FastAPI] Error fetching models:', error);
     return [];
   }
 }
@@ -579,7 +573,7 @@ export async function subscribeToNewsletter(data) {
 
     return await response.json();
   } catch (error) {
-    console.error('[FastAPI] Newsletter subscription error:', error.message);
+    logger.error('[FastAPI] Newsletter subscription error:', error.message);
     throw error;
   }
 }
@@ -608,7 +602,7 @@ export async function unsubscribeFromNewsletter(data) {
 
     return await response.json();
   } catch (error) {
-    console.error('[FastAPI] Newsletter unsubscribe error:', error.message);
+    logger.error('[FastAPI] Newsletter unsubscribe error:', error.message);
     throw error;
   }
 }
@@ -627,7 +621,7 @@ export async function getNewsletterSubscriberCount() {
 
     return await response.json();
   } catch (error) {
-    console.error('[FastAPI] Error fetching subscriber count:', error.message);
+    logger.error('[FastAPI] Error fetching subscriber count:', error.message);
     throw error;
   }
 }

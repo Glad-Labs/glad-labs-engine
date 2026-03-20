@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * API Response Validation Schemas
  *
@@ -119,12 +120,7 @@ export const validateBudgetStatus = (data) => {
     throw new Error('Budget status must be an object');
   }
 
-  const {
-    monthly_budget,
-    amount_spent,
-    amount_remaining,
-    percent_used,
-  } = data;
+  const { monthly_budget, amount_spent, amount_remaining, percent_used } = data;
 
   if (typeof monthly_budget !== 'number' || monthly_budget < 0) {
     throw new Error('monthly_budget must be a non-negative number');
@@ -220,7 +216,7 @@ export const validateSettings = (data) => {
   Object.keys(data).forEach((key) => {
     if (!validKeys.includes(key)) {
       // Allow unknown keys for extensibility, but log warning
-      console.warn(`Unknown settings key: ${key}`);
+      logger.warn(`Unknown settings key: ${key}`);
     }
   });
 
@@ -255,7 +251,7 @@ export const safeValidate = (validator, data, label = 'Response') => {
   try {
     return validator(data);
   } catch (err) {
-    console.error(`${label} validation failed:`, err.message);
+    logger.error(`${label} validation failed:`, err.message);
     return null;
   }
 };

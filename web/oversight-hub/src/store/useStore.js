@@ -9,11 +9,13 @@ const useStore = create(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      authInitialized: false,
 
       setUser: (user) => set({ user }),
       setAccessToken: (token) => set({ accessToken: token }),
-      setRefreshToken: (token) => set({ refreshToken: token }),
       setIsAuthenticated: (isAuth) => set({ isAuthenticated: isAuth }),
+      setAuthInitialized: (initialized) =>
+        set({ authInitialized: initialized }),
 
       logout: () =>
         set({
@@ -21,6 +23,7 @@ const useStore = create(
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
+          authInitialized: true,
           tasks: [],
           selectedTask: null,
         }),
@@ -34,6 +37,38 @@ const useStore = create(
       setSelectedTask: (task) =>
         set({ selectedTask: task, isModalOpen: !!task }),
       setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
+
+      // ===== TASK ACTION STATE (Phase 1.2) =====
+      taskActionLoading: {}, // { taskId: boolean }
+      taskActionError: {}, // { taskId: string|null }
+
+      setTaskActionLoading: (taskId, loading) =>
+        set((state) => ({
+          taskActionLoading: {
+            ...state.taskActionLoading,
+            [taskId]: loading,
+          },
+        })),
+
+      setTaskActionError: (taskId, error) =>
+        set((state) => ({
+          taskActionError: {
+            ...state.taskActionError,
+            [taskId]: error,
+          },
+        })),
+
+      clearTaskAction: (taskId) =>
+        set((state) => ({
+          taskActionLoading: {
+            ...state.taskActionLoading,
+            [taskId]: false,
+          },
+          taskActionError: {
+            ...state.taskActionError,
+            [taskId]: null,
+          },
+        })),
 
       // ===== METRICS STATE =====
       metrics: {
@@ -52,11 +87,6 @@ const useStore = create(
       notifications: {
         desktop: true,
       },
-      apiKeys: {
-        mercury: '',
-        gcp: '',
-      },
-
       setTheme: (theme) => set({ theme }),
       toggleTheme: () =>
         set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
@@ -67,13 +97,6 @@ const useStore = create(
           notifications: {
             ...state.notifications,
             desktop: !state.notifications.desktop,
-          },
-        })),
-      setApiKey: (key, value) =>
-        set((state) => ({
-          apiKeys: {
-            ...state.apiKeys,
-            [key]: value,
           },
         })),
 
@@ -104,38 +127,11 @@ const useStore = create(
         executionHistory: [],
       },
 
-      setOrchestratorMode: (mode) =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            mode: mode === 'agent' ? 'agent' : 'conversation',
-          },
-        })),
-
-      setActiveHost: (host) =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            activeHost: host,
-          },
-        })),
-
       setSelectedModel: (model) =>
         set((state) => ({
           orchestrator: {
             ...state.orchestrator,
             selectedModel: model,
-          },
-        })),
-
-      updateHostConfig: (host, config) =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            hostConfigs: {
-              ...state.orchestrator.hostConfigs,
-              [host]: { ...state.orchestrator.hostConfigs[host], ...config },
-            },
           },
         })),
 
@@ -156,28 +152,6 @@ const useStore = create(
             },
           },
         })),
-
-      updateExecutionPhase: (phaseIndex, phaseData) =>
-        set((state) => {
-          const newExecution = { ...state.orchestrator.currentExecution };
-          if (phaseIndex >= 0 && phaseIndex < newExecution.phases.length) {
-            newExecution.phases[phaseIndex] = {
-              ...newExecution.phases[phaseIndex],
-              ...phaseData,
-            };
-            newExecution.currentPhaseIndex = phaseIndex;
-            newExecution.progress = Math.round(
-              ((phaseIndex + 1) / newExecution.phases.length) * 100
-            );
-            newExecution.status = 'executing';
-          }
-          return {
-            orchestrator: {
-              ...state.orchestrator,
-              currentExecution: newExecution,
-            },
-          };
-        }),
 
       completeExecution: (_result) =>
         set((state) => {
@@ -212,50 +186,33 @@ const useStore = create(
           },
         })),
 
-      resetExecution: () =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            currentExecution: {
-              executionId: null,
-              status: 'idle',
-              commandType: null,
-              startedAt: null,
-              completedAt: null,
-              phases: [],
-              currentPhaseIndex: 0,
-              progress: 0,
-              error: null,
-            },
-          },
-        })),
-
-      clearExecutionHistory: () =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            executionHistory: [],
-          },
-        })),
-
       // ===== MESSAGE STREAM STATE (Phase 3B) =====
       messages: [], // Unified message stream for CommandPane integration
 
       /**
-       * Add message to stream (command, status, result, or error)
+       * Add message to stream (command, status, result, or error).
+       * Capped at MAX_MESSAGES to prevent unbounded memory growth in long-running sessions.
        * @param {Object} message - Message object with type, content, metadata
        */
       addMessage: (message) =>
-        set((state) => ({
-          messages: [
+        set((state) => {
+          const MAX_MESSAGES = 200;
+          const updated = [
             ...state.messages,
             {
               ...message,
               timestamp: new Date().toISOString(),
               id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             },
-          ],
-        })),
+          ];
+          // Evict oldest entries when over the cap (keep the most recent MAX_MESSAGES)
+          return {
+            messages:
+              updated.length > MAX_MESSAGES
+                ? updated.slice(-MAX_MESSAGES)
+                : updated,
+          };
+        }),
 
       /**
        * Update existing message in stream (e.g., update progress)
@@ -272,23 +229,6 @@ const useStore = create(
         }),
 
       /**
-       * Update message by ID (alternative to index-based update)
-       * @param {string} messageId - Message ID to update
-       * @param {Object} updates - Fields to update
-       */
-      updateMessageById: (messageId, updates) =>
-        set((state) => ({
-          messages: state.messages.map((msg) =>
-            msg.id === messageId ? { ...msg, ...updates } : msg
-          ),
-        })),
-
-      /**
-       * Clear all messages from stream
-       */
-      clearMessages: () => set({ messages: [] }),
-
-      /**
        * Remove specific message from stream
        * @param {number} index - Index of message to remove
        */
@@ -303,19 +243,25 @@ const useStore = create(
     }),
     {
       name: 'oversight-hub-storage',
+      // Bump version to clear stale apiKeys from localStorage on existing clients.
+      version: 1,
+      migrate: (persisted, version) => {
+        if (version === 0 && persisted) {
+          // Drop apiKeys that may have been persisted by older versions
+          const { apiKeys, ...rest } = persisted;
+          return rest;
+        }
+        return persisted;
+      },
       partialize: (state) => ({
-        // ✅ NEW: Persist authentication state (including auth_token for dev)
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
+        // Persist non-sensitive auth state only (session token is HttpOnly cookie).
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-        auth_token: state.accessToken, // Also store as auth_token for backwards compatibility
 
         // Existing: UI preferences
         theme: state.theme,
         autoRefresh: state.autoRefresh,
         notifications: state.notifications,
-        apiKeys: state.apiKeys,
       }), // persist theme and other settings
     }
   )

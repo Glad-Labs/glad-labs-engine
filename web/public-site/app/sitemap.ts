@@ -1,4 +1,22 @@
+import logger from '@/lib/logger';
 import type { MetadataRoute } from 'next';
+
+/**
+ * Type definitions for sitemap content
+ */
+interface Post {
+  slug: string;
+  updatedAt?: string;
+  publishedAt?: string;
+}
+
+interface Category {
+  slug: string;
+}
+
+interface Tag {
+  slug: string;
+}
 
 /**
  * Dynamic Sitemap Generation for Next.js 15
@@ -22,14 +40,14 @@ async function fetchPublishedContent() {
     new URL(FASTAPI_URL);
     isValidUrl = true;
   } catch {
-    console.warn(
+    logger.warn(
       'Invalid NEXT_PUBLIC_FASTAPI_URL during build. Using static fallback.'
     );
   }
 
   // If URL is invalid or not set, return empty results (use static pages only)
   if (!isValidUrl || FASTAPI_URL === 'http://localhost:8000') {
-    console.log(
+    logger.log(
       'NEXT_PUBLIC_FASTAPI_URL not properly configured for Vercel build. Skipping dynamic content fetch.'
     );
     return { allPosts: [], allCategories: [], allTags: [] };
@@ -39,14 +57,14 @@ async function fetchPublishedContent() {
 
   try {
     // Fetch all published posts with pagination (API max limit is 100)
-    let allPosts: any[] = [];
+    let allPosts: Post[] = [];
     let skip = 0;
     const limit = 100;
     let hasMore = true;
 
     while (hasMore) {
       const postsResponse = await fetch(
-        `${API_BASE}/posts?skip=${skip}&limit=${limit}&published_only=true`,
+        `${API_BASE}/posts?offset=${skip}&limit=${limit}&published_only=true`,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -56,7 +74,8 @@ async function fetchPublishedContent() {
 
       if (!postsResponse.ok) break;
 
-      const pageData = (await postsResponse.json()).data || [];
+      const pageJson = await postsResponse.json();
+      const pageData = pageJson.posts || pageJson.data || [];
       if (pageData.length === 0) {
         hasMore = false;
       } else {
@@ -71,9 +90,10 @@ async function fetchPublishedContent() {
         'Content-Type': 'application/json',
       },
     });
-    const allCategories = categoriesResponse.ok
-      ? (await categoriesResponse.json()).data || []
-      : [];
+    const catJson = categoriesResponse.ok
+      ? await categoriesResponse.json()
+      : {};
+    const allCategories = catJson.categories || catJson.data || [];
 
     // Fetch all tags
     const tagsResponse = await fetch(`${API_BASE}/tags`, {
@@ -81,13 +101,12 @@ async function fetchPublishedContent() {
         'Content-Type': 'application/json',
       },
     });
-    const allTags = tagsResponse.ok
-      ? (await tagsResponse.json()).data || []
-      : [];
+    const tagJson = tagsResponse.ok ? await tagsResponse.json() : {};
+    const allTags = tagJson.tags || tagJson.data || [];
 
     return { allPosts, allCategories, allTags };
   } catch (error) {
-    console.error('Error fetching content for sitemap:', error);
+    logger.error('Error fetching content for sitemap:', error);
     return { allPosts: [], allCategories: [], allTags: [] };
   }
 }
@@ -126,7 +145,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Blog posts
   const postPages: MetadataRoute.Sitemap = (allPosts || []).map(
-    (post: any) => ({
+    (post: Post) => ({
       url: `${baseUrl}/posts/${post.slug}`,
       lastModified: post.updatedAt
         ? new Date(post.updatedAt)
@@ -138,7 +157,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Category pages
   const categoryPages: MetadataRoute.Sitemap = (allCategories || []).map(
-    (category: any) => ({
+    (category: Category) => ({
       url: `${baseUrl}/category/${category.slug}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
@@ -147,7 +166,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   // Tag pages
-  const tagPages: MetadataRoute.Sitemap = (allTags || []).map((tag: any) => ({
+  const tagPages: MetadataRoute.Sitemap = (allTags || []).map((tag: Tag) => ({
     url: `${baseUrl}/tag/${tag.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,

@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * LayoutWrapper.jsx
  *
@@ -8,12 +9,14 @@
  * - Consistent styling across all pages
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as cofounderAgentClient from '../services/cofounderAgentClient';
 import { modelService } from '../services/modelService';
 import { composeAndExecuteTask } from '../services/naturalLanguageComposerService';
+import useAuth from '../hooks/useAuth';
 import ModelSelectDropdown from './ModelSelectDropdown';
+import BackendStatusBanner from './BackendStatusBanner';
 import '../OversightHub.css';
 
 // Generate unique message IDs to avoid React key warnings
@@ -26,6 +29,7 @@ const LayoutWrapper = ({ children }) => {
   const chatEndRef = useRef(null);
   const chatPanelRef = useRef(null);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
+  const navMenuBtnRef = useRef(null);
   const [chatMessages, setChatMessages] = useState([
     {
       id: generateMessageId(),
@@ -40,12 +44,17 @@ const LayoutWrapper = ({ children }) => {
   const [chatHeight, setChatHeight] = useState(
     parseInt(localStorage.getItem('chatHeight') || '300', 10)
   );
+  const chatHeightRef = useRef(chatHeight);
+  useEffect(() => {
+    chatHeightRef.current = chatHeight;
+  }, [chatHeight]);
   const [isResizing, setIsResizing] = useState(false);
   const [ollamaConnected, setOllamaConnected] = useState(false);
   // const [availableOllamaModels, setAvailableOllamaModels] = useState([]);
   // const [selectedOllamaModel, setSelectedOllamaModel] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [, setAvailableModels] = useState([]);
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [modelsByProvider, setModelsByProvider] = useState({
     ollama: [],
     openai: [],
@@ -57,9 +66,11 @@ const LayoutWrapper = ({ children }) => {
     { label: 'Dashboard', icon: '📊', path: 'dashboard' },
     { label: 'Tasks', icon: '✅', path: 'tasks' },
     { label: 'Content', icon: '📄', path: 'content' },
+    { label: 'Approvals', icon: '👁️', path: 'approvals' },
     { label: 'Services', icon: '⚡', path: 'services' },
     { label: 'AI Studio', icon: '🤖', path: 'ai' },
     { label: 'Costs', icon: '💰', path: 'costs' },
+    { label: 'Performance', icon: '⚡', path: 'performance' },
     { label: 'Settings', icon: '⚙️', path: 'settings' },
   ];
 
@@ -109,8 +120,26 @@ const LayoutWrapper = ({ children }) => {
     },
   ];
 
+  // Close nav menu on Escape key press and return focus to trigger (issue #771)
+  useEffect(() => {
+    if (!navMenuOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setNavMenuOpen(false);
+        navMenuBtnRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navMenuOpen]);
+
   // Check Ollama availability on mount only in development (local dev mode)
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      setOllamaConnected(false);
+      return;
+    }
+
     // Only check Ollama in development environment
     const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -125,7 +154,7 @@ const LayoutWrapper = ({ children }) => {
         const available = await isOllamaAvailable();
         setOllamaConnected(available);
       } catch (error) {
-        console.debug('Error checking Ollama:', error.message);
+        logger.debug('Error checking Ollama:', error.message);
         setOllamaConnected(false);
       }
     };
@@ -136,7 +165,7 @@ const LayoutWrapper = ({ children }) => {
     // Optionally check every 5 minutes in development
     const interval = setInterval(checkOllama, 300000); // 5 minutes
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -158,7 +187,10 @@ const LayoutWrapper = ({ children }) => {
 
     // Only add if last message isn't already a mode help (avoid duplicates)
     setChatMessages((prev) => {
-      if (prev.length > 0 && prev[prev.length - 1]?.text === modeHelpMessage.text) {
+      if (
+        prev.length > 0 &&
+        prev[prev.length - 1]?.text === modeHelpMessage.text
+      ) {
         return prev; // Already have this message
       }
       return [...prev, modeHelpMessage];
@@ -167,6 +199,13 @@ const LayoutWrapper = ({ children }) => {
 
   // Initialize available models from API
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      const defaults = modelService.getDefaultModels();
+      setAvailableModels(defaults);
+      setModelsByProvider(modelService.groupModelsByProvider(defaults));
+      return;
+    }
+
     const loadModels = async () => {
       try {
         const models = await modelService.getAvailableModels(true); // Force refresh
@@ -176,12 +215,12 @@ const LayoutWrapper = ({ children }) => {
         const grouped = modelService.groupModelsByProvider(models);
         setModelsByProvider(grouped);
 
-        console.log('✅ Loaded models from API:', {
+        logger.log('✅ Loaded models from API:', {
           total: models.length,
           grouped,
         });
       } catch (error) {
-        console.warn('Error loading models from API:', error);
+        logger.warn('Error loading models from API:', error);
         // Fall back to default models
         const defaults = modelService.getDefaultModels();
         setAvailableModels(defaults);
@@ -191,7 +230,7 @@ const LayoutWrapper = ({ children }) => {
     };
 
     loadModels();
-  }, []);
+  }, [isAuthenticated, authLoading]);
 
   const handleNavigate = (page) => {
     setNavMenuOpen(false);
@@ -199,9 +238,11 @@ const LayoutWrapper = ({ children }) => {
       dashboard: '/',
       tasks: '/tasks',
       content: '/content',
+      approvals: '/approvals',
       services: '/services',
       ai: '/ai',
       costs: '/costs',
+      performance: '/performance',
       settings: '/settings',
     };
     navigate(routeMap[page] || '/');
@@ -231,7 +272,7 @@ const LayoutWrapper = ({ children }) => {
         await handleConversationModeMessage(userMessage);
       }
     } catch (error) {
-      console.error('Chat error:', error);
+      logger.error('Chat error:', error);
       setChatMessages((prev) => [
         ...prev,
         {
@@ -355,7 +396,11 @@ const LayoutWrapper = ({ children }) => {
 
   const handleClearHistory = () => {
     setChatMessages([
-      { id: generateMessageId(), sender: 'system', text: 'Poindexter ready. How can I help?' },
+      {
+        id: generateMessageId(),
+        sender: 'system',
+        text: 'Poindexter ready. How can I help?',
+      },
     ]);
   };
 
@@ -380,7 +425,7 @@ const LayoutWrapper = ({ children }) => {
     const handleMouseUp = () => {
       setIsResizing(false);
       document.body.classList.remove('resizing-chat');
-      localStorage.setItem('chatHeight', Math.round(chatHeight));
+      localStorage.setItem('chatHeight', Math.round(chatHeightRef.current));
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('touchmove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -393,29 +438,66 @@ const LayoutWrapper = ({ children }) => {
     document.addEventListener('touchend', handleMouseUp);
   };
 
+  // Keyboard handler for chat panel resize handle — WCAG 2.1.1 compliance
+  const handleChatResizeKeyDown = useCallback((e) => {
+    const CHAT_KEYBOARD_STEP = 20;
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setChatHeight((h) =>
+        Math.min(h + CHAT_KEYBOARD_STEP, window.innerHeight * 0.8)
+      );
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setChatHeight((h) => Math.max(h - CHAT_KEYBOARD_STEP, 150));
+    }
+  }, []);
+
   return (
     <div className="oversight-hub-container">
+      {/* Skip-to-content link — first focusable element; visually hidden until focused (WCAG 2.4.1) */}
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
+      <BackendStatusBanner />
       {/* Header with Navigation */}
       <header className="oversight-header">
         <div className="header-top">
           <button
+            ref={navMenuBtnRef}
             className="nav-menu-btn"
+            aria-label="Navigation menu"
+            aria-expanded={navMenuOpen}
+            aria-controls="nav-menu-dropdown"
             onClick={() => setNavMenuOpen(!navMenuOpen)}
           >
-            ☰
+            <span aria-hidden="true">☰</span>
           </button>
-          <h1>🎛️ Oversight Hub</h1>
+          {/* Use span not h1 — page route components define the single h1 (WCAG 1.3.1) */}
+          <span className="oversight-hub-title" aria-label="Oversight Hub">
+            <span aria-hidden="true">🎛️</span> Oversight Hub
+          </span>
         </div>
         <div className="header-status">
-          {ollamaConnected ? '🟢 Ollama Ready' : '🔴 Ollama Offline'}
+          <span
+            role="status"
+            aria-live="polite"
+            aria-label={ollamaConnected ? 'Ollama connected' : 'Ollama offline'}
+          >
+            <span aria-hidden="true">{ollamaConnected ? '🟢' : '🔴'}</span>{' '}
+            {ollamaConnected ? 'Ollama Ready' : 'Ollama Offline'}
+          </span>
         </div>
       </header>
 
       {/* Navigation Menu */}
-      {navMenuOpen && (
-        <div className="nav-menu-dropdown">
-          <div className="nav-menu-header">Navigation</div>
-          {navigationItems.map((item) => (
+      <nav
+        id="nav-menu-dropdown"
+        className={`nav-menu-dropdown${navMenuOpen ? '' : ' nav-menu-hidden'}`}
+        aria-label="Main navigation"
+      >
+        {navMenuOpen && <div className="nav-menu-header">Navigation</div>}
+        {navMenuOpen &&
+          navigationItems.map((item) => (
             <button
               key={item.path}
               className="nav-menu-item"
@@ -434,22 +516,33 @@ const LayoutWrapper = ({ children }) => {
                 borderLeft: '3px solid var(--border-secondary)',
               }}
             >
-              <span className="nav-menu-icon">{item.icon}</span>
+              <span className="nav-menu-icon" aria-hidden="true">
+                {item.icon}
+              </span>
               <span className="nav-menu-label">{item.label}</span>
             </button>
           ))}
-        </div>
-      )}
+      </nav>
 
       {/* Main Content Area */}
       <div className="oversight-hub-layout">
-        <div className="main-panel">{children}</div>
+        <main id="main-content" className="main-panel">
+          {children}
+        </main>
 
-        {/* Chat Panel Resize Handle */}
+        {/* Chat Panel Resize Handle — keyboard-accessible (WCAG 2.1.1) */}
         <div
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize chat panel. Use Arrow Up and Arrow Down keys to adjust height."
+          aria-valuenow={Math.round(chatHeight)}
+          aria-valuemin={150}
+          aria-valuemax={Math.round(window.innerHeight * 0.8)}
+          tabIndex={0}
           className={`chat-resize-handle ${isResizing ? 'resizing' : ''}`}
           onMouseDown={handleResizeStart}
           onTouchStart={handleResizeStart}
+          onKeyDown={handleChatResizeKeyDown}
           title="Drag to resize chat panel"
         >
           <span className="drag-indicator">⋮⋮</span>
@@ -469,12 +562,14 @@ const LayoutWrapper = ({ children }) => {
               <button
                 className={`mode-btn ${chatMode === 'conversation' ? 'active' : ''}`}
                 onClick={() => setChatMode('conversation')}
+                aria-pressed={chatMode === 'conversation'}
               >
                 💭 Conversation
               </button>
               <button
                 className={`mode-btn ${chatMode === 'agent' ? 'active' : ''}`}
                 onClick={() => setChatMode('agent')}
+                aria-pressed={chatMode === 'agent'}
               >
                 🔄 Agent
               </button>
@@ -489,6 +584,7 @@ const LayoutWrapper = ({ children }) => {
               <select
                 value={selectedAgent}
                 onChange={(e) => setSelectedAgent(e.target.value)}
+                aria-label="Select agent"
               >
                 {agents.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -518,7 +614,10 @@ const LayoutWrapper = ({ children }) => {
                     <div className="message-task-composition">
                       {/* Render markdown-style text */}
                       {msg.text.split('\n\n').map((paragraph, idx) => (
-                        <div key={`${msg.id}-para-${idx}`} style={{ marginBottom: '8px' }}>
+                        <div
+                          key={`${msg.id}-para-${idx}`}
+                          style={{ marginBottom: '8px' }}
+                        >
                           {paragraph.split('\n').map((line, lineIdx) => {
                             // Bold for **text**
                             const boldRegex = /\*\*([^*]+)\*\*/g;
@@ -582,14 +681,23 @@ const LayoutWrapper = ({ children }) => {
               </div>
             ))}
             {isLoading && (
-              <div className="message message-ai">
-                <div className="message-avatar">🤖</div>
+              <div
+                className="message message-ai"
+                role="status"
+                aria-label="AI is typing"
+                aria-live="polite"
+              >
+                <div className="message-avatar" aria-hidden="true">
+                  🤖
+                </div>
                 <div className="message-content">
-                  <div className="typing-indicator">
+                  <div className="typing-indicator" aria-hidden="true">
                     <span></span>
                     <span></span>
                     <span></span>
                   </div>
+                  {/* sr-only text is announced once when the element appears */}
+                  <span className="sr-only">AI is typing a response</span>
                 </div>
               </div>
             )}
@@ -602,8 +710,13 @@ const LayoutWrapper = ({ children }) => {
               className="chat-input"
               type="text"
               value={chatInput}
+              aria-label={
+                chatMode === 'agent'
+                  ? 'Describe a task for the agent'
+                  : 'Ask Poindexter a question'
+              }
               onChange={(e) => setChatInput(e.target.value)}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && !isLoading) {
                   handleSendMessage();
                 }
@@ -618,7 +731,7 @@ const LayoutWrapper = ({ children }) => {
             <button
               onClick={handleSendMessage}
               disabled={!chatInput.trim() || isLoading}
-              title={
+              aria-label={
                 chatMode === 'agent'
                   ? 'Compose and execute task'
                   : 'Send message'
@@ -626,7 +739,10 @@ const LayoutWrapper = ({ children }) => {
             >
               {chatMode === 'agent' ? '⚡' : '📤'}
             </button>
-            <button onClick={handleClearHistory} title="Clear history">
+            <button
+              onClick={handleClearHistory}
+              aria-label="Clear chat history"
+            >
               🗑️
             </button>
           </div>

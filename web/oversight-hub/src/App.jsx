@@ -1,8 +1,11 @@
+import logger from '@/lib/logger';
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { WebSocketProvider } from './context/WebSocketContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import AppRoutes from './routes/AppRoutes';
+import NotificationCenter from './components/notifications/NotificationCenter';
 import useStore from './store/useStore';
 import useAuth from './hooks/useAuth';
 import './OversightHub.css';
@@ -33,7 +36,10 @@ const AppContent = () => {
           color: '#666',
         }}
       >
-        <div>Initializing...</div>
+        {/* role="status" + aria-live ensures screen readers announce when loading resolves (WCAG 4.1.3) */}
+        <div role="status" aria-live="polite" aria-label="Loading application">
+          Initializing...
+        </div>
       </div>
     );
   }
@@ -53,17 +59,37 @@ const AppContent = () => {
 };
 
 const App = () => {
+  useEffect(() => {
+    // Handle unhandled promise rejections
+    const handleUnhandledRejection = (event) => {
+      logger.error('Unhandled promise rejection:', event.reason);
+      // You can optionally send to error tracking service here (e.g., Sentry)
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener(
+        'unhandledrejection',
+        handleUnhandledRejection
+      );
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Router
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
-          <AppContent />
-        </Router>
+        <WebSocketProvider>
+          <Router
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
+            <AppContent />
+            <NotificationCenter />
+          </Router>
+        </WebSocketProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

@@ -17,24 +17,29 @@ import {
   Button,
   FormControl,
   InputLabel,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
-import { Clear as ClearIcon } from '@mui/icons-material';
+import { Clear as ClearIcon, Search as SearchIcon } from '@mui/icons-material';
 import { filterBox, button, compactSelect } from '../../lib/muiStyles';
 
 const TaskFilters = ({
   sortBy = 'created_at',
   sortDirection = 'desc',
   statusFilter = '',
+  searchQuery = '',
   onSortChange,
   onDirectionChange,
   onStatusChange,
+  onSearchChange,
   onResetFilters,
 }) => {
   return (
     <Box sx={filterBox}>
       <FormControl size="small" sx={{ minWidth: 150 }}>
-        <InputLabel>Sort By</InputLabel>
+        <InputLabel id="task-sort-by-label">Sort By</InputLabel>
         <Select
+          labelId="task-sort-by-label"
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
           label="Sort By"
@@ -48,8 +53,9 @@ const TaskFilters = ({
       </FormControl>
 
       <FormControl size="small" sx={{ minWidth: 120 }}>
-        <InputLabel>Direction</InputLabel>
+        <InputLabel id="task-sort-direction-label">Direction</InputLabel>
         <Select
+          labelId="task-sort-direction-label"
           value={sortDirection}
           onChange={(e) => onDirectionChange(e.target.value)}
           label="Direction"
@@ -61,8 +67,9 @@ const TaskFilters = ({
       </FormControl>
 
       <FormControl size="small" sx={{ minWidth: 150 }}>
-        <InputLabel>Status</InputLabel>
+        <InputLabel id="task-status-filter-label">Status</InputLabel>
         <Select
+          labelId="task-status-filter-label"
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}
           label="Status"
@@ -92,6 +99,22 @@ const TaskFilters = ({
         </Select>
       </FormControl>
 
+      <TextField
+        size="small"
+        placeholder="Search tasks…"
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ minWidth: 200 }}
+        inputProps={{ 'aria-label': 'Search tasks' }}
+      />
+
       <Button
         variant="outlined"
         size="small"
@@ -111,8 +134,10 @@ TaskFilters.propTypes = {
   sortBy: PropTypes.string,
   sortDirection: PropTypes.string,
   statusFilter: PropTypes.string,
+  searchQuery: PropTypes.string,
   onSortChange: PropTypes.func.isRequired,
   onDirectionChange: PropTypes.func.isRequired,
   onStatusChange: PropTypes.func.isRequired,
+  onSearchChange: PropTypes.func,
   onResetFilters: PropTypes.func.isRequired,
 };

@@ -61,8 +61,23 @@ const MarkdownText = ({ text }) => {
   });
 };
 
-const PostCard = ({ post }) => {
+/**
+ * PostCard renders a single blog post preview card.
+ *
+ * Heading context: PostCard is designed to be used inside a section that has
+ * its own <h2> heading. The post title therefore defaults to an <h3> to
+ * maintain correct document outline (h1 > h2 [section] > h3 [card title]).
+ *
+ * If you embed PostCard in a context where the parent already uses <h3>
+ * (e.g., inside an <h2>-less widget), pass `headingLevel={4}` to avoid
+ * skipping heading levels (WCAG 1.3.1).
+ *
+ * @param {object} props.post - Post data object
+ * @param {2|3|4|5|6} [props.headingLevel=3] - HTML heading level for the post title
+ */
+const PostCard = ({ post, headingLevel = 3 }) => {
   const { title, excerpt, slug, published_at, cover_image_url } = post;
+  const HeadingTag = `h${headingLevel}`;
 
   const href = slug ? `/posts/${slug}` : '#';
   const isClickable = Boolean(slug);
@@ -114,8 +129,10 @@ const PostCard = ({ post }) => {
           </time>
         </div>
 
-        {/* Post Title - Professional heading hierarchy */}
-        <h3
+        {/* Post Title — heading level controlled by headingLevel prop (default h3).
+            Callers must pass headingLevel matching the document outline so that
+            screen reader heading navigation is unambiguous (WCAG 1.3.1). */}
+        <HeadingTag
           id={`post-title-${slug}`}
           className="text-xl md:text-2xl font-bold mb-3 text-slate-100 leading-tight line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-blue-500 group-hover:bg-clip-text transition-all duration-300"
         >
@@ -127,7 +144,7 @@ const PostCard = ({ post }) => {
           >
             {title}
           </Link>
-        </h3>
+        </HeadingTag>
 
         {/* Excerpt - Premium typography with markdown formatting */}
         <p className="text-slate-300 mb-6 flex-grow line-clamp-3 text-sm leading-relaxed">
@@ -135,11 +152,15 @@ const PostCard = ({ post }) => {
         </p>
 
         {/* Read More Link - Premium style */}
-        <div className="inline-flex">
+        {/* aria-hidden: the title link above already links to the same URL; this
+            is a visual affordance only so we hide it from screen readers to
+            avoid announcing two links with the same destination per card. */}
+        <div className="inline-flex" aria-hidden="true">
           <Link
             href={href}
             className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-400 hover:text-cyan-300 group/link focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:rounded-lg px-2 py-1 transition-all duration-300"
-            aria-label={`Read full article: ${title}`}
+            tabIndex={-1}
+            aria-hidden="true"
           >
             Read Article
             <svg

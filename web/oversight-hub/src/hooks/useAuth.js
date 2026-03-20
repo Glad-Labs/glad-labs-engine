@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * useAuth Hook - Simple authentication interface using Zustand
  *
@@ -23,14 +24,15 @@ export const useAuth = () => {
   const user = useStore((state) => state.user);
   const accessToken = useStore((state) => state.accessToken);
   const isAuthenticated = useStore((state) => state.isAuthenticated);
+  const authInitialized = useStore((state) => state.authInitialized);
   const setUser = useStore((state) => state.setUser);
   const storeLogout = useStore((state) => state.logout);
   const setIsAuthenticated = useStore((state) => state.setIsAuthenticated);
   const setAccessToken = useStore((state) => state.setAccessToken);
+  const setAuthInitialized = useStore((state) => state.setAuthInitialized);
 
-  // Determine loading state: if we have no user and no token, we're either loading or not authenticated
-  // If we have either user or token, we're not loading
-  const loading = user === null && accessToken === null ? undefined : false;
+  // Route protection should wait until AuthContext has finished bootstrapping.
+  const loading = !authInitialized;
   const error = null; // Error handling would go here if needed
 
   /**
@@ -41,7 +43,7 @@ export const useAuth = () => {
       // Clear from service (localStorage)
       await authServiceLogout();
     } catch (err) {
-      console.error('Logout error:', err);
+      logger.error('Logout error:', err);
     } finally {
       // Clear from store
       storeLogout();
@@ -71,6 +73,7 @@ export const useAuth = () => {
     setUser: setAuthUser,
     setIsAuthenticated,
     setAccessToken,
+    setAuthInitialized,
   };
 };
 

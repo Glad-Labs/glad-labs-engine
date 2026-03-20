@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import * as Sentry from '@sentry/nextjs';
 
 // SEO Metadata
 export const metadata = {
@@ -15,6 +16,7 @@ export const metadata = {
 };
 
 // Server-side data fetching with ISR (Incremental Static Regeneration)
+// Returns { posts, error } so the UI can distinguish API failure from empty content (#946)
 async function getPosts() {
   try {
     const FASTAPI_URL =
@@ -27,12 +29,12 @@ async function getPosts() {
       !FASTAPI_URL.startsWith('http://') &&
       !FASTAPI_URL.startsWith('https://')
     ) {
+      // eslint-disable-next-line no-console -- Server-side config validation, no logger available
       console.warn('Invalid NEXT_PUBLIC_API_BASE_URL, using static fallback');
-      return [];
+      return { posts: [], error: 'invalid_config' };
     }
 
-    const url = `${FASTAPI_URL}/api/posts?skip=0&limit=20&published_only=true`;
-    console.log('📡 Fetching posts from:', url);
+    const url = `${FASTAPI_URL}/api/posts?offset=0&limit=20&published_only=true`;
 
     // Add timeout support using AbortController
     const controller = new AbortController();
@@ -40,8 +42,8 @@ async function getPosts() {
 
     try {
       const response = await fetch(url, {
-        // ISR: Revalidate every 1 hour (3600 seconds) - much faster than 24 hours for development
-        // For production, consider webhook-triggered revalidation for instant updates when posts are published
+        // ISR: Revalidate every 1 hour (3600 seconds)
+        // On-demand revalidation via publish webhook triggers instant updates
         next: { revalidate: 3600 },
         headers: {
           'Content-Type': 'application/json',
@@ -52,41 +54,47 @@ async function getPosts() {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.error(
-          `❌ Failed to fetch posts: ${response.status} ${response.statusText}`
+        Sentry.captureMessage(
+          `Failed to fetch posts: ${response.status} ${response.statusText}`,
+          'error'
         );
-        return [];
+        return { posts: [], error: 'api_error' };
       }
 
       const data = await response.json();
-      console.log(
-        '✅ Posts fetched successfully, got',
-        data.data?.length || 0,
-        'posts'
-      );
-      return data.data || [];
+      const posts = Array.isArray(data?.posts)
+        ? data.posts
+        : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+      return { posts, error: null };
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      // Specific handling for timeout vs other errors
+      // Specific handling for timeout vs other errors — both reported to Sentry
       if (fetchError.name === 'AbortError') {
-        console.error('❌ Request timeout (10s) fetching posts from', url);
+        Sentry.captureMessage(
+          `Homepage posts fetch timed out (10s) from ${url}`,
+          'error'
+        );
+        return { posts: [], error: 'timeout' };
       } else {
-        console.error('❌ Network error fetching posts:', fetchError.message);
+        Sentry.captureException(fetchError, { extra: { url } });
+        return { posts: [], error: 'network' };
       }
-      return [];
     }
   } catch (error) {
-    console.error('❌ Error fetching posts for homepage:', error.message);
-    return [];
+    Sentry.captureException(error);
+    return { posts: [], error: 'unexpected' };
   }
 }
 
 export default async function HomePage() {
-  const posts = await getPosts();
+  const { posts, error } = await getPosts();
   const currentPost = posts[0];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
@@ -105,13 +113,44 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Post */}
-      {posts.length === 0 ? (
+      {/* #946: Distinct states for API outage vs empty content */}
+      {error ? (
         <section className="py-12 px-4 md:px-0">
           <div className="container mx-auto max-w-6xl">
-            <div className="h-96 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-700">
-              <p className="text-slate-400">
-                No posts available yet. Check back soon!
+            <div className="h-96 bg-slate-800/50 rounded-xl flex flex-col items-center justify-center border border-amber-500/30">
+              <svg
+                className="w-12 h-12 text-amber-400 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                />
+              </svg>
+              <p className="text-amber-300 font-medium text-lg mb-2">
+                Unable to load articles right now
+              </p>
+              <p className="text-slate-400 text-sm">
+                Our content service is temporarily unavailable. Please try again
+                shortly.
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : posts.length === 0 ? (
+        <section className="py-12 px-4 md:px-0">
+          <div className="container mx-auto max-w-6xl">
+            <div className="h-96 bg-slate-800 rounded-xl flex flex-col items-center justify-center border border-slate-700">
+              <p className="text-slate-400 text-lg mb-2">
+                No posts available yet.
+              </p>
+              <p className="text-slate-500 text-sm">
+                New articles are on the way — check back soon!
               </p>
             </div>
           </div>
@@ -225,14 +264,17 @@ export default async function HomePage() {
                         <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-cyan-400 transition-colors line-clamp-2">
                           {post.title}
                         </h3>
-                        <p className="text-sm text-slate-400 line-clamp-2">
+                        <p className="text-sm text-slate-300 line-clamp-2">
                           {post.excerpt ||
                             (post.content
                               ? post.content.substring(0, 100) + '...'
                               : '')}
                         </p>
                         {post.published_at && (
-                          <time className="text-xs text-slate-500 mt-3 block">
+                          <time
+                            dateTime={post.published_at}
+                            className="text-xs text-slate-400 mt-3 block"
+                          >
                             {new Date(post.published_at).toLocaleDateString(
                               'en-US',
                               {
@@ -259,7 +301,7 @@ export default async function HomePage() {
           <h2 className="text-3xl font-bold text-white mb-4">
             Browse All Articles
           </h2>
-          <p className="text-lg text-slate-400 mb-8">
+          <p className="text-lg text-slate-300 mb-8">
             Explore our complete collection of insights and analyses
           </p>
           <Link
@@ -271,6 +313,6 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

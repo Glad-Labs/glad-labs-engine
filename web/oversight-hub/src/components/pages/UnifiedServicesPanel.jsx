@@ -9,10 +9,11 @@
  * @component
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import phase4Client from '../../services/phase4Client';
 import WorkflowCanvas from '../WorkflowCanvas';
 import * as workflowBuilderService from '../../services/workflowBuilderService';
+import { logError } from '../../services/errorLoggingService';
 import {
   Box,
   Tabs,
@@ -116,6 +117,14 @@ const buildCapabilityDerivedPhases = (services = []) => {
 const UnifiedServicesPanel = () => {
   // Tabs state
   const [currentTab, setCurrentTab] = useState(0);
+  const pollingCancelledRef = useRef(false);
+
+  // Cancel polling on unmount
+  useEffect(() => {
+    return () => {
+      pollingCancelledRef.current = true;
+    };
+  }, []);
 
   // Services tab state
   const [services, setServices] = useState([]);
@@ -171,7 +180,10 @@ const UnifiedServicesPanel = () => {
       } catch (err) {
         const errorMessage = err.message || 'Failed to load services';
         setError(`Error loading services: ${errorMessage}`);
-        console.error('UnifiedServicesPanel error:', err);
+        logError(err, {
+          severity: 'warning',
+          customContext: { component: 'UnifiedServicesPanel' },
+        });
       }
     };
 
@@ -313,11 +325,12 @@ const UnifiedServicesPanel = () => {
       errorMessage: null,
     });
 
+    pollingCancelledRef.current = false;
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      if (pollingCancelledRef.current) return;
       try {
-        const statusResponse = await workflowBuilderService.getExecutionStatus(
-          executionId
-        );
+        const statusResponse =
+          await workflowBuilderService.getExecutionStatus(executionId);
         const status = String(statusResponse?.status || '').toLowerCase();
 
         setExecutionMonitor({
@@ -600,7 +613,11 @@ const UnifiedServicesPanel = () => {
                 )}
                 sx={{ height: 8, borderRadius: 8 }}
               />
-              <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.75 }}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                sx={{ mt: 0.75 }}
+              >
                 <Typography variant="caption" color="textSecondary">
                   {executionMonitor.completedPhases || 0}/
                   {executionMonitor.totalPhases || 0} phases completed
@@ -673,6 +690,8 @@ const UnifiedServicesPanel = () => {
                 alignItems: 'center',
                 minHeight: 600,
               }}
+              role="status"
+              aria-label="Loading workflows"
             >
               <CircularProgress />
             </Box>
@@ -693,8 +712,8 @@ const UnifiedServicesPanel = () => {
         <Box sx={{ p: 3 }}>
           {workflows.length === 0 ? (
             <Typography color="textSecondary" align="center" sx={{ py: 4 }}>
-              No custom workflows yet. Create one in the &quot;WORKFLOW EDITOR&quot;
-              tab.
+              No custom workflows yet. Create one in the &quot;WORKFLOW
+              EDITOR&quot; tab.
             </Typography>
           ) : (
             <TableContainer>

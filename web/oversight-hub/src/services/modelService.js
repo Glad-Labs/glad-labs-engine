@@ -1,8 +1,12 @@
+import logger from '@/lib/logger';
 /**
  * Model Management Service
  *
  * Provides model availability, selection, and information to the UI
  */
+
+import { getApiUrl } from '../config/apiConfig';
+import { getAuthToken } from './authService';
 
 class ModelService {
   constructor() {
@@ -16,16 +20,21 @@ class ModelService {
    */
   async getAvailableModels() {
     try {
-      const API_BASE_URL =
-        process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${API_BASE_URL}/api/models`, {
+      const API_BASE_URL = getApiUrl();
+      const token = getAuthToken();
+      const response = await fetch(`${API_BASE_URL}/api/models/available`, {
         headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
           Accept: 'application/json',
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        console.warn('Could not fetch available models, using defaults');
+        if (process.env.NODE_ENV !== 'production') {
+          logger.warn('Could not fetch available models, using defaults');
+        }
         return this.getDefaultModels();
       }
 
@@ -33,7 +42,9 @@ class ModelService {
       this.models = data.models || this.getDefaultModels();
       return this.models;
     } catch (error) {
-      console.warn('Error fetching models:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        logger.warn('Error fetching models:', error);
+      }
       return this.getDefaultModels();
     }
   }
@@ -89,8 +100,7 @@ class ModelService {
    */
   async getProviderStatus() {
     try {
-      const API_BASE_URL =
-        process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const API_BASE_URL = getApiUrl();
       const response = await fetch(`${API_BASE_URL}/api/models/status`, {
         headers: {
           Accept: 'application/json',
@@ -103,7 +113,9 @@ class ModelService {
 
       return await response.json();
     } catch (error) {
-      console.warn('Error fetching provider status:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        logger.warn('Error fetching provider status:', error);
+      }
       return this.getDefaultStatus();
     }
   }
@@ -134,33 +146,34 @@ class ModelService {
   getDefaultModels() {
     return [
       {
-        name: 'neural-chat:13b',
-        displayName: 'Neural Chat 13B (Local)',
-        provider: 'ollama',
-        isFree: true,
-        size: 'large',
-        estimatedVramGb: 12,
-        description: 'Excellent for blog generation. Optimized for RTX 5070.',
-        icon: '🖥️',
-      },
-      {
-        name: 'mistral:13b',
-        displayName: 'Mistral 13B (Local)',
-        provider: 'ollama',
-        isFree: true,
-        size: 'large',
-        estimatedVramGb: 12,
-        description: 'High-quality model. Great for RTX 5070.',
-        icon: '🖥️',
-      },
-      {
-        name: 'neural-chat:7b',
-        displayName: 'Neural Chat 7B (Local)',
+        name: 'qwen3:8b',
+        displayName: 'Qwen 3 8B (Local)',
         provider: 'ollama',
         isFree: true,
         size: 'medium',
-        estimatedVramGb: 7,
-        description: 'Fast and good quality. Works on smaller GPUs.',
+        estimatedVramGb: 6,
+        description: 'Fast and capable. Great for research and outline phases.',
+        icon: '🖥️',
+      },
+      {
+        name: 'qwen3.5:35b',
+        displayName: 'Qwen 3.5 35B (Local)',
+        provider: 'ollama',
+        isFree: true,
+        size: 'large',
+        estimatedVramGb: 12,
+        description:
+          'High-quality drafting and refinement. Optimized for RTX 5070.',
+        icon: '🖥️',
+      },
+      {
+        name: 'gemma3:27b',
+        displayName: 'Gemma 3 27B (Local)',
+        provider: 'ollama',
+        isFree: true,
+        size: 'large',
+        estimatedVramGb: 11,
+        description: 'Strong assessment and critique model.',
         icon: '🖥️',
       },
       {

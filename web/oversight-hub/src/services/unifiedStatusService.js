@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * Unified Status Service
  *
@@ -25,7 +26,7 @@ const getCurrentUserId = () => {
       return parsed.id || parsed.email || 'anonymous';
     }
   } catch (e) {
-    console.warn('Could not parse current user:', e);
+    logger.warn('Could not parse current user:', e);
   }
   return 'anonymous';
 };
@@ -274,7 +275,7 @@ export const unifiedStatusService = {
       }
 
       const response = await makeRequest(
-        `/api/tasks/metrics?${query.toString()}`,
+        `/api/tasks/metrics/summary?${query.toString()}`,
         'GET'
       );
       return response;

@@ -7,7 +7,7 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import useFormValidation from '../useFormValidation';
-import { isValidEmail, minLength } from '../formValidation';
+import { isValidEmail, minLength } from '../../utils/formValidation';
 
 describe('useFormValidation Hook', () => {
   // ============================================================================
@@ -18,7 +18,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: 'test@example.com', password: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -30,7 +30,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '', password: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -41,7 +41,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -61,7 +61,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '', password: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -78,7 +78,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: 'old@example.com' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -93,7 +93,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '', password: '', name: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -119,7 +119,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -134,7 +134,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -149,7 +149,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -172,7 +172,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '', password: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -198,7 +198,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: 'initial@example.com', password: 'Pass123!' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -223,7 +223,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -244,7 +244,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: 'original@example.com' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -265,7 +265,7 @@ describe('useFormValidation Hook', () => {
   // ============================================================================
   describe('Form Submission', () => {
     it('should call onSubmit with form values', async () => {
-      const onSubmit = jest.fn();
+      const onSubmit = vi.fn();
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: 'test@example.com', password: 'Pass123!' },
@@ -274,7 +274,7 @@ describe('useFormValidation Hook', () => {
       );
 
       const event = {
-        preventDefault: jest.fn(),
+        preventDefault: vi.fn(),
       };
 
       act(() => {
@@ -293,12 +293,12 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
       const event = {
-        preventDefault: jest.fn(),
+        preventDefault: vi.fn(),
       };
 
       act(() => {
@@ -317,7 +317,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: 'test@example.com' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -332,7 +332,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -351,7 +351,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { rememberMe: false },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -375,7 +375,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '', password: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
           validators: {
             email: isValidEmail,
             password: (value) => minLength(8)(value),
@@ -400,7 +400,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '', password: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -417,7 +417,7 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -450,7 +450,7 @@ describe('useFormValidation Hook', () => {
             audience: '',
             category: 'technology',
           },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
@@ -473,14 +473,17 @@ describe('useFormValidation Hook', () => {
       const { result } = renderHook(() =>
         useFormValidation({
           initialValues: { email: '', confirmEmail: '' },
-          onSubmit: jest.fn(),
+          onSubmit: vi.fn(),
         })
       );
 
       act(() => {
         result.current.setFieldValue('email', 'test@example.com');
         result.current.setFieldValue('confirmEmail', 'different@example.com');
+      });
 
+      // Check after state update has been applied
+      act(() => {
         if (
           result.current.values.email !== result.current.values.confirmEmail
         ) {
@@ -501,7 +504,7 @@ describe('useFormValidation Hook', () => {
         () =>
           useFormValidation({
             initialValues: { email: 'test@example.com' },
-            onSubmit: jest.fn(),
+            onSubmit: vi.fn(),
           }),
         { initialProps: undefined }
       );
@@ -529,7 +532,7 @@ describe('useFormValidation - Performance', () => {
     const { result } = renderHook(() =>
       useFormValidation({
         initialValues: largeForm,
-        onSubmit: jest.fn(),
+        onSubmit: vi.fn(),
       })
     );
     const end = performance.now();
@@ -542,7 +545,7 @@ describe('useFormValidation - Performance', () => {
     const { result } = renderHook(() =>
       useFormValidation({
         initialValues: { field: '' },
-        onSubmit: jest.fn(),
+        onSubmit: vi.fn(),
       })
     );
 

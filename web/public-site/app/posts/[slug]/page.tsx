@@ -1,13 +1,16 @@
+import { cache } from 'react';
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import * as Sentry from '@sentry/nextjs';
 import {
   BlogPostingSchema,
   BreadcrumbSchema,
 } from '../../../components/StructuredData';
 import { generateBlogPostingSchema } from '../../../lib/structured-data';
 import { GiscusWrapper } from '../../../components/GiscusWrapper';
+import sanitizeHtml from 'sanitize-html';
 import {
   buildMetaDescription,
   buildSEOTitle,
@@ -20,6 +23,31 @@ const API_BASE =
   'http://localhost:8000';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://glad-labs.com';
+
+// #945: Bounded generateStaticParams — pre-generate recent post pages at build time
+// for faster first-hit latency and better SEO indexing. Long-tail slugs still
+// work via ISR fallback (dynamicParams defaults to true in Next.js 15).
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/posts?offset=0&limit=50&published_only=true`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!response.ok) return [];
+    const data = await response.json();
+    const posts = Array.isArray(data?.posts)
+      ? data.posts
+      : Array.isArray(data?.data)
+        ? data.data
+        : [];
+    return posts
+      .filter((p: { slug?: string }) => p.slug)
+      .map((p: { slug: string }) => ({ slug: p.slug }));
+  } catch (error) {
+    Sentry.captureException(error);
+    return [];
+  }
+}
 
 interface Post {
   id: string;
@@ -39,19 +67,29 @@ interface Post {
   view_count: number;
 }
 
-// Fetch post data
-async function getPost(slug: string): Promise<Post | null> {
+// Fetch post data.
+// Wrapped with React.cache() so that generateMetadata and PostPage share a
+// single fetch result within the same server-side render request (issue #521).
+// The underlying fetch still uses ISR revalidation (next: { revalidate: 86400 })
+// for cross-request caching at the Next.js layer.
+const getPost = cache(async function getPost(
+  slug: string
+): Promise<Post | null> {
   try {
     // Use direct endpoint for single post by slug (much faster than fetching all posts)
     const response = await fetch(`${API_BASE}/api/posts/${slug}`, {
-      next: { revalidate: 86400 }, // ISR: revalidate every 24 hours - on-demand revalidation via webhook triggers updates
+      next: { revalidate: 3600 }, // ISR: revalidate every 1 hour (matches homepage) + on-demand revalidation via publish webhook
     });
 
     if (!response.ok) {
       if (response.status === 404) {
         return null;
       }
-      console.error(`Failed to fetch post: ${response.status}`);
+      // Non-404 API errors reported to Sentry so backend outages are visible
+      Sentry.captureMessage(
+        `Failed to fetch post "${slug}": HTTP ${response.status}`,
+        'error'
+      );
       return null;
     }
 
@@ -60,10 +98,11 @@ async function getPost(slug: string): Promise<Post | null> {
 
     return post || null;
   } catch (error) {
-    console.error(`Error fetching post "${slug}":`, error);
+    // Network/timeout errors reported to Sentry
+    Sentry.captureException(error, { extra: { slug } });
     return null;
   }
-}
+});
 
 // Generate metadata for the post
 export async function generateMetadata({
@@ -183,14 +222,16 @@ export default async function PostPage({
         />
       )}
 
-      <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         {/* Header with Featured Image */}
         <div className="pt-20 pb-12">
           {imageUrl && (
             <div className="relative w-full h-96 md:h-[500px] overflow-hidden">
+              {/* Decorative featured image — alt="" prevents screen reader re-announcement
+                  of the title already in the <h1> immediately below (WCAG 1.1.1). */}
               <Image
                 src={imageUrl}
-                alt={post.title}
+                alt=""
                 fill
                 priority
                 className="object-cover"
@@ -210,7 +251,7 @@ export default async function PostPage({
               </h1>
 
               {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-4 text-slate-400 mb-8">
+              <div className="flex flex-wrap items-center gap-4 text-slate-300 mb-8">
                 <time dateTime={post.published_at || post.created_at}>
                   {publishDate}
                 </time>
@@ -254,7 +295,30 @@ export default async function PostPage({
             >
               <div
                 dangerouslySetInnerHTML={{
-                  __html: post.content,
+                  __html: sanitizeHtml(post.content, {
+                    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+                      'img',
+                      'h1',
+                      'h2',
+                      'details',
+                      'summary',
+                      'figure',
+                      'figcaption',
+                    ]),
+                    allowedAttributes: {
+                      ...sanitizeHtml.defaults.allowedAttributes,
+                      img: [
+                        'src',
+                        'alt',
+                        'title',
+                        'width',
+                        'height',
+                        'loading',
+                      ],
+                      a: ['href', 'name', 'target', 'rel'],
+                      '*': ['class', 'id'],
+                    },
+                  }),
                 }}
               />
             </article>
@@ -270,6 +334,7 @@ export default async function PostPage({
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -297,7 +362,7 @@ export default async function PostPage({
             <GiscusWrapper postSlug={post.slug} postTitle={post.title} />
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

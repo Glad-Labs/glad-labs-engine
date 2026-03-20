@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * TaskMetadataDisplay - Display task metadata in grid format
  *
@@ -25,7 +26,7 @@ const getQualityBadge = (score) => {
   if (normalizedScore >= 75) return { label: 'Good', color: '#22c55e' };
   if (normalizedScore >= 50) return { label: 'Fair', color: '#eab308' };
   return { label: 'Poor', color: '#ef4444' };
-};;
+};
 
 const TaskMetadataDisplay = ({ task }) => {
   if (!task) return null;
@@ -41,7 +42,8 @@ const TaskMetadataDisplay = ({ task }) => {
   if (typeof taskMeta === 'string') {
     try {
       parsedTaskMeta = JSON.parse(taskMeta);
-    } catch {
+    } catch (error) {
+      logger.error('Failed to parse task metadata:', error);
       parsedTaskMeta = {};
     }
   }
@@ -51,7 +53,8 @@ const TaskMetadataDisplay = ({ task }) => {
   if (typeof result === 'string') {
     try {
       parsedResult = JSON.parse(result);
-    } catch {
+    } catch (error) {
+      logger.error('Failed to parse task result:', error);
       parsedResult = {};
     }
   }
@@ -103,6 +106,18 @@ const TaskMetadataDisplay = ({ task }) => {
     executionTime = `${diffMins} min${diffMins !== 1 ? 's' : ''}`;
   }
 
+  logger.debug('TaskMetadataDisplay task data', {
+    id: task.id,
+    model_used: task.model_used,
+    selected_model: task.selected_model,
+    model: task.model,
+    target_length: task.target_length,
+    parsedResult,
+    parsedTaskMeta,
+    extractedMetadata,
+    task,
+  });
+
   const metadataItems = [
     {
       label: 'Category',
@@ -130,7 +145,32 @@ const TaskMetadataDisplay = ({ task }) => {
     },
     {
       label: 'Word Count',
-      value: wordCount ? `${wordCount} words` : 'Not specified',
+      value: (() => {
+        const target = task.target_length || parsedTaskMeta.target_length;
+        const actual =
+          extractedMetadata.word_count ||
+          parsedTaskMeta.word_count ||
+          (parsedResult.content
+            ? parsedResult.content.split(/\s+/).length
+            : null);
+
+        if (target && actual) {
+          const percentage = ((actual / target) * 100).toFixed(0);
+          const color =
+            percentage >= 90 && percentage <= 110 ? '#4ade80' : '#eab308';
+          return (
+            <span>
+              {actual} / {target} words{' '}
+              <span style={{ color }}>({percentage}%)</span>
+            </span>
+          );
+        } else if (actual) {
+          return `${actual} words`;
+        } else if (target) {
+          return `Target: ${target} words`;
+        }
+        return 'Not specified';
+      })(),
     },
     {
       label: 'Quality Score',
@@ -170,6 +210,21 @@ const TaskMetadataDisplay = ({ task }) => {
     {
       label: 'Task Type',
       value: task.task_type || 'Standard',
+    },
+    {
+      label: 'Model Used',
+      value:
+        task.model_used ||
+        task.selected_model ||
+        task.model ||
+        parsedTaskMeta.model_used ||
+        parsedTaskMeta.model ||
+        parsedTaskMeta.selected_model ||
+        parsedResult.model_used ||
+        parsedResult.model ||
+        parsedResult.selected_model ||
+        'Not specified',
+      color: '#a78bfa',
     },
     {
       label: 'Published',

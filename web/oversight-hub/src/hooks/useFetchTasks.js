@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * useFetchTasks - Custom hook for task fetching with auto-refresh
  *
@@ -28,53 +29,98 @@ import { getTasks } from '../services/cofounderAgentClient';
 export const useFetchTasks = (
   page = 1,
   limit = 10,
-  autoRefreshInterval = 30000
+  autoRefreshInterval = 30000,
+  { status, search } = {}
 ) => {
   const [tasks, setTasks] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { setTasks: setStoreTasks } = useStore();
+
+  // Apply an optimistic in-place update to a single task by id.
+  // Avoids a full API re-fetch for intermediate state changes (e.g. RUNNING, PAUSED).
+  const updateTask = useCallback((taskId, patch) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId || t.task_id === taskId ? { ...t, ...patch } : t
+      )
+    );
+  }, []);
+  const setStoreTasks = useStore((state) => state.setTasks);
+  const isAuthenticated = useStore((state) => state.isAuthenticated);
+  const authInitialized = useStore((state) => state.authInitialized);
 
   // Core fetch function
   const fetchTasks = useCallback(async () => {
+    if (!authInitialized || !isAuthenticated) {
+      setLoading(false);
+      setError(null);
+      setTasks([]);
+      setTotal(0);
+      setStoreTasks([]);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      console.log('🔵 useFetchTasks: Fetching tasks...');
+      logger.log('🔵 useFetchTasks: Fetching tasks...');
       const offset = (page - 1) * limit;
-      const response = await getTasks(limit, offset);
 
-      console.log('🟢 useFetchTasks: Response received:', response);
+      try {
+        const response = await getTasks(limit, offset, { status, search });
+        logger.log('🟢 useFetchTasks: Response received:', response);
 
-      if (response && response.tasks && Array.isArray(response.tasks)) {
-        console.log(
-          '✅ useFetchTasks: Setting tasks to state:',
-          response.tasks.length,
-          'tasks'
+        // Handle success
+        if (response && response.success !== false) {
+          // API returns { tasks: [...], total: 74, offset: 0, limit: 10 }
+          const tasksData = response.tasks || response.data || [];
+          const totalCount = response.total || response.pagination?.total || 0;
+
+          logger.log(
+            `✅ useFetchTasks: Parsed ${tasksData.length} tasks out of ${totalCount} total`
+          );
+          setTasks(tasksData);
+          setTotal(totalCount);
+          setStoreTasks(tasksData);
+          return;
+        }
+      } catch (apiError) {
+        logger.error(
+          '🔴 useFetchTasks: API error - displaying error to user',
+          apiError.message
         );
-        setTasks(response.tasks);
-        setTotal(response.total || response.tasks.length);
-        setStoreTasks(response.tasks);
-      } else {
-        console.warn('❌ useFetchTasks: Unexpected response format:', response);
-        setError('Invalid response format from server');
+        setError(`Failed to fetch tasks: ${apiError.message}`);
         setTasks([]);
         setTotal(0);
+        setStoreTasks([]);
+        return;
       }
     } catch (err) {
-      console.error('❌ useFetchTasks: Error fetching tasks:', err);
-      setError(`Failed to fetch tasks: ${err.message}`);
+      logger.error('🔴 useFetchTasks: Unexpected error:', err);
+      setError(err.message || 'Failed to fetch tasks');
       setTasks([]);
       setTotal(0);
     } finally {
       setLoading(false);
     }
-  }, [page, limit, setStoreTasks]);
+  }, [
+    page,
+    limit,
+    status,
+    search,
+    setStoreTasks,
+    isAuthenticated,
+    authInitialized,
+  ]);
 
   // Auto-refresh effect
   useEffect(() => {
+    if (!authInitialized || !isAuthenticated) {
+      return;
+    }
+
     // Fetch immediately on mount or when page/limit changes
     fetchTasks();
 
@@ -83,7 +129,7 @@ export const useFetchTasks = (
       const interval = setInterval(fetchTasks, autoRefreshInterval);
       return () => clearInterval(interval);
     }
-  }, [fetchTasks, autoRefreshInterval]);
+  }, [fetchTasks, autoRefreshInterval, isAuthenticated, authInitialized]);
 
   return {
     tasks,
@@ -91,6 +137,7 @@ export const useFetchTasks = (
     loading,
     error,
     refetch: fetchTasks,
+    updateTask,
   };
 };
 

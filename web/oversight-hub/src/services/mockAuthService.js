@@ -1,3 +1,5 @@
+import logger from '@/lib/logger';
+import { authClient } from '../lib/authClient';
 /**
  * Mock GitHub OAuth Authentication Service
  * ⚠️ DEVELOPMENT ONLY - For local testing without GitHub credentials
@@ -16,7 +18,7 @@
 
 // Safety check - warn if accidentally enabled in non-dev
 if (process.env.NODE_ENV !== 'development') {
-  console.error(
+  logger.error(
     '❌ SECURITY WARNING: Mock auth service is being used in non-development mode! ' +
       'This is a security risk. Ensure REACT_APP_USE_MOCK_AUTH is not set in production.'
   );
@@ -39,6 +41,11 @@ export const generateMockGitHubAuthURL = (_clientId) => {
 
   // Store the code for the callback to retrieve
   sessionStorage.setItem('mock_auth_code', mockCode);
+
+  // Store the mock state so the CSRF check in handleOAuthCallbackNew passes.
+  // Without this, a stale oauth_state from a previous real GitHub attempt
+  // causes a "CSRF state mismatch" error on the callback page.
+  sessionStorage.setItem('oauth_state', 'mock_state');
 
   // In real flow, this would be:
   // https://github.com/login/oauth/authorize?client_id=...
@@ -75,20 +82,20 @@ export const exchangeCodeForToken = async (code) => {
       avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
     };
 
-    // Generate a temporary mock token (NEVER use in production)
-    const mockToken =
-      'mock_jwt_token_dev_' + Math.random().toString(36).substring(2, 15);
+    // Use dev-token format that backend recognizes (bypasses JWT validation)
+    // Backend auth_unified.py accepts tokens starting with "dev-" or equal to "dev-token"
+    const mockToken = 'dev-token';
 
-    // Store token and user data
-    localStorage.setItem('auth_token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
+    // Store both user profile and auth token via centralized auth client
+    authClient.setUser(mockUser);
+    authClient.setToken(mockToken);
 
     return {
       token: mockToken,
       user: mockUser,
     };
   } catch (error) {
-    console.error('Error in mock token exchange:', error);
+    logger.error('Error in mock token exchange:', error);
     throw error;
   }
 };
@@ -98,16 +105,10 @@ export const exchangeCodeForToken = async (code) => {
  */
 export const verifySession = async () => {
   try {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      return null;
-    }
-
-    // If token exists, consider session valid
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    // In mock mode we only rely on a cached local profile.
+    return authClient.getUser();
   } catch (error) {
-    console.error('Error verifying mock session:', error);
+    logger.error('Error verifying mock session:', error);
     return null;
   }
 };
@@ -116,7 +117,6 @@ export const verifySession = async () => {
  * Logout - removes stored credentials
  */
 export const logout = async () => {
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('user');
+  authClient.logout();
   sessionStorage.removeItem('mock_auth_code');
 };

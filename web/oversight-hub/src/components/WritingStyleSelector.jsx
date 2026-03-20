@@ -30,10 +30,10 @@ import {
 export const WritingStyleSelector = ({
   value,
   onChange,
-  required,
-  variant,
-  disabled,
-  includeNone,
+  required = false,
+  variant = 'outlined',
+  disabled = false,
+  includeNone = true,
 }) => {
   const [samples, setSamples] = useState([]);
   const [activeSample, setActiveSample] = useState(null);
@@ -69,8 +69,13 @@ export const WritingStyleSelector = ({
   if (loading) {
     return (
       <FormControl fullWidth disabled>
-        <InputLabel>Writing Style</InputLabel>
-        <Select value="" disabled>
+        <InputLabel id="writing-style-label">Writing Style</InputLabel>
+        <Select
+          labelId="writing-style-label"
+          label="Writing Style"
+          value=""
+          disabled
+        >
           <MenuItem value="">
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CircularProgress size={20} />
@@ -85,8 +90,8 @@ export const WritingStyleSelector = ({
   if (error) {
     return (
       <FormControl fullWidth error disabled>
-        <InputLabel>Writing Style</InputLabel>
-        <Select value="">
+        <InputLabel id="writing-style-label">Writing Style</InputLabel>
+        <Select labelId="writing-style-label" label="Writing Style" value="">
           <MenuItem value="">Error loading samples</MenuItem>
         </Select>
         <FormHelperText>{error}</FormHelperText>
@@ -97,8 +102,8 @@ export const WritingStyleSelector = ({
   if (samples.length === 0) {
     return (
       <FormControl fullWidth disabled>
-        <InputLabel>Writing Style</InputLabel>
-        <Select value="">
+        <InputLabel id="writing-style-label">Writing Style</InputLabel>
+        <Select labelId="writing-style-label" label="Writing Style" value="">
           <MenuItem value="">No writing samples available</MenuItem>
         </Select>
         <FormHelperText>
@@ -110,8 +115,9 @@ export const WritingStyleSelector = ({
 
   return (
     <FormControl fullWidth required={required} variant={variant}>
-      <InputLabel>Writing Style</InputLabel>
+      <InputLabel id="writing-style-label">Writing Style</InputLabel>
       <Select
+        labelId="writing-style-label"
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
@@ -150,13 +156,6 @@ export const WritingStyleSelector = ({
       </FormHelperText>
     </FormControl>
   );
-};
-
-WritingStyleSelector.defaultProps = {
-  required: false,
-  variant: 'outlined',
-  disabled: false,
-  includeNone: true,
 };
 
 export default WritingStyleSelector;

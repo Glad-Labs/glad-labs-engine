@@ -17,9 +17,7 @@ import useStore from '../store/useStore';
  * Refactored to use base component: 401 → 145 lines (-64% boilerplate).
  */
 const OrchestratorErrorMessage = ({ message, onRetry, onCancel }) => {
-  const { failExecution } = useStore((state) => ({
-    failExecution: state.failExecution,
-  }));
+  const failExecution = useStore((state) => state.failExecution);
 
   const errorMessage = message.error || 'An unknown error occurred';
   const errorType = message.errorType || 'error';
@@ -181,7 +179,7 @@ const OrchestratorErrorMessage = ({ message, onRetry, onCancel }) => {
       label: 'Cancel',
       onClick: handleCancel,
       variant: 'outlined',
-      icon: CloseIcon,
+      icon: <CloseIcon />,
     },
     ...(retryable
       ? [
@@ -189,7 +187,7 @@ const OrchestratorErrorMessage = ({ message, onRetry, onCancel }) => {
             label: 'Retry',
             onClick: handleRetry,
             variant: 'contained',
-            icon: RefreshIcon,
+            icon: <RefreshIcon />,
             sx: { backgroundColor: 'white', color: severityInfo.color },
           },
         ]

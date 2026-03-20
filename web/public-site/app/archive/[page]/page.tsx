@@ -1,13 +1,8 @@
-'use client';
-
-import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_FASTAPI_URL ||
-  'http://localhost:8000';
+import type { Metadata } from 'next';
+import * as Sentry from '@sentry/nextjs';
+import logger from '@/lib/logger';
 
 interface Post {
   id: string;
@@ -28,47 +23,74 @@ interface ArchivePageProps {
 
 const POSTS_PER_PAGE = 10;
 
-export default function ArchivePage({ params }: ArchivePageProps) {
-  const resolvedParams = use(params);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const FASTAPI_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_FASTAPI_URL ||
+  'http://localhost:8000';
 
-  const pageNum = parseInt(resolvedParams.page) || 1;
+async function getArchivePosts(page: number) {
+  try {
+    const offset = (page - 1) * POSTS_PER_PAGE;
+    const url = `${FASTAPI_URL}/api/posts?offset=${offset}&limit=${POSTS_PER_PAGE}&published_only=true`;
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const skip = (pageNum - 1) * POSTS_PER_PAGE;
-        const response = await fetch(
-          `${API_BASE}/api/posts?skip=${skip}&limit=${POSTS_PER_PAGE}&status=published`
-        );
+    const response = await fetch(url, {
+      next: { revalidate: 3600 }, // ISR: revalidate every hour
+      headers: { 'Content-Type': 'application/json' },
+    });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch posts');
-        }
+    if (!response.ok) {
+      return { posts: [], total: 0 };
+    }
 
-        const data = await response.json();
-        setPosts(data.data || data.items || data || []);
-        const total =
-          data.meta?.pagination?.total || data.total || data.length || 0;
-        setTotalPages(Math.ceil(total / POSTS_PER_PAGE));
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        setPosts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const data = await response.json();
+    const posts: Post[] =
+      data?.posts ||
+      data?.data ||
+      data?.items ||
+      (Array.isArray(data) ? data : []);
+    const total =
+      data?.total ?? data?.meta?.pagination?.total ?? posts.length ?? 0;
 
-    fetchPosts();
-  }, [pageNum]);
+    return { posts, total };
+  } catch (error) {
+    logger.error('Error fetching archive posts:', error);
+    Sentry.captureException(error);
+    return { posts: [], total: 0 };
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: ArchivePageProps): Promise<Metadata> {
+  const { page } = await params;
+  const pageNum = parseInt(page) || 1;
+
+  return {
+    title: `Article Archive — Page ${pageNum} | Glad Labs`,
+    description: `Browse our collection of in-depth articles and insights. Page ${pageNum} of the Glad Labs article archive.`,
+    openGraph: {
+      title: `Article Archive — Page ${pageNum} | Glad Labs`,
+      description: `Browse our collection of in-depth articles and insights. Page ${pageNum}.`,
+      type: 'website',
+    },
+  };
+}
+
+export async function generateStaticParams() {
+  // Pre-generate the first 5 archive pages at build time
+  return Array.from({ length: 5 }, (_, i) => ({
+    page: String(i + 1),
+  }));
+}
+
+export default async function ArchivePage({ params }: ArchivePageProps) {
+  const { page } = await params;
+  const pageNum = parseInt(page) || 1;
+  const { posts, total } = await getArchivePosts(pageNum);
+  const totalPages = Math.ceil(total / POSTS_PER_PAGE);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header Section */}
       <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -86,28 +108,8 @@ export default function ArchivePage({ params }: ArchivePageProps) {
       {/* Content Section */}
       <div className="px-4 sm:px-6 lg:px-8 pb-20">
         <div className="max-w-4xl mx-auto">
-          {/* Loading State */}
-          {loading && (
-            <div className="text-center py-12">
-              <div className="inline-block">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
-              </div>
-              <p className="text-slate-400 mt-4">Loading articles...</p>
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && !loading && (
-            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6 text-center">
-              <p className="text-red-400">{error}</p>
-              <p className="text-slate-400 text-sm mt-2">
-                Please try refreshing the page
-              </p>
-            </div>
-          )}
-
           {/* Posts Grid */}
-          {!loading && !error && posts.length > 0 && (
+          {posts.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 {posts.map((post) => (
@@ -132,7 +134,12 @@ export default function ArchivePage({ params }: ArchivePageProps) {
                     <div className="flex flex-col justify-between flex-1 p-6">
                       <div>
                         <h2 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors line-clamp-2">
-                          {post.title}
+                          <Link
+                            href={`/posts/${post.slug}`}
+                            className="hover:text-cyan-400 transition-colors"
+                          >
+                            {post.title}
+                          </Link>
                         </h2>
                         {post.excerpt && (
                           <p className="text-slate-400 line-clamp-3 mb-4 text-sm">
@@ -145,7 +152,7 @@ export default function ArchivePage({ params }: ArchivePageProps) {
                       <div className="flex flex-col gap-3 pt-4 border-t border-slate-700/50">
                         <div className="flex items-center justify-between text-xs text-slate-500">
                           {post.published_at && (
-                            <time>
+                            <time dateTime={post.published_at}>
                               {new Date(post.published_at).toLocaleDateString(
                                 'en-US',
                                 {
@@ -162,6 +169,8 @@ export default function ArchivePage({ params }: ArchivePageProps) {
                         </div>
                         <Link
                           href={`/posts/${post.slug}`}
+                          aria-hidden="true"
+                          tabIndex={-1}
                           className="text-cyan-400 hover:text-cyan-300 font-semibold text-sm transition-colors flex items-center gap-2 self-start"
                         >
                           Read More
@@ -170,6 +179,7 @@ export default function ArchivePage({ params }: ArchivePageProps) {
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
+                            aria-hidden="true"
                           >
                             <path
                               strokeLinecap="round"
@@ -187,13 +197,17 @@ export default function ArchivePage({ params }: ArchivePageProps) {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2">
+                <nav
+                  className="flex items-center justify-center gap-2"
+                  aria-label="Archive pagination"
+                >
                   {pageNum > 1 && (
                     <Link
                       href={`/archive/${pageNum - 1}`}
                       className="px-4 py-2 rounded-lg bg-slate-800 text-cyan-400 hover:bg-slate-700 hover:text-cyan-300 transition-colors border border-slate-700 hover:border-cyan-400/50"
+                      aria-label={`Go to previous page (page ${pageNum - 1})`}
                     >
-                      ← Previous
+                      &larr; Previous
                     </Link>
                   )}
 
@@ -215,6 +229,10 @@ export default function ArchivePage({ params }: ArchivePageProps) {
                         <Link
                           key={pageToShow}
                           href={`/archive/${pageToShow}`}
+                          aria-current={
+                            pageNum === pageToShow ? 'page' : undefined
+                          }
+                          aria-label={`Go to page ${pageToShow}`}
                           className={`px-3 py-2 rounded-lg transition-colors border ${
                             pageNum === pageToShow
                               ? 'bg-cyan-400 text-slate-900 border-cyan-400 font-semibold'
@@ -231,23 +249,23 @@ export default function ArchivePage({ params }: ArchivePageProps) {
                     <Link
                       href={`/archive/${pageNum + 1}`}
                       className="px-4 py-2 rounded-lg bg-slate-800 text-cyan-400 hover:bg-slate-700 hover:text-cyan-300 transition-colors border border-slate-700 hover:border-cyan-400/50"
+                      aria-label={`Go to next page (page ${pageNum + 1})`}
                     >
-                      Next →
+                      Next &rarr;
                     </Link>
                   )}
-                </div>
+                </nav>
               )}
             </>
-          )}
-
-          {/* Empty State */}
-          {!loading && !error && posts.length === 0 && (
+          ) : (
+            /* Empty State */
             <div className="text-center py-12">
               <svg
                 className="w-16 h-16 text-slate-600 mx-auto mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -264,6 +282,6 @@ export default function ArchivePage({ params }: ArchivePageProps) {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

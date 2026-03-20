@@ -1,3 +1,4 @@
+import logger from './logger';
 import { formatDateISO } from './content-utils';
 // Image URL utilities for structured data
 import { getImageURL } from './api-fastapi';
@@ -305,7 +306,9 @@ export function schemaToJSON(schema) {
   try {
     return JSON.stringify(schema);
   } catch (error) {
-    console.error('Error converting schema to JSON:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      logger.error('Error converting schema to JSON:', error);
+    }
     return '';
   }
 }

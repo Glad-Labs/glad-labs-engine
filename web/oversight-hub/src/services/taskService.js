@@ -9,6 +9,7 @@
  */
 
 import { makeRequest } from './cofounderAgentClient';
+import logger from '@/lib/logger';
 
 const API_TIMEOUT = 30000; // 30 seconds
 
@@ -85,30 +86,24 @@ export const getTask = async (taskId) => {
  * @throws {Error} If creation fails
  */
 export const createTask = async (taskData) => {
-  // Service layer expects action request format: {params, context}
-  const serviceRequest = {
-    params: taskData,
-    context: {
-      source: 'manual_form',
-      timestamp: new Date().toISOString(),
-    },
-  };
-
+  // Call the unified task endpoint directly — it creates the DB record AND
+  // triggers background content generation via asyncio.create_task().
+  // The service layer (/api/services/tasks/actions/create_task) only creates
+  // the record without triggering generation.
   const result = await makeRequest(
-    '/api/services/tasks/actions/create_task',
+    '/api/tasks',
     'POST',
-    serviceRequest,
+    taskData,
     false,
     null,
-    API_TIMEOUT
+    60000 // 60s — content generation starts in background
   );
 
   if (result.error) {
     throw new Error(`Could not create task: ${result.error}`);
   }
 
-  // Service layer returns ActionResult with .data property
-  return result.data?.id || result.id || result;
+  return result;
 };
 
 /**
@@ -177,30 +172,24 @@ export const revalidatePublicSite = async (paths = []) => {
   try {
     // Call the FastAPI backend which has the real secret
     // Backend will safely call the public site revalidate endpoint
-    const response = await fetch(
-      `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/revalidate-cache`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ paths }),
-      }
+    // Uses makeRequest to ensure Authorization header is included (#955)
+    const result = await makeRequest(
+      '/api/revalidate-cache',
+      'POST',
+      { paths },
+      false,
+      null,
+      10000 // 10s timeout — revalidation shouldn't block long
     );
 
-    if (!response.ok) {
-      console.warn(
-        `⚠️  Frontend revalidation returned status ${response.status}`
-      );
-      // Don't throw - revalidation failure shouldn't break the publish flow
-      return { success: false, status: response.status };
+    if (result.error) {
+      logger.warn('Revalidation returned error:', result.error);
+      return { success: false, error: result.error };
     }
 
-    const data = await response.json();
-    console.log('✅ Frontend cache revalidated:', data);
-    return data;
+    return result;
   } catch (error) {
-    console.warn('⚠️  Could not trigger frontend revalidation:', error.message);
+    logger.warn('Could not trigger frontend revalidation:', error.message);
     // Don't throw - publish should succeed even if revalidation fails
     return { success: false, error: error.message };
   }
@@ -231,10 +220,15 @@ export const publishTask = async (taskId) => {
 
   // Trigger frontend cache revalidation after successful publish
   // This is non-blocking - doesn't fail the publish if it fails
+  // Note: Backend also triggers revalidation (#955), but this is a safety net
   if (result && typeof result === 'object') {
-    // Revalidate homepage and archive pages
-    revalidatePublicSite(['/', '/archive']).catch((err) => {
-      console.warn('Revalidation failed silently:', err);
+    const paths = ['/', '/archive', '/posts'];
+    // Include specific post slug path if available
+    if (result.post_slug) {
+      paths.push(`/posts/${result.post_slug}`);
+    }
+    revalidatePublicSite(paths).catch((err) => {
+      logger.warn('Revalidation failed silently:', err);
     });
   }
 
@@ -249,11 +243,20 @@ export const publishTask = async (taskId) => {
  * @returns {Promise<object>} Updated task object
  * @throws {Error} If rejection fails
  */
-export const rejectTask = async (taskId, reason = '') => {
+export const rejectTask = async (
+  taskId,
+  reason = 'Rejected',
+  feedback = null,
+  allow_revisions = true
+) => {
   const result = await makeRequest(
     `/api/tasks/${taskId}/reject`,
     'POST',
-    { reason },
+    {
+      reason: reason || 'Rejected',
+      feedback: feedback !== null ? feedback : reason || 'Rejected',
+      allow_revisions,
+    },
     false,
     null,
     API_TIMEOUT
@@ -322,6 +325,51 @@ export const getContentTask = async (taskId) => {
  * @returns {Promise<void>}
  * @throws {Error} If deletion fails
  */
+export const pauseTask = async (taskId) => {
+  const result = await makeRequest(
+    `/api/tasks/${taskId}/pause`,
+    'POST',
+    null,
+    false,
+    null,
+    API_TIMEOUT
+  );
+  if (result.error) {
+    throw new Error(`Could not pause task: ${result.error}`);
+  }
+  return result;
+};
+
+export const resumeTask = async (taskId) => {
+  const result = await makeRequest(
+    `/api/tasks/${taskId}/resume`,
+    'POST',
+    null,
+    false,
+    null,
+    API_TIMEOUT
+  );
+  if (result.error) {
+    throw new Error(`Could not resume task: ${result.error}`);
+  }
+  return result;
+};
+
+export const cancelTask = async (taskId) => {
+  const result = await makeRequest(
+    `/api/tasks/${taskId}/cancel`,
+    'POST',
+    null,
+    false,
+    null,
+    API_TIMEOUT
+  );
+  if (result.error) {
+    throw new Error(`Could not cancel task: ${result.error}`);
+  }
+  return result;
+};
+
 export const deleteContentTask = async (taskId) => {
   const result = await makeRequest(
     `/api/tasks/${taskId}`,

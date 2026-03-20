@@ -211,9 +211,9 @@ test.describe('Error Handling', () => {
     // Go offline
     await page.context().setOffline(true);
 
-    const goto = page.goto('/');
+    const goto = page.goto('/').catch(() => {});
 
-    // Should handle gracefully
+    // Should handle gracefully (may throw on network error)
     expect(goto).toBeDefined();
 
     // Go back online

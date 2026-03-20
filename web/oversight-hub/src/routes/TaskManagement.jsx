@@ -8,7 +8,9 @@
  * - formatTaskForDisplay (centralized task formatting)
  */
 import React, { useState } from 'react';
+import logger from '@/lib/logger';
 import useStore from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { bulkUpdateTasks } from '../services/cofounderAgentClient';
 import useFetchTasks from '../hooks/useFetchTasks';
 import CreateTaskModal from '../components/tasks/CreateTaskModal';
@@ -18,7 +20,9 @@ import { StatusDashboardMetrics } from '../components/tasks/StatusComponents';
 import './TaskManagement.css';
 
 function TaskManagement() {
-  const { setSelectedTask } = useStore();
+  const { setSelectedTask } = useStore(
+    useShallow((s) => ({ setSelectedTask: s.setSelectedTask }))
+  );
   const [sortBy, setSortBy] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
   const [statusFilter, setStatusFilter] = useState('');
@@ -55,7 +59,6 @@ function TaskManagement() {
 
   // Handler to open detail modal for editing
   const handleEditTask = (task) => {
-    console.log('👁️ handleEditTask called with task:', task);
     setSelectedTask(task);
     setShowDetailModal(true);
   };
@@ -84,7 +87,7 @@ function TaskManagement() {
         setError('Failed to reject task');
       }
     } catch (err) {
-      console.error('Error rejecting task:', err);
+      logger.error('Error rejecting task:', err);
       setError(`Failed to reject task: ${err.message}`);
     } finally {
       setDeleting(false);
@@ -113,7 +116,7 @@ function TaskManagement() {
         setError(`Failed to ${action} task`);
       }
     } catch (err) {
-      console.error(`Error performing ${action} on task:`, err);
+      logger.error(`Error performing ${action} on task:`, err);
       setError(`Failed to ${action} task: ${err.message}`);
     }
   };
@@ -178,18 +181,29 @@ function TaskManagement() {
 
       {/* Error/Success Messages */}
       {error && (
-        <div className="alert alert-error" style={{ marginBottom: '20px' }}>
+        <div
+          className="alert alert-error"
+          role="alert"
+          aria-live="assertive"
+          style={{ marginBottom: '20px' }}
+        >
           <span>{error}</span>
           <button
             onClick={() => setError(null)}
+            aria-label="Dismiss error"
             style={{ marginLeft: 'auto', cursor: 'pointer' }}
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
       )}
       {successMessage && (
-        <div className="alert alert-success" style={{ marginBottom: '20px' }}>
+        <div
+          className="alert alert-success"
+          role="status"
+          aria-live="polite"
+          style={{ marginBottom: '20px' }}
+        >
           <span>{successMessage}</span>
         </div>
       )}
@@ -290,36 +304,112 @@ function TaskManagement() {
                 <tr>
                   <th
                     onClick={() => handleSort('task_name')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort('task_name');
+                      }
+                    }}
+                    tabIndex={0}
+                    role="columnheader"
+                    aria-sort={
+                      sortBy === 'task_name'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : 'none'
+                    }
                     className={`sortable ${sortBy === 'task_name' ? 'active-sort' : ''}`}
                   >
-                    Task{' '}
-                    {sortBy === 'task_name' &&
-                      (sortDirection === 'asc' ? '↑' : '↓')}
+                    Task
+                    {sortBy === 'task_name' && (
+                      <span aria-hidden="true">
+                        {' '}
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
                   </th>
                   <th
                     onClick={() => handleSort('topic')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort('topic');
+                      }
+                    }}
+                    tabIndex={0}
+                    role="columnheader"
+                    aria-sort={
+                      sortBy === 'topic'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : 'none'
+                    }
                     className={`sortable ${sortBy === 'topic' ? 'active-sort' : ''}`}
                   >
-                    Topic{' '}
-                    {sortBy === 'topic' &&
-                      (sortDirection === 'asc' ? '↑' : '↓')}
+                    Topic
+                    {sortBy === 'topic' && (
+                      <span aria-hidden="true">
+                        {' '}
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
                   </th>
                   <th
                     onClick={() => handleSort('status')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort('status');
+                      }
+                    }}
+                    tabIndex={0}
+                    role="columnheader"
+                    aria-sort={
+                      sortBy === 'status'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : 'none'
+                    }
                     className={`sortable ${sortBy === 'status' ? 'active-sort' : ''}`}
                   >
-                    Status{' '}
-                    {sortBy === 'status' &&
-                      (sortDirection === 'asc' ? '↑' : '↓')}
+                    Status
+                    {sortBy === 'status' && (
+                      <span aria-hidden="true">
+                        {' '}
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
                   </th>
                   <th>Progress</th>
                   <th
                     onClick={() => handleSort('created_at')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSort('created_at');
+                      }
+                    }}
+                    tabIndex={0}
+                    role="columnheader"
+                    aria-sort={
+                      sortBy === 'created_at'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : 'none'
+                    }
                     className={`sortable ${sortBy === 'created_at' ? 'active-sort' : ''}`}
                   >
-                    Created{' '}
-                    {sortBy === 'created_at' &&
-                      (sortDirection === 'asc' ? '↑' : '↓')}
+                    Created
+                    {sortBy === 'created_at' && (
+                      <span aria-hidden="true">
+                        {' '}
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
                   </th>
                   <th>Actions</th>
                 </tr>
@@ -329,7 +419,16 @@ function TaskManagement() {
                   <tr
                     key={task.id}
                     className={`status-${task.status?.toLowerCase()} clickable-row`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${task.task_name || task.topic || 'task'}`}
                     onClick={() => handleEditTask(task)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleEditTask(task);
+                      }
+                    }}
                     title="Click to view details"
                   >
                     <td className="task-name">
@@ -401,9 +500,10 @@ function TaskManagement() {
                         className="action-btn view"
                         onClick={() => handleEditTask(task)}
                         title="View Details"
+                        aria-label="View Details"
                         disabled={deleting}
                       >
-                        👁️
+                        <span aria-hidden="true">👁️</span>
                       </button>
                       {task.status?.toLowerCase() === 'running' && (
                         <>
@@ -411,17 +511,19 @@ function TaskManagement() {
                             className="action-btn pause"
                             onClick={() => handleTaskAction(task.id, 'pause')}
                             title="Pause Task"
+                            aria-label="Pause Task"
                             disabled={deleting}
                           >
-                            ⏸️
+                            <span aria-hidden="true">⏸️</span>
                           </button>
                           <button
                             className="action-btn cancel"
                             onClick={() => handleTaskAction(task.id, 'cancel')}
                             title="Cancel Task"
+                            aria-label="Cancel Task"
                             disabled={deleting}
                           >
-                            ⏹️
+                            <span aria-hidden="true">⏹️</span>
                           </button>
                         </>
                       )}
@@ -430,9 +532,10 @@ function TaskManagement() {
                           className="action-btn resume"
                           onClick={() => handleTaskAction(task.id, 'resume')}
                           title="Resume Task"
+                          aria-label="Resume Task"
                           disabled={deleting}
                         >
-                          ▶️
+                          <span aria-hidden="true">▶️</span>
                         </button>
                       )}
                       {task.status?.toLowerCase() === 'failed' && (
@@ -440,18 +543,20 @@ function TaskManagement() {
                           className="action-btn retry"
                           onClick={() => handleTaskAction(task.id, 'retry')}
                           title="Retry Task"
+                          aria-label="Retry Task"
                           disabled={deleting}
                         >
-                          🔄
+                          <span aria-hidden="true">🔄</span>
                         </button>
                       )}
                       <button
                         className="action-btn delete"
                         onClick={(e) => handleDeleteTask(e, task.id)}
                         title="Reject Task"
+                        aria-label="Reject Task"
                         disabled={deleting}
                       >
-                        🗑️
+                        <span aria-hidden="true">🗑️</span>
                       </button>
                     </td>
                   </tr>
@@ -473,6 +578,7 @@ function TaskManagement() {
                     disabled={page === 1}
                     className="pagination-btn"
                     title="Previous page"
+                    aria-label="Previous page"
                   >
                     ← Previous
                   </button>
@@ -501,6 +607,8 @@ function TaskManagement() {
                               page === pageNum ? 'active' : ''
                             }`}
                             title={`Go to page ${pageNum}`}
+                            aria-label={`Go to page ${pageNum}`}
+                            aria-current={page === pageNum ? 'page' : undefined}
                           >
                             {pageNum}
                           </button>
@@ -518,6 +626,7 @@ function TaskManagement() {
                     disabled={page === Math.ceil(total / limit)}
                     className="pagination-btn"
                     title="Next page"
+                    aria-label="Next page"
                   >
                     Next →
                   </button>

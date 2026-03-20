@@ -2,6 +2,8 @@
 
 React admin dashboard for monitoring and controlling the Glad Labs AI Co-Founder system.
 
+> **Documentation Update (Feb 21, 2026):** 18 legacy audit and refactoring docs have been moved to `archive/cleanup-feb2026/` for better organization. See [archive index](archive/cleanup-feb2026/INDEX.md) for access.
+
 **Status:** ✅ Production Ready  
 **Technology:** React 18 + Material-UI + Zustand  
 **Port:** 3001
@@ -203,16 +205,18 @@ GET  /api/agents/logs             # View agent logs
 
 ### Configuration
 
-In `src/lib/api.js`:
+In `src/lib/api.js` (uses Vite conventions with `import.meta.env.VITE_*`):
 
 ```javascript
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const createTask = async (taskData) => {
   const response = await axios.post(`${API_BASE_URL}/api/tasks`, taskData);
   return response.data;
 };
 ```
+
+**Note:** This application uses Vite, not Create React App, so environment variables use `VITE_*` prefix (accessed via `import.meta.env.*`), not `REACT_APP_*` prefix.
 
 ---
 
@@ -336,13 +340,17 @@ npm run build
 
 ### Environment Variables
 
-Set in `.env` or `.env.local`:
+Set in `.env.local` (uses Vite `VITE_*` convention):
 
 ```bash
-REACT_APP_API_URL=https://api.railway.app      # Backend URL
-REACT_APP_STRAPI_URL=https://cms.railway.app   # Strapi URL
-REACT_APP_DEBUG=false                           # Debug mode
+VITE_API_BASE_URL=https://api.railway.app      # Backend URL
+VITE_API_URL=https://api.railway.app           # Alternative backend URL
+VITE_WS_BASE_URL=https://api.railway.app       # WebSocket URL
+VITE_GH_OAUTH_CLIENT_ID=your_github_client_id  # GitHub OAuth
+VITE_USE_MOCK_AUTH=false                       # Use mock auth (dev only)
 ```
+
+**Note:** This is a Vite application, so use `VITE_*` prefix for environment variables (accessed via `import.meta.env.VITE_*` in code).
 
 ### Deploy to Vercel
 
@@ -394,31 +402,16 @@ vercel --prod
 - **Material-UI Docs:** https://mui.com/material-ui/
 - **Zustand Docs:** https://github.com/pmndrs/zustand
 - **React Docs:** https://react.dev
-- **Glad Labs Architecture:** [docs/02-ARCHITECTURE_AND_DESIGN.md](../../docs/02-ARCHITECTURE_AND_DESIGN.md)
+- **Glad Labs Architecture:** [docs/02-Architecture/System-Design.md](../../docs/02-Architecture/System-Design.md)
 - **API Documentation:** [docs/reference/API_CONTRACT_CONTENT_CREATION.md](../../docs/reference/API_CONTRACT_CONTENT_CREATION.md)
 
 ---
 
-<<<<<<< HEAD
+## 📖 Resources & Documentation
 
-- **Glad Labs Architecture:** [docs/02-ARCHITECTURE_AND_DESIGN.md](../../docs/02-ARCHITECTURE_AND_DESIGN.md)
-- **API Documentation:** [docs/reference/API_CONTRACT_CONTENT_CREATION.md](../../docs/reference/API_CONTRACT_CONTENT_CREATION.md)
-- **Components:** [docs/components/](../../docs/components/)
-
-**See full test documentation:**
-
-- **[Setup Guide](../../docs/01-SETUP_AND_OVERVIEW.md)** - Getting started
-- **[Architecture](../../docs/02-ARCHITECTURE_AND_DESIGN.md)** - System design
-- **[Development Workflow](../../docs/04-DEVELOPMENT_WORKFLOW.md)** - Testing & CI/CD
-- **[Operations Guide](../../docs/06-OPERATIONS_AND_MAINTENANCE.md)** - Production support
-- **[Agent System](../agents/README.md)** - Individual agent documentation
-- **[Testing Guide](../../docs/reference/TESTING.md)** - Comprehensive test documentation
-
----
-
-=======
-
-> > > > > > > feat/refine
-> > > > > > > **Maintained by:** Glad Labs Development Team  
-> > > > > > > **Last Updated:** October 26, 2025  
-> > > > > > > **Status:** ✅ Production Ready | PostgreSQL Backend | Real-time Updates
+- **[Setup Guide](../../docs/01-Getting-Started/Local-Development-Setup.md)** - Getting started
+- **[Architecture](../../docs/02-Architecture/System-Design.md)** - System design
+- **[Development Workflow](../../docs/04-Development/Development-Workflow.md)** - Testing & CI/CD
+- **[Operations Guide](../../docs/05-Operations/Operations-Maintenance.md)** - Production support
+- **[Testing Guide](../../docs/04-Development/Testing-Guide.md)** - Comprehensive test documentation
+- **[API Documentation](../../docs/reference/API_CONTRACTS.md)** - REST API specifications

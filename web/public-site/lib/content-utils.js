@@ -1,3 +1,4 @@
+import logger from './logger';
 import matter from 'gray-matter';
 
 /**
@@ -37,7 +38,9 @@ export function formatDate(dateString) {
       day: 'numeric',
     });
   } catch (error) {
-    console.error('Date formatting error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      logger.error('Date formatting error:', error);
+    }
     return '';
   }
 }
@@ -59,7 +62,9 @@ export function formatDateISO(dateString) {
 
     return date.toISOString().split('T')[0];
   } catch (error) {
-    console.error('ISO date formatting error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      logger.error('ISO date formatting error:', error);
+    }
     return '';
   }
 }
@@ -121,7 +126,9 @@ export function formatDateRelative(dateString) {
     const years = Math.floor(seconds / 31536000);
     return `${years} year${years > 1 ? 's' : ''} ago`;
   } catch (error) {
-    console.error('Relative date formatting error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      logger.error('Relative date formatting error:', error);
+    }
     return '';
   }
 }
@@ -244,7 +251,9 @@ export function parseFrontmatter(markdownContent) {
     const { data, content } = matter(markdownContent);
     return { frontmatter: data, content };
   } catch (error) {
-    console.error('Frontmatter parsing error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      logger.error('Frontmatter parsing error:', error);
+    }
     return { frontmatter: {}, content: markdownContent };
   }
 }
@@ -314,4 +323,24 @@ export function getInitials(name) {
     .join('')
     .toUpperCase()
     .substring(0, 2);
+}
+
+/**
+ * Strip HTML tags from content
+ * Used for word counting and plain text extraction
+ */
+export function stripHtmlTags(html) {
+  if (!html || typeof html !== 'string') {
+    return '';
+  }
+
+  return html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
+    .replace(/&amp;/g, '&') // Replace HTML entities
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
 }

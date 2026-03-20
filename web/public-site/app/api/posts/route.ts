@@ -1,3 +1,5 @@
+import logger from '@/lib/logger';
+import * as Sentry from '@sentry/nextjs';
 /**
  * Posts API Route Handler
  * Provides unified access to posts from FastAPI backend
@@ -14,13 +16,15 @@ const API_BASE =
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const skip = parseInt(searchParams.get('skip') || '0');
+    const offset = parseInt(
+      searchParams.get('offset') || searchParams.get('skip') || '0'
+    );
     const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status') || 'published';
 
     // Forward to backend API
     const response = await fetch(
-      `${API_BASE}/api/posts?skip=${skip}&limit=${limit}&status=${status}`,
+      `${API_BASE}/api/posts?offset=${offset}&limit=${limit}&published_only=${status === 'published'}`,
       {
         next: { revalidate: 3600 }, // ISR: revalidate every hour
       }
@@ -33,11 +37,19 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
 
     return NextResponse.json({
-      items: data.items || data || [],
-      total: data.total || (Array.isArray(data) ? data.length : 0),
+      items: data.posts || data.data || data.items || [],
+      total: data.total ?? data.meta?.pagination?.total ?? 0,
     });
   } catch (error) {
-    console.error('Error in posts API route:', error);
+    Sentry.captureException(error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logger.error('Error in posts API route', {
+      message: errorMessage,
+      stack: errorStack,
+      endpoint: '/api/posts',
+    });
     return NextResponse.json(
       { error: 'Failed to fetch posts', items: [], total: 0 },
       { status: 500 }

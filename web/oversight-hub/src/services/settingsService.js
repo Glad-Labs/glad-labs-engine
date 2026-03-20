@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * Settings Service
  *
@@ -26,7 +27,11 @@ export const listSettings = async () => {
  * @returns {Promise<Object>} Setting object with key and value
  */
 export const getSetting = async (key) => {
-  return makeRequest(`${API_BASE}/${key}`, 'GET');
+  return makeRequest(`${API_BASE}/${key}`, 'GET', null, false, null, 30000, {
+    // Missing setting keys are expected during first-run bootstrap.
+    // Components already apply defaults, so avoid error-level log noise.
+    shouldSuppressErrorLog: ({ status }) => status === 404,
+  });
 };
 
 /**
@@ -71,7 +76,7 @@ export const getSettingWithDefault = async (key, defaultValue) => {
     const result = await getSetting(key);
     return result?.value ?? defaultValue;
   } catch (error) {
-    console.warn(`Setting ${key} not found, using default`, error);
+    logger.warn(`Setting ${key} not found, using default`, error);
     return defaultValue;
   }
 };

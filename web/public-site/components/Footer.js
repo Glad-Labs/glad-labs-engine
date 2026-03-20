@@ -1,32 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import NewsletterModal from './NewsletterModal';
 
 const Footer = () => {
-  const [mounted, setMounted] = useState(false);
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  // currentYear is computed at render time. suppressHydrationWarning on the
+  // containing element tells Next.js to accept minor mismatches (e.g. a
+  // year-boundary edge case) without throwing a hydration error — no mounted
+  // state boilerplate required (issue #96).
+  const currentYear = new Date().getFullYear();
   const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setCurrentYear(new Date().getFullYear());
-  }, []);
-
-  if (!mounted) {
-    // Return minimal server-side placeholder
-    return (
-      <footer className="bg-slate-950 py-8">
-        <p className="text-slate-500 text-center text-sm">Loading...</p>
-      </footer>
-    );
-  }
 
   return (
     <footer
       className="relative bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 border-t border-slate-800/50 mt-auto overflow-hidden"
       role="contentinfo"
+      suppressHydrationWarning
     >
       {/* Animated gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
@@ -48,11 +38,11 @@ const Footer = () => {
                 GL
               </div>
             </Link>
-            <p className="text-sm text-slate-400 leading-relaxed mb-6">
+            <p className="text-sm text-slate-300 leading-relaxed mb-6">
               Transforming digital innovation with AI-powered insights and
               autonomous intelligence.
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               Building the future, one algorithm at a time.
             </p>
           </div>
@@ -69,21 +59,21 @@ const Footer = () => {
             >
               <Link
                 href="/"
-                className="text-sm text-slate-400 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Home
               </Link>
               <Link
                 href="/archive/1"
-                className="text-sm text-slate-400 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Articles
               </Link>
               <Link
                 href="/about"
-                className="text-sm text-slate-400 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 About Us
@@ -97,24 +87,27 @@ const Footer = () => {
               <span className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" />
               Legal
             </h3>
-            <nav className="flex flex-col space-y-3">
+            <nav
+              aria-label="Legal navigation"
+              className="flex flex-col space-y-3"
+            >
               <Link
                 href="/legal/privacy"
-                className="text-sm text-slate-400 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Privacy Policy
               </Link>
               <Link
                 href="/legal/terms"
-                className="text-sm text-slate-400 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Terms of Service
               </Link>
               <Link
                 href="/legal/cookie-policy"
-                className="text-sm text-slate-400 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Cookie Policy
@@ -128,7 +121,7 @@ const Footer = () => {
               <span className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" />
               Connect
             </h3>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
               Stay updated with the latest AI insights and innovations.
             </p>
             <button
@@ -147,12 +140,12 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
-            <p className="text-sm text-slate-400 font-medium">
+            <p className="text-sm text-slate-300 font-medium">
               &copy; {currentYear} Glad Labs. All rights reserved.
             </p>
           </div>
           <div className="flex items-center gap-6">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               Built for innovation, powered by AI.
             </p>
           </div>

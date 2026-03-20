@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import logger from '@/lib/logger';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Card,
@@ -54,13 +55,15 @@ const CostMetricsDashboard = () => {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Fetch all cost metrics from APIs
+  // Shared ref to prevent state updates after unmount
+  const cancelledRef = useRef(false);
+
+  // Fetch all cost metrics from APIs (used by manual refresh button)
   const fetchMetrics = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch all data in parallel
       const [mainMetrics, phaseData, modelData, historyData, budgetData] =
         await Promise.all([
           getCostMetrics(),
@@ -70,7 +73,8 @@ const CostMetricsDashboard = () => {
           getBudgetStatus(150.0),
         ]);
 
-      // Validate and set main metrics
+      if (cancelledRef.current) return;
+
       const metricsData = mainMetrics?.costs || mainMetrics;
       setMetrics(metricsData);
       setCostsByPhase(phaseData?.phases || []);
@@ -79,18 +83,23 @@ const CostMetricsDashboard = () => {
       setBudgetStatus(budgetData);
       setLastUpdated(new Date());
     } catch (err) {
+      if (cancelledRef.current) return;
       setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
-      console.error('Error fetching cost metrics:', err);
+      logger.error('Error fetching cost metrics:', err);
     } finally {
-      setLoading(false);
+      if (!cancelledRef.current) setLoading(false);
     }
   };
 
   // Fetch on mount and set up auto-refresh every 60 seconds
   useEffect(() => {
+    cancelledRef.current = false;
     fetchMetrics();
     const interval = setInterval(fetchMetrics, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      cancelledRef.current = true;
+      clearInterval(interval);
+    };
   }, []);
 
   // Calculate budget usage percentage from budgetStatus if available

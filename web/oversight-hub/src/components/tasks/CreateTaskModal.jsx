@@ -1,12 +1,41 @@
-import React, { useState, useCallback } from 'react';
+import logger from '@/lib/logger';
+import { extractApiError } from '@/lib/extractApiError';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { createTask, makeRequest } from '../../services/cofounderAgentClient';
 import ModelSelectionPanel from '../ModelSelectionPanel';
+import { WritingStyleSelector } from '../WritingStyleSelector';
+
+const TASK_TYPE_TO_BACKEND = {
+  blog_post: 'blog_post',
+  social_media_post: 'social_media',
+  email_campaign: 'email',
+  content_brief: 'market_research',
+  image_generation: 'data_retrieval',
+};
+
+const TONE_TO_BACKEND = {
+  professional: 'professional',
+  casual: 'casual',
+  academic: 'academic',
+  inspirational: 'inspirational',
+  authoritative: 'professional',
+  friendly: 'casual',
+};
+
+const toBackendTaskType = (uiTaskType) =>
+  TASK_TYPE_TO_BACKEND[uiTaskType] || 'blog_post';
+
+const toBackendTone = (tone) => {
+  if (!tone) return undefined;
+  return TONE_TO_BACKEND[tone] || 'professional';
+};
 
 const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
   const [taskType, setTaskType] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({});
+  const [selectedWritingStyleId, setSelectedWritingStyleId] = useState(null);
   const [modelSelection, setModelSelection] = useState({
     modelSelections: {
       research: 'auto',
@@ -20,6 +49,47 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
     estimatedCost: 0.015,
   });
 
+  const dialogRef = useRef(null);
+
+  // Focus trap, initial focus, and Escape close (issue #761)
+  useEffect(() => {
+    if (!isOpen || !dialogRef.current) return;
+
+    const dialog = dialogRef.current;
+    const focusable = dialog.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    first?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+          }
+        }
+      }
+    };
+
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => {
+      dialog.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   // Memoize the model selection callback to prevent infinite re-renders
   const handleModelSelectionChange = useCallback((selection) => {
     setModelSelection(selection);
@@ -32,6 +102,30 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
       description: 'Create a comprehensive blog article',
       fields: [
         { name: 'topic', label: 'Topic', type: 'text', required: true },
+        {
+          name: 'primary_keyword',
+          label: 'Primary Keyword',
+          type: 'text',
+          required: false,
+          description:
+            'Main SEO keyword to target (e.g. "machine learning best practices")',
+        },
+        {
+          name: 'target_audience',
+          label: 'Target Audience',
+          type: 'text',
+          required: false,
+          description:
+            'Who is this article for? (e.g. "senior software engineers")',
+        },
+        {
+          name: 'description',
+          label: 'Campaign Brief (Optional)',
+          type: 'textarea',
+          required: false,
+          description:
+            'Human-written context for this task (e.g. "Q1 campaign targeting enterprise buyers"). Stored separately from the AI-generated excerpt.',
+        },
         {
           name: 'word_count',
           label: 'Target Word Count',
@@ -231,7 +325,12 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
         defaultData[field.name] = field.defaultValue;
       }
     });
+
+    logger.log('📝 [CreateTaskModal] Task type selected:', type);
+    logger.log('📝 [CreateTaskModal] Default data initialized:', defaultData);
+
     setFormData(defaultData);
+    setSelectedWritingStyleId(null); // Reset writing style when changing task type
     setError(null);
   };
 
@@ -240,6 +339,10 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
       ...formData,
       [fieldName]: value,
     });
+  };
+
+  const handleWritingStyleChange = (styleId) => {
+    setSelectedWritingStyleId(styleId);
   };
 
   const validateForm = () => {
@@ -257,7 +360,12 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
     }
 
     // Validate that we have at least a topic for the backend
-    const hasTopic = formData.topic || formData.description || formData.title;
+    const hasTopic =
+      formData.topic ||
+      formData.description ||
+      formData.title ||
+      formData.subject ||
+      formData.goal;
     if (!hasTopic) {
       setError('Please provide a topic or description');
       return false;
@@ -277,10 +385,11 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
     try {
       // ✅ ROUTE TO CORRECT ENDPOINT BASED ON TASK TYPE
       let taskPayload;
+      const backendTaskType = toBackendTaskType(taskType);
 
       if (taskType === 'image_generation') {
         // 🖼️ Handle image generation task
-        console.log('🖼️ Generating images with:', formData);
+        logger.log('🖼️ Generating images with:', formData);
 
         // Determine which image sources to try based on user selection
         const usePexels =
@@ -313,24 +422,22 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
           throw new Error('Image generation failed: No response from server');
         }
 
-        if (!imageResult) {
-          throw new Error('Image generation failed: No response from server');
-        }
-
         if (!imageResult.success) {
           throw new Error(imageResult.message || 'Image generation failed');
         }
 
-        console.log('✅ Image generated:', imageResult);
+        logger.log('✅ Image generated:', imageResult);
 
         // Create task record with image results
         taskPayload = {
-          task_type: 'image_generation', // Correct type for image generation tasks
+          // Store as backend-supported task type while preserving UI subtype in metadata.
+          task_type: backendTaskType,
           task_name: `Image: ${formData.description.substring(0, 40)}...`,
           topic: formData.description || '',
           category: 'image_generation',
           metadata: {
             task_type: 'image_generation',
+            backend_task_type: backendTaskType,
             style: formData.style || 'realistic',
             resolution: formData.resolution || '1024x1024',
             count: formData.count || 1,
@@ -348,15 +455,29 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
         };
       } else if (taskType === 'blog_post') {
         // Create blog post task using unified endpoint
+        const context = selectedWritingStyleId
+          ? { writing_style_id: selectedWritingStyleId }
+          : undefined;
+
+        // 🔍 CRITICAL: Don't use fallback defaults - let Pydantic schema handle defaults
+        // If user didn't select style/tone, form validation should have caught it
+        logger.log('📤 [CreateTaskModal] Form data before payload:', formData);
+        logger.log('📤 [CreateTaskModal] Model selections:', modelSelection);
+
         taskPayload = {
           task_type: 'blog_post',
           task_name: `Blog: ${formData.topic}`,
           topic: formData.topic || '',
+          description: formData.description || undefined,
           category: 'blog_post',
-          style: formData.style || 'technical',
-          tone: formData.tone || 'professional',
+          // ⚠️ IMPORTANT: Send actual values or undefined, not hardcoded fallbacks
+          // This allows backend Pydantic defaults to apply correctly
+          style: formData.style || undefined,
+          tone: toBackendTone(formData.tone),
           target_length: parseInt(formData.word_count) || 1500,
           generate_featured_image: formData.generate_featured_image !== false,
+          primary_keyword: formData.primary_keyword || undefined,
+          target_audience: formData.target_audience || undefined,
           tags: formData.keywords
             ? formData.keywords
                 .split(',')
@@ -365,40 +486,65 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
             : [],
           models_by_phase: modelSelection.modelSelections || {},
           quality_preference: modelSelection.qualityPreference || 'balanced',
+          writing_style_id: selectedWritingStyleId || undefined,
+          enforce_constraints:
+            formData.strict_mode === true || formData.strict_mode === 'true',
+          context,
           metadata: {
             task_type: 'blog_post',
             task_name: `Blog: ${formData.topic}`,
-            style: formData.style || 'technical',
-            tone: formData.tone || 'professional',
+            style: formData.style,
+            tone: toBackendTone(formData.tone),
+            original_tone: formData.tone,
             word_count: parseInt(formData.word_count) || 1500,
             generate_featured_image: formData.generate_featured_image !== false,
             publish_mode: 'draft',
+            writing_style_id: selectedWritingStyleId,
           },
         };
+
+        logger.log('📤 [CreateTaskModal] Final payload:', taskPayload);
       } else {
         // Use generic task endpoint for other types
+        // Generic task payload - also remove hardcoded fallbacks
+        logger.log('📤 [CreateTaskModal] Generic task - Form data:', formData);
+
+        // Derive topic from whichever field the form uses for this task type
+        const derivedTopic =
+          formData.topic ||
+          formData.description ||
+          formData.subject ||
+          formData.goal ||
+          '';
+
         taskPayload = {
-          task_type: taskType || 'blog_post',
-          topic: formData.topic || formData.description || '',
+          task_type: backendTaskType,
+          topic: derivedTopic,
           category: formData.category || taskType || 'general',
-          style: formData.style || 'narrative',
-          tone: formData.tone || 'professional',
+          // Use undefined instead of hardcoded fallbacks
+          style: formData.style || undefined,
+          tone: toBackendTone(formData.tone),
           models_by_phase: modelSelection.modelSelections || {},
           quality_preference: modelSelection.qualityPreference || 'balanced',
           metadata: {
             task_type: taskType,
+            backend_task_type: backendTaskType,
             style: formData.style,
+            tone: toBackendTone(formData.tone),
+            original_tone: formData.tone,
             word_count: formData.word_count,
             ...formData, // Include all original form data in metadata
           },
         };
+
+        logger.log('📤 [CreateTaskModal] Generic task payload:', taskPayload);
       }
 
-      console.log('📤 Creating task:', taskPayload);
+      logger.log('📤 Creating task:', taskPayload);
 
       // ✅ Use API client instead of hardcoded fetch
       const result = await createTask(taskPayload);
-      console.log('✅ Task created successfully:', result);
+      logger.log('✅ Task created successfully:', result);
 
       // ✅ Validate response has required fields
       if (!result || !result.id) {
@@ -414,32 +560,9 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
       setTaskType('');
       setFormData({});
     } catch (err) {
-      // Properly extract error message from various error object formats
-      let errorMessage = 'Unknown error';
-
-      if (typeof err === 'string') {
-        errorMessage = err;
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (err && typeof err === 'object') {
-        // Handle API error responses with detail/message fields
-        if (err.response?.detail) {
-          errorMessage =
-            typeof err.response.detail === 'string'
-              ? err.response.detail
-              : JSON.stringify(err.response.detail);
-        } else if (err.response?.message) {
-          errorMessage =
-            typeof err.response.message === 'string'
-              ? err.response.message
-              : JSON.stringify(err.response.message);
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-      }
-
+      const errorMessage = extractApiError(err);
       setError(`Failed to create task: ${errorMessage}`);
-      console.error('Task creation error:', {
+      logger.error('Task creation error:', {
         message: errorMessage,
         status: err?.status,
         response: err?.response,
@@ -457,26 +580,39 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
-      <div className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-task-dialog-title"
+        className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-gray-900 border-b border-cyan-500 p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-cyan-400">
+          <h2
+            id="create-task-dialog-title"
+            className="text-2xl font-bold text-cyan-400"
+          >
             {taskType ? currentTaskType.label : '🚀 Create New Task'}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white text-2xl"
+            aria-label="Close dialog"
             disabled={submitting}
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
         {/* Content */}
         <div className="p-6">
           {error && (
-            <div className="mb-4 p-4 bg-red-900 border border-red-500 rounded-md text-red-100">
-              ⚠️ {error}
+            <div
+              role="alert"
+              className="mb-4 p-4 bg-red-900 border border-red-500 rounded-md text-red-100"
+            >
+              {error}
             </div>
           )}
 
@@ -491,7 +627,13 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
                   <button
                     key={key}
                     onClick={() => handleTaskTypeSelect(key)}
-                    className="p-4 border-2 border-gray-600 rounded-lg hover:border-cyan-500 hover:bg-gray-700 transition text-left group"
+                    aria-pressed={taskType === key}
+                    className={[
+                      'p-4 border-2 rounded-lg transition text-left group',
+                      taskType === key
+                        ? 'border-cyan-500 bg-gray-700'
+                        : 'border-gray-600 hover:border-cyan-500 hover:bg-gray-700',
+                    ].join(' ')}
                   >
                     <div className="text-xl font-bold text-cyan-400 group-hover:text-cyan-300">
                       {typeConfig.label}
@@ -634,6 +776,24 @@ const CreateTaskModal = ({ isOpen, onClose, onTaskCreated }) => {
                   </div>
                 ))}
               </div>
+
+              {/* Writing Style Selection (Optional) */}
+              {taskType === 'blog_post' && (
+                <div className="mt-6 p-4 bg-gray-700 rounded-lg">
+                  <h3 className="text-lg font-bold text-cyan-400 mb-4">
+                    ✍️ Writing Style (Optional)
+                  </h3>
+                  <WritingStyleSelector
+                    value={selectedWritingStyleId}
+                    onChange={handleWritingStyleChange}
+                    includeNone={true}
+                  />
+                  <p className="text-xs text-gray-400 mt-2">
+                    Select a writing sample to match your voice and style
+                    preferences.
+                  </p>
+                </div>
+              )}
 
               {/* Model Selection Panel */}
               <div className="mt-6 p-4 bg-gray-700 rounded-lg">

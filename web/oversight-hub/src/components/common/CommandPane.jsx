@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 import React, { useState, useRef, useCallback } from 'react';
 import {
   MainContainer,
@@ -10,6 +11,7 @@ import {
 import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css';
 import '../CommandPane.css';
 
+import { useShallow } from 'zustand/react/shallow';
 import useStore from '../../store/useStore';
 import { MESSAGE_TYPES } from '../../lib/messageTypes';
 import OrchestratorCommandMessage from '../OrchestratorCommandMessage';
@@ -93,7 +95,19 @@ const CommandPane = () => {
     completeExecution,
     failExecution,
     removeMessage,
-  } = useStore();
+  } = useStore(
+    useShallow((s) => ({
+      selectedTask: s.selectedTask,
+      tasks: s.tasks,
+      messages: s.messages,
+      addMessage: s.addMessage,
+      updateMessage: s.updateMessage,
+      startExecution: s.startExecution,
+      completeExecution: s.completeExecution,
+      failExecution: s.failExecution,
+      removeMessage: s.removeMessage,
+    }))
+  );
   const isResizing = useRef(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState('ollama-mistral');
@@ -282,7 +296,7 @@ const CommandPane = () => {
         addMessage(resultMessage);
         completeExecution(resultMessage);
       } catch (error) {
-        console.error('Error executing command:', error);
+        logger.error('Error executing command:', error);
         const errorMessage = {
           type: 'error',
           direction: 'incoming',
@@ -373,7 +387,7 @@ const CommandPane = () => {
             return <Message key={message.id || index} model={message} />;
         }
       } catch (error) {
-        console.error('Error rendering message:', error);
+        logger.error('Error rendering message:', error);
         return null;
       }
     },

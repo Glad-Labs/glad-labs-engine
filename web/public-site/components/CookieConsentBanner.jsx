@@ -1,12 +1,11 @@
+'use client';
 /**
  * Cookie Consent Banner
  * Lightweight GDPR/CCPA compliant cookie consent implementation
  * Uses localStorage to persist user's choice
  */
 
-'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 export default function CookieConsentBanner() {
@@ -23,6 +22,8 @@ export default function CookieConsentBanner() {
     essential: true,
   });
   const [mounted, setMounted] = useState(false);
+  const dialogRef = useRef(null);
+  const customizeTriggerRef = useRef(null);
 
   // Load consent from localStorage on mount
   useEffect(() => {
@@ -36,7 +37,6 @@ export default function CookieConsentBanner() {
         setTempConsent(parsed);
         setIsVisible(false);
       } catch (_e) {
-        console.error('Error parsing saved consent');
         setIsVisible(true);
       }
     } else {
@@ -44,6 +44,48 @@ export default function CookieConsentBanner() {
       setIsVisible(true);
     }
   }, []);
+
+  // Focus trap and Escape key handler for the customize modal (issue #765)
+  useEffect(() => {
+    if (!showCustomize || !dialogRef.current) return;
+
+    const dialog = dialogRef.current;
+    const focusable = dialog.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    // Move focus into the dialog
+    first?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleCancelCustomize();
+        return;
+      }
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+          }
+        }
+      }
+    };
+
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => {
+      dialog.removeEventListener('keydown', handleKeyDown);
+      // Restore focus to the trigger button when dialog closes
+      customizeTriggerRef.current?.focus();
+    };
+  }, [showCustomize]);
 
   if (!mounted) {
     return <></>; // Return empty fragment instead of null to keep hydration consistent
@@ -110,9 +152,6 @@ export default function CookieConsentBanner() {
     if (typeof window !== 'undefined') {
       window.__cookieConsent = newConsent;
 
-      // Log consent choice
-      console.log('🍪 Cookie consent saved:', newConsent);
-
       // If analytics enabled, load Google Analytics
       if (newConsent.analytics) {
         loadGoogleAnalytics();
@@ -123,7 +162,7 @@ export default function CookieConsentBanner() {
         try {
           window.adsbygoogle.push({});
         } catch {
-          console.log('AdSense not yet loaded');
+          // AdSense script not yet loaded -- will be pushed on next load
         }
       }
     }
@@ -132,7 +171,11 @@ export default function CookieConsentBanner() {
   return (
     <>
       {/* Cookie Consent Banner */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700 shadow-lg">
+      <div
+        role="region"
+        aria-label="Cookie consent"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700 shadow-lg"
+      >
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Message */}
@@ -171,6 +214,7 @@ export default function CookieConsentBanner() {
                 Reject All
               </button>
               <button
+                ref={customizeTriggerRef}
                 onClick={handleCustomize}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition cursor-pointer whitespace-nowrap"
                 type="button"
@@ -192,10 +236,19 @@ export default function CookieConsentBanner() {
       {/* Customization Modal */}
       {showCustomize && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
-          <div className="bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 border border-gray-700">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookie-prefs-title"
+            className="bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 border border-gray-700"
+          >
             {/* Header */}
             <div className="bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-4 rounded-t-xl">
-              <h2 className="text-xl font-bold text-white">
+              <h2
+                id="cookie-prefs-title"
+                className="text-xl font-bold text-white"
+              >
                 Cookie Preferences
               </h2>
               <p className="text-cyan-100 text-sm mt-1">
@@ -304,11 +357,8 @@ function loadGoogleAnalytics() {
 
   const gaId = process.env.NEXT_PUBLIC_GA_ID || process.env.NEXT_PUBLIC_GA4_ID;
   if (!gaId) {
-    console.log('No GA ID found');
     return;
   }
-
-  console.log('📊 Loading Google Analytics:', gaId);
 
   const script = document.createElement('script');
   script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
@@ -321,7 +371,6 @@ function loadGoogleAnalytics() {
     window.gtag = gtag;
     gtag('js', new Date());
     gtag('config', gaId);
-    console.log('✅ Google Analytics loaded');
   };
   document.head.appendChild(script);
 }

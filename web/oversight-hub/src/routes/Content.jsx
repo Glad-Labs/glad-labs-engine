@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPosts, updatePost, deletePost } from '../lib/apiClient';
+import { getPosts, updatePost, deletePost } from '../services/postService';
 import PostEditor from '../components/modals/PostEditor';
 import './Content.css';
+import { logError } from '../services/errorLoggingService';
 
 function Content() {
   const navigate = useNavigate();
@@ -35,7 +36,10 @@ function Content() {
       setContentItems(Array.isArray(posts) ? posts : []);
       setError(null);
     } catch (err) {
-      console.error('Failed to fetch posts:', err);
+      logError(err, {
+        severity: 'warning',
+        customContext: { component: 'Content', action: 'fetchPosts' },
+      });
       setError('Failed to load content. Please try again.');
       setContentItems([]);
     } finally {
@@ -58,7 +62,10 @@ function Content() {
       setEditingPost(null);
       alert('Post updated successfully!');
     } catch (err) {
-      console.error('Failed to update post:', err);
+      logError(err, {
+        severity: 'warning',
+        customContext: { component: 'Content', action: 'updatePost' },
+      });
       alert('Failed to update post. Please try again.');
     }
   };
@@ -72,7 +79,10 @@ function Content() {
       await fetchPosts(); // Refresh list
       alert('Post deleted successfully!');
     } catch (err) {
-      console.error('Failed to delete post:', err);
+      logError(err, {
+        severity: 'warning',
+        customContext: { component: 'Content', action: 'deletePost' },
+      });
       alert('Failed to delete post. Please try again.');
     }
   };

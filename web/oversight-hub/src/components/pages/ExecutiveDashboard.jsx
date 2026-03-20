@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import './ExecutiveDashboard.css';
 import CreateTaskModal from '../tasks/CreateTaskModal';
 import CostBreakdownCards from '../CostBreakdownCards';
+import { logError } from '../../services/errorLoggingService';
 
 const ExecutiveDashboard = () => {
   const navigate = useNavigate();
@@ -237,10 +238,12 @@ const ExecutiveDashboard = () => {
         setDashboardData(normalizedData);
         setError(null);
       } catch (err) {
-        console.error('Dashboard data fetch error:', err);
+        logError(err, {
+          severity: 'error',
+          customContext: { component: 'ExecutiveDashboard' },
+        });
         setError(err.message);
-        // Set mock data for development
-        setDashboardData(getMockDashboardData());
+        // dashboardData is left as null — the error render path below displays the error state
       } finally {
         setLoading(false);
       }
@@ -248,139 +251,6 @@ const ExecutiveDashboard = () => {
 
     fetchDashboardData();
   }, [timeRange]);
-
-  const getMockDashboardData = () => ({
-    kpis: {
-      revenue: {
-        current: 24500,
-        previous: 21300,
-        change: 15,
-        currency: 'USD',
-        icon: '📈',
-      },
-      contentPublished: {
-        current: 156,
-        previous: 107,
-        change: 45,
-        unit: 'posts',
-        icon: '📝',
-      },
-      tasksCompleted: {
-        current: 234,
-        previous: 130,
-        change: 80,
-        unit: 'tasks',
-        icon: '✅',
-      },
-      aiSavings: {
-        current: 4200,
-        previous: 2800,
-        change: 50,
-        currency: 'USD',
-        icon: '💰',
-      },
-      totalCost: {
-        current: 127.5,
-        previous: 95.3,
-        change: 33.85,
-        currency: 'USD',
-        icon: '💸',
-      },
-      avgCostPerTask: {
-        current: 0.0087,
-        previous: 0.0105,
-        change: -17.14,
-        currency: 'USD',
-        icon: '🎯',
-      },
-      engagementRate: {
-        current: 4.8,
-        previous: 3.2,
-        change: 50,
-        unit: '%',
-        icon: '📊',
-      },
-      agentUptime: {
-        current: 99.8,
-        previous: 99.2,
-        change: 0.6,
-        unit: '%',
-        icon: '✓',
-      },
-      costByPhase: {
-        research: 0.0,
-        draft: 0.00525,
-        assess: 0.00275,
-        refine: 0.0035,
-        other: 0.00025,
-      },
-      costByModel: {
-        ollama: 0.0,
-        'gpt-3.5': 0.00525,
-        'gpt-4': 0.00075,
-        claude: 0.00095,
-      },
-    },
-    trends: {
-      publishing: {
-        title: 'Publishing Trend (30 days)',
-        data: [
-          1, 2, 3, 5, 4, 6, 7, 8, 9, 8, 10, 11, 12, 10, 9, 8, 7, 6, 8, 9, 10,
-          11, 12, 11, 10, 9, 8, 10, 12, 14,
-        ],
-        avg: 5.2,
-        peak: 14,
-        low: 1,
-        unit: 'posts/day',
-      },
-      engagement: {
-        title: 'Engagement Metrics (30 days)',
-        data: [
-          2.1, 2.3, 2.5, 3.2, 3.5, 3.8, 4.0, 4.2, 4.5, 4.3, 4.6, 4.8, 5.0, 4.9,
-          4.7, 4.5, 4.8, 5.1, 5.3, 5.2, 5.4, 5.6, 5.8, 5.7, 5.5, 5.4, 5.2, 5.0,
-          5.1, 5.3,
-        ],
-        avg: 4.6,
-        peak: 5.8,
-        low: 2.1,
-        unit: '%',
-      },
-      costTrend: {
-        title: 'AI Cost Trend (30 days)',
-        data: [
-          2.5, 2.8, 3.2, 3.5, 3.8, 4.1, 4.2, 4.5, 4.8, 5.1, 5.2, 5.4, 5.6, 5.5,
-          5.3, 5.2, 5.0, 4.8, 5.1, 5.3, 5.5, 5.7, 5.9, 6.0, 5.8, 5.6, 5.4, 5.2,
-          5.3, 5.5,
-        ],
-        avg: 5.0,
-        peak: 6.0,
-        low: 2.5,
-        unit: '$/day',
-      },
-    },
-    systemStatus: {
-      agentsActive: 2,
-      agentsTotal: 5,
-      tasksQueued: 12,
-      tasksFailed: 1,
-      uptime: 99.8,
-      lastSync: '2 minutes ago',
-    },
-    quickStats: {
-      thisMonth: {
-        postsCreated: 156,
-        tasksCompleted: 234,
-        automationRate: 87,
-        costSaved: 4200,
-      },
-      thisYear: {
-        postsCreated: 2340,
-        tasksCompleted: 5670,
-        automationRate: 84,
-        costSaved: 48500,
-      },
-    },
-  });
 
   const formatCurrency = (value) => `$${(value / 1000).toFixed(1)}K`;
   const formatNumber = (value) => {
@@ -427,7 +297,11 @@ const ExecutiveDashboard = () => {
           <p>AI-Powered Business Management System - Real-time KPI Overview</p>
         </div>
         <div className="time-range-selector">
+          <label htmlFor="time-range-select" className="sr-only">
+            Time range
+          </label>
           <select
+            id="time-range-select"
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
           >
@@ -879,8 +753,6 @@ const ExecutiveDashboard = () => {
         onClose={() => setTaskModalOpen(false)}
         onTaskCreated={(task) => {
           setTaskModalOpen(false);
-          // Optionally refresh dashboard data
-          console.log('Task created:', task);
         }}
       />
     </div>

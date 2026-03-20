@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 import React, { useState, useCallback } from 'react';
 import {
   Dialog,
@@ -8,12 +9,18 @@ import {
   Tab,
   Box,
   Button,
+  Divider,
+  Snackbar,
+  Alert,
 } from '@mui/material';
+import { useShallow } from 'zustand/react/shallow';
 import useStore from '../../store/useStore';
 import {
   approveTask,
   rejectTask,
   publishTask,
+  getContentTask,
+  updateTask,
 } from '../../services/taskService';
 import { generateTaskImage } from '../../services/cofounderAgentClient';
 import {
@@ -26,6 +33,7 @@ import TaskContentPreview from './TaskContentPreview';
 import TaskImageManager from './TaskImageManager';
 import TaskApprovalForm from './TaskApprovalForm';
 import TaskMetadataDisplay from './TaskMetadataDisplay';
+import TaskControlPanel from './TaskControlPanel';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -43,7 +51,12 @@ function TabPanel(props) {
 }
 
 const TaskDetailModal = ({ onClose, onUpdate }) => {
-  const { selectedTask, setSelectedTask } = useStore();
+  const { selectedTask, setSelectedTask } = useStore(
+    useShallow((s) => ({
+      selectedTask: s.selectedTask,
+      setSelectedTask: s.setSelectedTask,
+    }))
+  );
   const [tabValue, setTabValue] = useState(0);
   const [approvalLoading, setApprovalLoading] = useState(false);
   const [approvalFeedback, setApprovalFeedback] = useState('');
@@ -51,6 +64,20 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
   const [imageSource, setImageSource] = useState('pexels');
   const [selectedImageUrl, setSelectedImageUrl] = useState('');
   const [imageGenerating, setImageGenerating] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  const showSuccess = (message) =>
+    setSnackbar({ open: true, message, severity: 'success' });
+  const showError = (message) =>
+    setSnackbar({ open: true, message, severity: 'error' });
+  const showInfo = (message) =>
+    setSnackbar({ open: true, message, severity: 'info' });
+  const handleSnackbarClose = () =>
+    setSnackbar((prev) => ({ ...prev, open: false }));
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -79,13 +106,13 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
 
         if (result.image_url) {
           setSelectedImageUrl(result.image_url);
-          alert('✅ Image generated successfully!');
+          showSuccess('Image generated successfully');
         } else {
           throw new Error('No image URL in response');
         }
       } catch (error) {
-        console.error('❌ Image generation error:', error);
-        alert(`❌ Error generating image: ${error.message}`);
+        logger.error('❌ Image generation error:', error);
+        showError(`Error generating image: ${error.message}`);
       } finally {
         setImageGenerating(false);
       }
@@ -104,8 +131,8 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
           approvalFeedback || 'Approved from oversight hub'
         );
 
-        alert(
-          `✅ Task approved!\n\nStatus: ${result.status}\n\nNow waiting for you to publish when ready.`
+        showSuccess(
+          `Task approved (${result.status}). Ready to publish when you are.`
         );
         // Reset form state
         setApprovalFeedback('');
@@ -115,8 +142,8 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
         setSelectedTask(null);
         onClose();
       } catch (error) {
-        console.error('❌ Approval error:', error);
-        alert(`❌ Error approving task: ${error.message}`);
+        logger.error('❌ Approval error:', error);
+        showError(`Error approving task: ${error.message}`);
       } finally {
         setApprovalLoading(false);
       }
@@ -133,7 +160,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
       const publishedUrl =
         result.published_url ||
         `${window.location.origin}/posts/${result.post_slug || 'published'}`;
-      alert(`✅ Task published!\n\nURL: ${publishedUrl}`);
+      showSuccess(`Task published! URL: ${publishedUrl}`);
       // Reset form state
       setApprovalFeedback('');
       setReviewerId('oversight_hub_user');
@@ -142,8 +169,8 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
       setSelectedTask(null);
       onClose();
     } catch (error) {
-      console.error('❌ Publishing error:', error);
-      alert(`❌ Error publishing task: ${error.message}`);
+      logger.error('❌ Publishing error:', error);
+      showError(`Error publishing task: ${error.message}`);
     } finally {
       setApprovalLoading(false);
     }
@@ -153,13 +180,30 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
     async (feedback) => {
       setApprovalLoading(true);
       try {
+        // Guard against stale modal state by re-syncing current status first.
+        const latestTask = await getContentTask(selectedTask.id);
+        const latestStatus = latestTask?.status?.toLowerCase();
+
+        if (latestStatus && latestStatus !== 'awaiting_approval') {
+          handleTaskUpdate(latestTask);
+          showInfo(
+            `Task is already '${latestTask.status}'. Reject is only available when status is 'awaiting_approval'.`
+          );
+          return;
+        }
+
         // Use the proper taskService method which handles auth headers correctly
-        await rejectTask(
+        const rejectedTask = await rejectTask(
           selectedTask.id,
           feedback || 'Rejected from oversight hub'
         );
 
-        alert('✅ Task rejected successfully');
+        // Sync UI state immediately so status changes are visible without waiting for polling.
+        if (rejectedTask && typeof rejectedTask === 'object') {
+          handleTaskUpdate(rejectedTask);
+        }
+
+        showSuccess('Task rejected successfully');
         // Reset form state
         setApprovalFeedback('');
         setReviewerId('oversight_hub_user');
@@ -168,17 +212,98 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
         setSelectedTask(null);
         onClose();
       } catch (error) {
-        console.error('❌ Rejection error:', error);
-        alert(`❌ Error rejecting task: ${error.message}`);
+        // If backend rejects due to stale status, re-fetch and sync task state immediately.
+        if (error?.status === 400) {
+          try {
+            const latestTask = await getContentTask(selectedTask.id);
+            if (latestTask) {
+              handleTaskUpdate(latestTask);
+            }
+          } catch {
+            // Ignore secondary refresh errors and surface original rejection error.
+          }
+        }
+        logger.error('❌ Rejection error:', error);
+        showError(`Error rejecting task: ${error.message}`);
       } finally {
         setApprovalLoading(false);
       }
     },
-    [selectedTask, setSelectedTask, onClose]
+    [selectedTask, setSelectedTask, onClose, handleTaskUpdate]
   );
+
+  // Handle re-review: reset rejected task back to pending for another review cycle (#197)
+  const handleReReview = useCallback(async () => {
+    setApprovalLoading(true);
+    try {
+      await updateTask(selectedTask.id, { status: 'pending' });
+      const updatedTask = await getContentTask(selectedTask.id);
+      if (updatedTask) {
+        handleTaskUpdate(updatedTask);
+      }
+      showSuccess('Task sent back for re-review. Status reset to pending.');
+      setApprovalFeedback('');
+      setSelectedTask(null);
+      onClose();
+    } catch (error) {
+      logger.error('Re-review error:', error);
+      showError(`Error resetting task for re-review: ${error.message}`);
+    } finally {
+      setApprovalLoading(false);
+    }
+  }, [selectedTask, setSelectedTask, onClose, handleTaskUpdate]);
 
   // Return null after all hooks have been called
   if (!selectedTask) return null;
+
+  const getRetryCount = (task) => {
+    const metadata = task?.task_metadata;
+    if (!metadata) return 0;
+
+    if (typeof metadata === 'object' && metadata !== null) {
+      return Number(metadata.retry_count || 0);
+    }
+
+    if (typeof metadata === 'string') {
+      try {
+        const parsed = JSON.parse(metadata);
+        return Number(parsed?.retry_count || 0);
+      } catch {
+        return 0;
+      }
+    }
+
+    return 0;
+  };
+
+  const retryCount = getRetryCount(selectedTask);
+
+  // Extract task metadata for progress display
+  const getTaskMetadata = () => {
+    const metadata = selectedTask?.task_metadata;
+    if (!metadata) return {};
+    if (typeof metadata === 'object' && metadata !== null) return metadata;
+    if (typeof metadata === 'string') {
+      try {
+        const parsed = JSON.parse(metadata);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  };
+
+  const taskMetadata = getTaskMetadata();
+  const taskStage = taskMetadata.stage || taskMetadata.status || '';
+  const taskMessage = taskMetadata.message || '';
+  const taskPercentage =
+    typeof taskMetadata.percentage === 'number'
+      ? taskMetadata.percentage
+      : selectedTask.progress || 0;
+  const isActiveTask = ['pending', 'in_progress', 'running'].includes(
+    selectedTask.status?.toLowerCase()
+  );
 
   return (
     <Dialog
@@ -186,7 +311,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
       onClose={onClose}
       maxWidth="lg"
       fullWidth
-      SlotProps={{
+      slotProps={{
         backdrop: {
           sx: {
             backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -209,8 +334,108 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
           fontWeight: 'bold',
         }}
       >
-        Task Details:{' '}
-        {selectedTask.topic || selectedTask.task_name || 'Untitled'}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
+          >
+            <span>
+              Task Details:{' '}
+              {selectedTask.topic || selectedTask.task_name || 'Untitled'}
+            </span>
+            {retryCount > 0 && (
+              <Box
+                component="span"
+                sx={{
+                  display: 'inline-block',
+                  px: 1,
+                  py: 0.3,
+                  borderRadius: '10px',
+                  border: '1px solid #00d9ff',
+                  color: '#00d9ff',
+                  backgroundColor: 'rgba(0, 217, 255, 0.12)',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.2px',
+                }}
+                title={`Retry attempts: ${retryCount}`}
+              >
+                Retry #{retryCount}
+              </Box>
+            )}
+          </Box>
+
+          {/* Progress Bar Section */}
+          {isActiveTask && taskPercentage > 0 && (
+            <Box sx={{ width: '100%' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 0.5,
+                }}
+              >
+                <Box
+                  component="span"
+                  aria-live="polite"
+                  sx={{
+                    fontSize: '0.8rem',
+                    color: '#aaa',
+                    fontWeight: 500,
+                  }}
+                >
+                  {taskMessage || taskStage || 'Processing...'}
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    fontSize: '0.8rem',
+                    color: '#00d9ff',
+                    fontWeight: 700,
+                  }}
+                >
+                  {taskPercentage}%
+                </Box>
+              </Box>
+              <Box
+                role="progressbar"
+                aria-valuenow={taskPercentage}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`Task progress: ${taskMessage || taskStage || 'Processing'}`}
+                sx={{
+                  width: '100%',
+                  height: '6px',
+                  backgroundColor: '#2a2a2a',
+                  borderRadius: '3px',
+                  overflow: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: `${taskPercentage}%`,
+                    height: '100%',
+                    backgroundColor: '#00d9ff',
+                    transition: 'width 0.3s ease-in-out',
+                    borderRadius: '3px',
+                    boxShadow: '0 0 10px rgba(0, 217, 255, 0.5)',
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
+        </Box>
       </DialogTitle>
 
       <DialogContent
@@ -235,7 +460,30 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
             }}
           >
             <Tab label="Content & Approval" id="taskdetail-tab-0" />
-            <Tab label="Timeline" id="taskdetail-tab-1" />
+            <Tab
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  Timeline
+                  {isActiveTask && (
+                    <Box
+                      component="span"
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        backgroundColor: '#00d9ff',
+                        animation: 'pulse 2s infinite',
+                        '@keyframes pulse': {
+                          '0%, 100%': { opacity: 1 },
+                          '50%': { opacity: 0.3 },
+                        },
+                      }}
+                    />
+                  )}
+                </Box>
+              }
+              id="taskdetail-tab-1"
+            />
             <Tab label="History" id="taskdetail-tab-2" />
             <Tab label="Validation" id="taskdetail-tab-3" />
             <Tab label="Metrics" id="taskdetail-tab-4" />
@@ -245,6 +493,31 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
         {/* Tab 0: Content & Approval */}
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Task Control Panel (Phase 1.2) - Pause/Resume/Cancel/Delete */}
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: '#1a1a1a',
+                borderRadius: 1,
+                border: '1px solid #333',
+              }}
+            >
+              <TaskControlPanel
+                task={selectedTask}
+                onTaskUpdated={(updatedTask) => {
+                  if (updatedTask === null) {
+                    // Task was deleted
+                    setSelectedTask(null);
+                    onClose();
+                  } else {
+                    handleTaskUpdate(updatedTask);
+                  }
+                }}
+              />
+            </Box>
+
+            <Divider sx={{ borderColor: '#333' }} />
+
             {/* Content Preview Component */}
             <TaskContentPreview
               task={selectedTask}
@@ -282,6 +555,7 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
               }
               onPublish={handlePublishTask}
               onReject={() => handleRejectTask(approvalFeedback)}
+              onReReview={handleReReview}
               onFeedbackChange={setApprovalFeedback}
               onReviewerIdChange={setReviewerId}
             />
@@ -290,6 +564,64 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
 
         {/* Tab 1: Timeline */}
         <TabPanel value={tabValue} index={1}>
+          {/* Current Execution Status */}
+          {isActiveTask && (taskStage || taskMessage) && (
+            <Box
+              sx={{
+                mb: 3,
+                p: 2,
+                backgroundColor: '#1a1a1a',
+                borderRadius: 1,
+                border: '1px solid #00d9ff',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                }}
+              >
+                <Box
+                  component="h4"
+                  sx={{
+                    margin: 0,
+                    color: '#00d9ff',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  🔄 Current Execution Stage
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(0, 217, 255, 0.15)',
+                    color: '#00d9ff',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {taskPercentage}% Complete
+                </Box>
+              </Box>
+              <Box
+                sx={{
+                  color: '#e0e0e0',
+                  fontSize: '0.85rem',
+                  fontStyle: 'italic',
+                  mt: 1,
+                }}
+              >
+                {taskMessage || taskStage || 'Processing task...'}
+              </Box>
+            </Box>
+          )}
+
           <StatusTimeline
             currentStatus={selectedTask.status}
             statusHistory={selectedTask.statusHistory || []}
@@ -304,7 +636,11 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
 
         {/* Tab 3: Validation Failures */}
         <TabPanel value={tabValue} index={3}>
-          <ValidationFailureUI taskId={selectedTask.id} limit={50} />
+          <ValidationFailureUI
+            task={selectedTask}
+            taskId={selectedTask.id}
+            limit={50}
+          />
         </TabPanel>
 
         {/* Tab 4: Metrics */}
@@ -321,6 +657,25 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
           Close
         </Button>
       </DialogActions>
+
+      {/* Toast notifications (replaces native alert() calls) */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          role="alert"
+          aria-live={snackbar.severity === 'error' ? 'assertive' : 'polite'}
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };

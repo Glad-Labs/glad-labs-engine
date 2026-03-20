@@ -1,4 +1,6 @@
+import logger from '@/lib/logger';
 import { useState, useEffect } from 'react';
+import { getWebSocketUrl } from '../config/apiConfig';
 
 /**
  * Hook for streaming blog creation progress from LangGraph
@@ -31,51 +33,62 @@ export function useLangGraphStream(requestId) {
       return;
     }
 
-    const ws = new WebSocket(
-      `ws://localhost:8000/api/content/langgraph/ws/blog-posts/${requestId}`
-    );
+    // Get WebSocket URL from validated config
+    const wsBaseUrl = getWebSocketUrl();
+    const wsUrl = `${wsBaseUrl}/api/content/langgraph/ws/blog-posts/${requestId}`;
+
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log('LangGraph WebSocket connected:', requestId);
+      logger.log('LangGraph WebSocket connected:', requestId);
     };
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      try {
+        const data = JSON.parse(event.data);
 
-      if (data.type === 'progress') {
-        const phaseIndex = getPhaseIndex(data.node);
-        setProgress((prev) => ({
-          ...prev,
-          phase: data.node,
-          progress: data.progress,
-          status: 'in_progress',
-          content: data.current_content_preview || prev.content,
-          quality: data.quality_score || prev.quality,
-          refinements: data.refinement_count || prev.refinements,
-          phases: prev.phases.map((p, i) => ({
-            ...p,
-            completed: i < phaseIndex,
-          })),
-        }));
-      } else if (data.type === 'complete') {
-        setProgress((prev) => ({
-          ...prev,
-          phase: 'complete',
-          progress: 100,
-          status: 'completed',
-          phases: prev.phases.map((p) => ({ ...p, completed: true })),
-        }));
-      } else if (data.type === 'error') {
+        if (data.type === 'progress') {
+          const phaseIndex = getPhaseIndex(data.node);
+          setProgress((prev) => ({
+            ...prev,
+            phase: data.node,
+            progress: data.progress,
+            status: 'in_progress',
+            content: data.current_content_preview || prev.content,
+            quality: data.quality_score || prev.quality,
+            refinements: data.refinement_count || prev.refinements,
+            phases: prev.phases.map((p, i) => ({
+              ...p,
+              completed: i < phaseIndex,
+            })),
+          }));
+        } else if (data.type === 'complete') {
+          setProgress((prev) => ({
+            ...prev,
+            phase: 'complete',
+            progress: 100,
+            status: 'completed',
+            phases: prev.phases.map((p) => ({ ...p, completed: true })),
+          }));
+        } else if (data.type === 'error') {
+          setProgress((prev) => ({
+            ...prev,
+            status: 'error',
+            error: data.error,
+          }));
+        }
+      } catch (parseError) {
+        logger.error('Failed to parse LangGraph message:', parseError);
         setProgress((prev) => ({
           ...prev,
           status: 'error',
-          error: data.error,
+          error: 'Failed to parse server response',
         }));
       }
     };
 
     ws.onerror = (error) => {
-      console.error('LangGraph WebSocket error:', error);
+      logger.error('LangGraph WebSocket error:', error);
       setProgress((prev) => ({
         ...prev,
         status: 'error',
@@ -84,7 +97,7 @@ export function useLangGraphStream(requestId) {
     };
 
     ws.onclose = () => {
-      console.log('LangGraph WebSocket disconnected');
+      logger.log('LangGraph WebSocket disconnected');
     };
 
     return () => {
@@ -92,7 +105,7 @@ export function useLangGraphStream(requestId) {
         ws.close();
       }
     };
-  }, [requestId]);
+  };, [requestId]);
 
   return progress;
 }

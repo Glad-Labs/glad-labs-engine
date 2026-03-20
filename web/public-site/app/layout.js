@@ -2,7 +2,9 @@ import AdSenseScript from '../components/AdSenseScript';
 import CookieConsentBanner from '../components/CookieConsentBanner.jsx';
 import Footer from '../components/Footer';
 import TopNavigation from '../components/TopNav.js';
-// import { Analytics } from '@vercel/analytics/react'; // Temporarily disabled for local dev
+import WebVitals from '../components/WebVitals';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import '../styles/globals.css';
 
 export const metadata = {
@@ -59,10 +61,11 @@ export default function RootLayout({ children }) {
         </main>
         <Footer />
         {/* Client-side components that need hydration */}
+        <WebVitals />
         <AdSenseScript />
         <CookieConsentBanner />
-        {/* <Analytics /> */}{' '}
-        {/* Temporarily disabled - enable on Vercel deployment */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

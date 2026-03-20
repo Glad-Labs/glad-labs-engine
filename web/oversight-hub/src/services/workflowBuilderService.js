@@ -95,7 +95,6 @@ export const getAvailablePhases = async () => {
     );
     return response;
   } catch (error) {
-    console.error('Error fetching available phases:', error);
     throw new Error(`Failed to load available phases: ${error.message}`);
   }
 };
@@ -117,7 +116,6 @@ export const createWorkflow = async (workflowDefinition) => {
     }
 
     const phases = sanitizePhases(workflowDefinition.phases);
-    validatePhases(phases);
 
     const payload = {
       name: workflowDefinition.name.trim(),
@@ -134,7 +132,6 @@ export const createWorkflow = async (workflowDefinition) => {
     );
     return response;
   } catch (error) {
-    console.error('Error creating workflow:', error);
     throw new Error(`Failed to create workflow: ${error.message}`);
   }
 };
@@ -176,7 +173,6 @@ export const listWorkflows = async (options = {}) => {
     );
     return response;
   } catch (error) {
-    console.error('Error listing workflows:', error);
     throw new Error(`Failed to load workflows: ${error.message}`);
   }
 };
@@ -198,7 +194,6 @@ export const getWorkflow = async (workflowId) => {
     );
     return response;
   } catch (error) {
-    console.error('Error fetching workflow:', error);
     throw new Error(`Failed to load workflow: ${error.message}`);
   }
 };
@@ -226,10 +221,6 @@ export const updateWorkflow = async (workflowId, updates) => {
     const phases =
       updates.phases !== undefined ? sanitizePhases(updates.phases) : undefined;
 
-    if (phases !== undefined) {
-      validatePhases(phases);
-    }
-
     const payload = {
       name: updates.name ? updates.name.trim() : undefined,
       description:
@@ -251,7 +242,6 @@ export const updateWorkflow = async (workflowId, updates) => {
     );
     return response;
   } catch (error) {
-    console.error('Error updating workflow:', error);
     throw new Error(`Failed to update workflow: ${error.message}`);
   }
 };
@@ -273,7 +263,6 @@ export const deleteWorkflow = async (workflowId) => {
     );
     return response;
   } catch (error) {
-    console.error('Error deleting workflow:', error);
     throw new Error(`Failed to delete workflow: ${error.message}`);
   }
 };
@@ -301,7 +290,6 @@ export const executeWorkflow = async (workflowId, inputData = {}) => {
     );
     return response;
   } catch (error) {
-    console.error('Error executing workflow:', error);
     throw new Error(`Failed to execute workflow: ${error.message}`);
   }
 };
@@ -323,7 +311,6 @@ export const getExecutionStatus = async (executionId) => {
     );
     return response;
   } catch (error) {
-    console.error('Error fetching execution status:', error);
     throw new Error(`Failed to load execution status: ${error.message}`);
   }
 };
@@ -352,12 +339,11 @@ export const listExecutions = async (workflowId, options = {}) => {
     }
 
     const response = await makeRequest(
-      `/api/workflows/executions?${queryParams.toString()}`,
+      `/api/workflows/custom-executions?${queryParams.toString()}`,
       'GET'
     );
     return response;
   } catch (error) {
-    console.error('Error listing executions:', error);
     throw new Error(`Failed to load executions: ${error.message}`);
   }
 };
@@ -371,7 +357,6 @@ export const exportWorkflowToJSON = (workflow) => {
   try {
     return JSON.stringify(workflow, null, 2);
   } catch (error) {
-    console.error('Error exporting workflow:', error);
     throw new Error('Failed to export workflow');
   }
 };
@@ -392,8 +377,28 @@ export const importWorkflowFromJSON = (jsonString) => {
 
     return workflow;
   } catch (error) {
-    console.error('Error importing workflow:', error);
     throw new Error(`Failed to import workflow: ${error.message}`);
+  }
+};
+
+export const getWorkflowExecutions = async (workflowId, options = {}) => {
+  if (!workflowId) {
+    throw new Error('Workflow ID is required');
+  }
+  try {
+    const { limit = 10, offset = 0, status } = options;
+    const params = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    if (status) params.set('status', status);
+    const response = await makeRequest(
+      `/api/workflows/custom/${workflowId}/executions?${params.toString()}`,
+      'GET'
+    );
+    return response;
+  } catch (error) {
+    throw new Error(`Failed to fetch workflow executions: ${error.message}`);
   }
 };
 
@@ -409,6 +414,7 @@ const workflowBuilderService = {
   listExecutions,
   exportWorkflowToJSON,
   importWorkflowFromJSON,
+  getWorkflowExecutions,
 };
 
 export default workflowBuilderService;

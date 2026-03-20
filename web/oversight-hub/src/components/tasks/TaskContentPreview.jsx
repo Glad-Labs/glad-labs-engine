@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 /**
  * TaskContentPreview - Content display section
  *
@@ -9,6 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import PropTypes from 'prop-types';
 import {
   Box,
@@ -16,6 +18,8 @@ import {
   TextField,
   Switch,
   FormControlLabel,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { updateTask } from '../../services/taskService';
 
@@ -25,6 +29,8 @@ const TaskContentPreview = ({ task, onTaskUpdate }) => {
   const [editedContent, setEditedContent] = useState('');
   const [showPreview, setShowPreview] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const handleSnackbarClose = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
   // Extract title from content if it starts with markdown title
   const extractTitleFromContent = (content) => {
@@ -50,7 +56,8 @@ const TaskContentPreview = ({ task, onTaskUpdate }) => {
           ? (() => {
               try {
                 return JSON.parse(task.result);
-              } catch {
+              } catch (error) {
+                logger.error('Failed to parse task result:', error);
                 return {};
               }
             })()
@@ -140,10 +147,10 @@ const TaskContentPreview = ({ task, onTaskUpdate }) => {
       });
       setIsEditing(false);
       if (onTaskUpdate) onTaskUpdate(updatedTask);
-      alert('✅ Changes saved successfully!');
+      setSnackbar({ open: true, message: 'Changes saved successfully', severity: 'success' });
     } catch (error) {
-      console.error('Failed to save changes:', error);
-      alert('❌ Failed to save changes');
+      logger.error('Failed to save changes:', error);
+      setSnackbar({ open: true, message: 'Failed to save changes', severity: 'error' });
     } finally {
       setSaving(false);
     }
@@ -302,7 +309,7 @@ const TaskContentPreview = ({ task, onTaskUpdate }) => {
               '& strong': { fontWeight: 'bold', color: '#fff' },
               '& em': { fontStyle: 'italic' },
             }}
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(editedContent) }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(renderMarkdown(editedContent)) }}
           />
         ) : (
           <Box
@@ -354,6 +361,23 @@ const TaskContentPreview = ({ task, onTaskUpdate }) => {
           />
         </Box>
       )}
+
+      {/* Toast notifications (replaces native alert() calls) */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
