@@ -4,7 +4,6 @@
  * Wraps cofounderAgentClient.makeRequest() for consistent auth/error handling.
  * Canonical source for all post operations in the Oversight Hub.
  */
-import logger from '@/lib/logger';
 import { makeRequest } from './cofounderAgentClient';
 
 export async function getPosts(offset = 0, limit = 20, publishedOnly = false) {
