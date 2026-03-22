@@ -20,7 +20,6 @@ export default defineConfig({
       '**/*.integration.test.*',
       // Deferred workflow-builder features — tests pre-date current architecture.
       // TODO: fix these when workflow builder is prioritized (#311)
-      '**/workflowAPI.test.*',
       '**/BlogWorkflowPage.test.*',
       '**/AIStudio.test.*',
       '**/PhaseNode.test.*',
