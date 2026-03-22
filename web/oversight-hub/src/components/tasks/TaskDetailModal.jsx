@@ -1,5 +1,5 @@
 import logger from '@/lib/logger';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -70,6 +70,21 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
     severity: 'success',
   });
 
+  // Fetch fresh task data when modal opens to avoid stale status
+  useEffect(() => {
+    if (selectedTask?.id) {
+      getContentTask(selectedTask.id)
+        .then((freshTask) => {
+          if (freshTask && freshTask.status !== selectedTask.status) {
+            setSelectedTask({ ...selectedTask, ...freshTask });
+          }
+        })
+        .catch(() => {
+          // Silently fail — modal will show stale data which is still usable
+        });
+    }
+  }, [selectedTask?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const showSuccess = (message) =>
     setSnackbar({ open: true, message, severity: 'success' });
   const showError = (message) =>
@@ -134,7 +149,8 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
         showSuccess(
           `Task approved (${result.status}). Ready to publish when you are.`
         );
-        // Reset form state
+        // Notify parent for optimistic update before closing
+        if (onUpdate) onUpdate(selectedTask.id, 'approved');
         setApprovalFeedback('');
         setReviewerId('oversight_hub_user');
         setImageSource('pexels');
@@ -161,7 +177,8 @@ const TaskDetailModal = ({ onClose, onUpdate }) => {
         result.published_url ||
         `${window.location.origin}/posts/${result.post_slug || 'published'}`;
       showSuccess(`Task published! URL: ${publishedUrl}`);
-      // Reset form state
+      // Notify parent for optimistic update before closing
+      if (onUpdate) onUpdate(selectedTask.id, 'published');
       setApprovalFeedback('');
       setReviewerId('oversight_hub_user');
       setImageSource('pexels');
