@@ -120,26 +120,51 @@ export const exchangeCodeForToken = async (code) => {
   try {
     // Check if this is a mock code (for development)
     if (code && code.startsWith('mock_auth_code_')) {
-      // Handle mock auth
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+      // Handle mock auth — fetch a real backend-signed JWT
+      const apiUrl = API_BASE_URL || 'http://localhost:8000';
+      let mockToken;
+      let mockUser;
 
-      const mockUser = {
-        id: 'mock_user_12345',
-        login: 'dev-user',
-        email: 'dev@example.com',
-        name: 'Development User',
-        avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
-      };
+      try {
+        const resp = await fetch(`${apiUrl}/api/auth/dev-token`, {
+          method: 'POST',
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          mockToken = data.token || data.access_token;
+          mockUser = data.user || {
+            id: 'dev_user_local',
+            login: 'dev-user',
+            email: 'dev@example.com',
+            name: 'Development User',
+            avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
+          };
+        }
+      } catch {
+        // Backend unreachable — fall back to client-side mock
+      }
 
-      // Dynamic import keeps mockTokenGenerator (and its secret) out of the
-      // production bundle — this branch only runs for mock_auth_code_ codes.
-      const { createMockJWTToken } =
-        await import('../utils/mockTokenGenerator');
-      const mockToken = await createMockJWTToken(mockUser);
+      if (!mockToken) {
+        const { createMockJWTToken } =
+          await import('../utils/mockTokenGenerator');
+        mockUser = {
+          id: 'mock_user_12345',
+          login: 'dev-user',
+          email: 'dev@example.com',
+          name: 'Development User',
+          avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
+        };
+        mockToken = await createMockJWTToken(mockUser);
+      }
 
-      // Store token in sessionStorage (not localStorage) to limit XSS exposure (#726)
-      sessionStorage.setItem('auth_token', mockToken);
-      sessionStorage.setItem('user', JSON.stringify(mockUser));
+      // Persist to both localStorage (survives navigation) and sessionStorage
+      if (mockToken && mockToken !== 'undefined') {
+        localStorage.setItem('auth_token', mockToken);
+        sessionStorage.setItem('auth_token', mockToken);
+      }
+      if (mockUser) {
+        sessionStorage.setItem('user', JSON.stringify(mockUser));
+      }
 
       return {
         token: mockToken,
@@ -342,13 +367,34 @@ export const getAuthToken = () => {
     }
   }
 
-  // Fallback to sessionStorage if not found in Zustand persist store
+  // Fallback to dedicated auth_token in localStorage (set by mock auth)
+  if (!token) {
+    token = localStorage.getItem('auth_token');
+  }
+
+  // Fallback to sessionStorage
   if (!token) {
     token = sessionStorage.getItem('auth_token');
   }
 
+  // Fallback to in-memory authClient (used by mock auth in dev mode)
   if (!token) {
+    try {
+      const { authClient: ac } = require('../lib/authClient');
+      token = ac.getToken();
+    } catch {
+      // authClient not available
+    }
+  }
+
+  // Guard against string "undefined"/"null" from bad localStorage writes
+  if (!token || token === 'undefined' || token === 'null') {
     return null;
+  }
+
+  // dev-token is not a JWT — skip expiry check
+  if (token === 'dev-token') {
+    return token;
   }
 
   if (isTokenExpired(token)) {
@@ -711,18 +757,22 @@ export async function validateAndGetCurrentUser() {
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Token expired
-        await logout();
+        // Token expired or invalid — return null to let AuthContext handle it.
+        // Do NOT call logout() here — it destroys persisted tokens and causes
+        // cascading auth failures on page reload.
         return null;
       }
       throw new Error(`Failed to validate user: ${response.statusText}`);
     }
 
     const data = await response.json();
-    if (data.user) {
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+    // /api/auth/me returns user fields directly (id, email, username, etc.)
+    // not wrapped in a .user property
+    const user = data.user || data;
+    if (user && user.id) {
+      sessionStorage.setItem('user', JSON.stringify(user));
     }
-    return data.user;
+    return user?.id ? user : null;
   } catch (error) {
     Sentry.captureException(error, {
       contexts: { custom: { action: 'validateUser' } },
