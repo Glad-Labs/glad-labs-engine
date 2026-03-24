@@ -49,11 +49,11 @@ export const WritingStyleSelector = ({
           getUserWritingSamples(),
           getActiveWritingSample(),
         ]);
-        setSamples(samplesRes.samples || []);
-        setActiveSample(activeRes.sample || null);
+        setSamples(samplesRes?.samples || []);
+        setActiveSample(activeRes?.sample || null);
 
         // Auto-select active sample if no value provided
-        if (!value && activeRes.sample) {
+        if (!value && activeRes?.sample) {
           onChange(activeRes.sample.id);
         }
       } catch (err) {
