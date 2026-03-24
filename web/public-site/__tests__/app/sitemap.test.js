@@ -61,6 +61,10 @@ describe('sitemap()', () => {
   });
 
   it('should include post URLs from API response', async () => {
+    // Ensure env vars are set before dynamic import
+    process.env.NEXT_PUBLIC_FASTAPI_URL = 'https://api.example.com';
+    process.env.NEXT_PUBLIC_API_BASE_URL = 'https://api.example.com';
+
     global.fetch
       .mockResolvedValueOnce({
         ok: true,
