@@ -116,8 +116,10 @@ export const exchangeCodeForToken = async (code) => {
     // Persist token to localStorage so getAuthToken() finds it across page navigations.
     // sessionStorage is cleared on navigation; Zustand persist gets wiped by AuthContext init.
     // localStorage.auth_token is the reliable fallback that survives both.
-    localStorage.setItem('auth_token', mockToken);
-    sessionStorage.setItem('auth_token', mockToken);
+    if (mockToken && mockToken !== 'undefined') {
+      localStorage.setItem('auth_token', mockToken);
+      sessionStorage.setItem('auth_token', mockToken);
+    }
 
     return {
       token: mockToken,
