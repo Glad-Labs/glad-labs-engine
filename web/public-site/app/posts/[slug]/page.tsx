@@ -10,7 +10,6 @@ import {
 } from '../../../components/StructuredData';
 import { generateBlogPostingSchema } from '../../../lib/structured-data';
 import { GiscusWrapper } from '../../../components/GiscusWrapper';
-import ArticleAd from '../../../components/ArticleAd';
 import sanitizeHtml from 'sanitize-html';
 import {
   buildMetaDescription,
@@ -350,8 +349,7 @@ export default async function PostPage({
           </div>
         </div>
 
-        {/* AdSense — Bottom of article */}
-        <ArticleAd />
+        {/* AdSense — Bottom of article (enabled when NEXT_PUBLIC_ADSENSE_ID is set) */}
 
         {/* Comments Section */}
         <div className="px-4 sm:px-6 lg:px-8 pb-20 bg-slate-800/30">
