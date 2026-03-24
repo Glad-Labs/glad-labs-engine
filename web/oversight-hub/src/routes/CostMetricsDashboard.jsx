@@ -109,8 +109,26 @@ function CostMetricsDashboard() {
           },
         ]);
 
-        setCostsByPhase(validatedPhaseData?.phases || {});
-        setCostsByModel(validatedModelData?.models || {});
+        // phases/models come from backend as arrays of objects;
+        // convert to {name: cost} maps for the simple chart view
+        const rawPhases = validatedPhaseData?.phases || [];
+        const phaseMap = Array.isArray(rawPhases)
+          ? rawPhases.reduce(
+              (acc, p) => ({ ...acc, [p.phase]: p.total_cost }),
+              {}
+            )
+          : rawPhases;
+        setCostsByPhase(phaseMap);
+
+        const rawModels = validatedModelData?.models || [];
+        const modelMap = Array.isArray(rawModels)
+          ? rawModels.reduce(
+              (acc, m) => ({ ...acc, [m.model]: m.total_cost }),
+              {}
+            )
+          : rawModels;
+        setCostsByModel(modelMap);
+
         setCostHistory(validatedHistoryData?.daily_data || []);
         setBudgetStatus(validatedBudgetData);
       } catch (err) {
