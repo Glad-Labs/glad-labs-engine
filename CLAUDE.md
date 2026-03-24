@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Glad Labs is an AI orchestration system (v3.0.81) — a monorepo with three integrated services:
+Glad Labs is an AI orchestration system (v3.0.82) — a monorepo with three integrated services:
 
-- **Backend:** Python FastAPI orchestrator with 118 service modules (port 8000)
+- **Backend:** Python FastAPI orchestrator with 80 service modules (port 8000)
 - **Admin UI:** React 18 + Material-UI dashboard for agent monitoring (port 3001)
 - **Public Site:** Next.js 15 content distribution website (port 3000)
 
@@ -93,7 +93,7 @@ npm run build                 # Build all workspaces
 
 ### Backend (`src/cofounder_agent/`)
 
-**Entry point:** `main.py` — FastAPI app initializing service container, database pools, orchestrator, and registering all 27 route modules via `register_all_routes()`.
+**Entry point:** `main.py` — FastAPI app initializing service container, database pools, orchestrator, and registering all 28 route modules via `register_all_routes()`.
 
 **Key services:**
 
@@ -105,7 +105,7 @@ npm run build                 # Build all workspaces
 
 **Agent system:** Four core agent types in `src/cofounder_agent/agents/` (Content, Financial, Market Insight, Compliance). The content agent runs a 6-stage self-critiquing pipeline: Research → Creative Draft → QA Critique → Creative Refinement → Image Selection → Publishing Prep (with DB Storage). QA agents critique without rewriting; Creative agents apply the feedback.
 
-**Database:** asyncpg for direct PostgreSQL interaction + raw SQL migration files in `services/migrations/`. Five domain modules delegate from `DatabaseService`.
+**Database:** asyncpg for direct PostgreSQL interaction + Python migration modules (containing raw SQL) in `services/migrations/`. Five domain modules delegate from `DatabaseService`.
 
 **Python toolchain:** Poetry for dependency management. Run with `poetry run` inside `src/cofounder_agent/`. pytest markers: `unit`, `integration`, `api`, `e2e`, `performance`, `slow`, `voice`, `websocket`.
 
@@ -151,7 +151,7 @@ npm workspaces cover `web/public-site` and `web/oversight-hub`. `npm install` at
 - **PostgreSQL as source of truth:** All task results, agent memories, and content stored there
 - **Model router first:** Use cost tiers (`free`/`budget`/`standard`/`premium`/`flagship`) not hardcoded model names
 - **Monorepo with workspaces:** `npm install` once at root covers everything
-- **API versioning policy:** All 190+ endpoints live at `/api/{resource}` (no `/v1/` prefix). This is the current v1 surface, documented via `version="3.0.x"` in `main.py` and OpenAPI at `/api/openapi.json`. **Policy:** Breaking changes to any public endpoint (field renames, status code changes, required field additions) MUST introduce a new URL version prefix (`/api/v2/`). Non-breaking additions (new optional fields, new endpoints) do not require a new version. Document breaking changes in `CHANGELOG.md`.
+- **API versioning policy:** All ~158 endpoints live at `/api/{resource}` (no `/v1/` prefix). This is the current v1 surface, documented via `version="3.0.x"` in `main.py` and OpenAPI at `/api/openapi.json`. **Policy:** Breaking changes to any public endpoint (field renames, status code changes, required field additions) MUST introduce a new URL version prefix (`/api/v2/`). Non-breaking additions (new optional fields, new endpoints) do not require a new version. Document breaking changes in `CHANGELOG.md`.
 
 ## Reference Documentation
 
@@ -159,4 +159,4 @@ npm workspaces cover `web/public-site` and `web/oversight-hub`. `npm install` at
 - Deployment/CI: `docs/05-Operations/Operations-Maintenance.md`, `docs/04-Development/Development-Workflow.md`
 - AI agents: `docs/02-Architecture/Multi-Agent-Pipeline.md`
 - Troubleshooting: `docs/troubleshooting/`
-- Full env variable reference: `.env.example` (60+ variables)
+- Full env variable reference: `.env.example` (~57 variables)

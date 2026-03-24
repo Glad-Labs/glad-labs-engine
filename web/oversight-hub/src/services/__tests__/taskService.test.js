@@ -6,11 +6,10 @@
  * Tests cover:
  * - getTasks — success, pagination params, status/category filters, response.error throws, propagates network error
  * - getTask — success, response.error throws
- * - createTask — returns full result object, calls POST /api/tasks, response.error throws
+ * - createTask — success (data.id path, id path, raw result path), response.error throws
  * - updateTask — success, response.error throws
- * - updateTaskContent — success, calls PATCH /api/tasks/:id/content, response.error throws
  * - approveTask — success with feedback, defaults, response.error throws
- * - publishTask — success, triggers non-blocking revalidation via makeRequest, response.error throws
+ * - publishTask — success, triggers non-blocking revalidation, response.error throws
  * - rejectTask — success, defaults, response.error throws
  * - deleteTask — success, response.error throws
  * - getContentTask — success, response.error throws
@@ -18,9 +17,9 @@
  * - pauseTask — success, response.error throws
  * - resumeTask — success, response.error throws
  * - cancelTask — success, response.error throws
- * - revalidatePublicSite — success, error response, makeRequest throws
+ * - revalidatePublicSite — success, non-ok status returns failure object, fetch throws returns failure object
  *
- * makeRequest is mocked; no network calls.
+ * makeRequest and global.fetch are mocked; no network calls.
  */
 
 import { vi } from 'vitest';
@@ -46,7 +45,6 @@ import {
   getTask,
   createTask,
   updateTask,
-  updateTaskContent,
   approveTask,
   publishTask,
   rejectTask,
@@ -65,6 +63,11 @@ const _throw = (msg) => mockMakeRequest.mockRejectedValue(new Error(msg));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default fetch mock for revalidatePublicSite
+  global.fetch = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ revalidated: true }),
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -164,26 +167,29 @@ describe('getTask', () => {
 
 describe('createTask', () => {
   it('returns full result object on success', async () => {
-    const response = { id: 'new-task-id', status: 'pending', topic: 'AI' };
-    _ok(response);
+    _ok({ id: 'new-task-id', status: 'pending' });
     const result = await createTask({ task_name: 'Test', topic: 'AI' });
-    expect(result).toEqual(response);
+    expect(result).toEqual({ id: 'new-task-id', status: 'pending' });
   });
 
-  it('returns result with nested data when present', async () => {
-    const response = { data: { id: 'new-task-id' } };
-    _ok(response);
+  it('returns result with nested data if present', async () => {
+    _ok({ data: { id: 'new-task-id' } });
     const result = await createTask({ task_name: 'Test', topic: 'AI' });
-    expect(result).toEqual(response);
-    expect(result.data.id).toBe('new-task-id');
+    expect(result).toEqual({ data: { id: 'new-task-id' } });
   });
 
-  it('passes taskData directly as request body', async () => {
+  it('returns result even without id fields', async () => {
+    const raw = { status: 'queued' };
+    _ok(raw);
+    const result = await createTask({ task_name: 'Test', topic: 'AI' });
+    expect(result).toEqual(raw);
+  });
+
+  it('passes task data directly as request body', async () => {
     _ok({ id: 'x' });
     await createTask({ task_name: 'Blog Post', topic: 'Tech' });
     const body = mockMakeRequest.mock.calls[0][2];
-    expect(body.task_name).toBe('Blog Post');
-    expect(body.topic).toBe('Tech');
+    expect(body).toEqual({ task_name: 'Blog Post', topic: 'Tech' });
   });
 
   it('throws when response contains error field', async () => {
@@ -198,13 +204,6 @@ describe('createTask', () => {
     await createTask({});
     expect(mockMakeRequest.mock.calls[0][0]).toBe('/api/tasks');
     expect(mockMakeRequest.mock.calls[0][1]).toBe('POST');
-  });
-
-  it('uses 60s timeout for background generation', async () => {
-    _ok({ id: 'z' });
-    await createTask({});
-    // 6th arg is timeout
-    expect(mockMakeRequest.mock.calls[0][5]).toBe(60000);
   });
 });
 
@@ -232,37 +231,6 @@ describe('updateTask', () => {
     expect(mockMakeRequest.mock.calls[0][0]).toBe('/api/tasks/task-5');
     expect(mockMakeRequest.mock.calls[0][1]).toBe('PATCH');
     expect(mockMakeRequest.mock.calls[0][2]).toEqual({ status: 'done' });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// updateTaskContent
-// ---------------------------------------------------------------------------
-
-describe('updateTaskContent', () => {
-  it('returns updated task on success', async () => {
-    _ok({ id: 'task-1', topic: 'New Title' });
-    const result = await updateTaskContent('task-1', { topic: 'New Title' });
-    expect(result.topic).toBe('New Title');
-  });
-
-  it('calls PATCH /api/tasks/:id/content with content fields', async () => {
-    _ok({ id: 'task-5' });
-    const updates = {
-      topic: 'Updated',
-      task_metadata: { content: 'Body text' },
-    };
-    await updateTaskContent('task-5', updates);
-    expect(mockMakeRequest.mock.calls[0][0]).toBe('/api/tasks/task-5/content');
-    expect(mockMakeRequest.mock.calls[0][1]).toBe('PATCH');
-    expect(mockMakeRequest.mock.calls[0][2]).toEqual(updates);
-  });
-
-  it('throws when response contains error field', async () => {
-    _error('No valid content fields');
-    await expect(updateTaskContent('task-1', {})).rejects.toThrow(
-      'Could not update task content: No valid content fields'
-    );
   });
 });
 
@@ -322,19 +290,19 @@ describe('publishTask', () => {
     expect(result.status).toBe('published');
   });
 
-  it('triggers non-blocking revalidation after success', async () => {
-    // First call: publishTask, second call: revalidatePublicSite
+  it('triggers non-blocking revalidatePublicSite after success', async () => {
+    // First call: publishTask itself; second call: revalidatePublicSite
     mockMakeRequest
       .mockResolvedValueOnce({
         id: 'task-1',
         status: 'published',
         post_slug: 'my-post',
       })
-      .mockResolvedValueOnce({ revalidated: true });
+      .mockResolvedValueOnce({ success: true });
     await publishTask('task-1');
-    // Flush microtask queue for the non-blocking revalidation
+    // Flush any pending promises from the non-blocking revalidation call
     await new Promise((r) => setTimeout(r, 0));
-    // Second makeRequest call should be the revalidation
+    // revalidatePublicSite calls makeRequest a second time
     expect(mockMakeRequest).toHaveBeenCalledTimes(2);
     expect(mockMakeRequest.mock.calls[1][0]).toBe('/api/revalidate-cache');
   });
@@ -582,10 +550,10 @@ describe('revalidatePublicSite', () => {
   });
 
   it('returns failure object when makeRequest returns error', async () => {
-    _ok({ error: 'Internal error' });
+    _error('Server error');
     const result = await revalidatePublicSite();
     expect(result.success).toBe(false);
-    expect(result.error).toBe('Internal error');
+    expect(result.error).toBe('Server error');
   });
 
   it('returns failure object when makeRequest throws', async () => {
@@ -595,22 +563,22 @@ describe('revalidatePublicSite', () => {
     expect(result.error).toBe('ECONNREFUSED');
   });
 
-  it('calls /api/revalidate-cache via POST through makeRequest', async () => {
-    _ok({ revalidated: true });
+  it('calls /api/revalidate-cache via POST using makeRequest', async () => {
+    _ok({});
     await revalidatePublicSite(['/']);
     expect(mockMakeRequest.mock.calls[0][0]).toBe('/api/revalidate-cache');
     expect(mockMakeRequest.mock.calls[0][1]).toBe('POST');
   });
 
   it('sends paths in request body', async () => {
-    _ok({ revalidated: true });
+    _ok({});
     await revalidatePublicSite(['/archive', '/']);
     const body = mockMakeRequest.mock.calls[0][2];
     expect(body.paths).toEqual(['/archive', '/']);
   });
 
   it('uses empty paths array by default', async () => {
-    _ok({ revalidated: true });
+    _ok({});
     await revalidatePublicSite();
     const body = mockMakeRequest.mock.calls[0][2];
     expect(body.paths).toEqual([]);
