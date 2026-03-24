@@ -362,7 +362,8 @@ export const getAuthToken = () => {
     }
   }
 
-  if (!token) {
+  // Guard against string "undefined"/"null" from bad localStorage writes
+  if (!token || token === 'undefined' || token === 'null') {
     return null;
   }
 
