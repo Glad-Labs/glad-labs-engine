@@ -15,20 +15,24 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import BlogWorkflowPage from '../BlogWorkflowPage';
 
-// ── mock @/lib/apiClient ─────────────────────────────────────────────────────
-const { mockApiClient } = vi.hoisted(() => ({
-  mockApiClient: {
-    getAvailablePhases: vi.fn(),
-    listWorkflowExecutions: vi.fn(),
-    executeWorkflow: vi.fn(),
-    getWorkflowProgress: vi.fn(),
-    getWorkflowResults: vi.fn(),
-    cancelWorkflowExecution: vi.fn(),
-  },
+// ── mock the services used by BlogWorkflowPage ──────────────────────────────
+const { mockGetAvailablePhases, mockMakeRequest, mockGetWorkflowHistory } =
+  vi.hoisted(() => ({
+    mockGetAvailablePhases: vi.fn(),
+    mockMakeRequest: vi.fn(),
+    mockGetWorkflowHistory: vi.fn(),
+  }));
+
+vi.mock('../../services/workflowBuilderService', () => ({
+  getAvailablePhases: mockGetAvailablePhases,
 }));
 
-vi.mock('../../lib/apiClient', () => ({
-  default: mockApiClient,
+vi.mock('../../services/cofounderAgentClient', () => ({
+  makeRequest: mockMakeRequest,
+}));
+
+vi.mock('../../services/workflowManagementService', () => ({
+  getWorkflowHistory: mockGetWorkflowHistory,
 }));
 
 // ── helpers ─────────────────────────────────────────────────────────────────
@@ -49,20 +53,22 @@ function renderPage() {
 describe('BlogWorkflowPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockApiClient.getAvailablePhases.mockResolvedValue(SAMPLE_PHASES);
-    mockApiClient.listWorkflowExecutions.mockResolvedValue({ executions: [] });
-    mockApiClient.executeWorkflow.mockResolvedValue({
-      execution_id: 'exec-123',
-    });
-    mockApiClient.getWorkflowProgress.mockResolvedValue({
-      status: 'running',
-      progress: 50,
-    });
-    mockApiClient.getWorkflowResults.mockResolvedValue({
-      content: 'Generated content',
-    });
-    mockApiClient.cancelWorkflowExecution.mockResolvedValue({
-      status: 'cancelled',
+    mockGetAvailablePhases.mockResolvedValue(SAMPLE_PHASES);
+    mockGetWorkflowHistory.mockResolvedValue({ executions: [] });
+    // makeRequest is used for execute, progress, results, and cancel.
+    // Route responses based on URL argument.
+    mockMakeRequest.mockImplementation((url) => {
+      if (url.includes('/execute/')) {
+        return Promise.resolve({ execution_id: 'exec-123' });
+      }
+      if (url.includes('/progress')) {
+        return Promise.resolve({ status: 'running', progress: 50 });
+      }
+      if (url.includes('/cancel')) {
+        return Promise.resolve({ status: 'cancelled' });
+      }
+      // Default: execution results
+      return Promise.resolve({ content: 'Generated content' });
     });
   });
 
@@ -83,14 +89,14 @@ describe('BlogWorkflowPage', () => {
     it('calls getAvailablePhases on mount', async () => {
       renderPage();
       await waitFor(() => {
-        expect(mockApiClient.getAvailablePhases).toHaveBeenCalledTimes(1);
+        expect(mockGetAvailablePhases).toHaveBeenCalledTimes(1);
       });
     });
 
     it('calls listWorkflowExecutions on mount', async () => {
       renderPage();
       await waitFor(() => {
-        expect(mockApiClient.listWorkflowExecutions).toHaveBeenCalledTimes(1);
+        expect(mockGetWorkflowHistory).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -112,9 +118,7 @@ describe('BlogWorkflowPage', () => {
 
   describe('error state', () => {
     it('shows error when loading phases fails', async () => {
-      mockApiClient.getAvailablePhases.mockRejectedValue(
-        new Error('Network error')
-      );
+      mockGetAvailablePhases.mockRejectedValue(new Error('Network error'));
       renderPage();
       await waitFor(() => {
         expect(screen.getByText(/Failed to load phases/i)).toBeInTheDocument();
@@ -185,9 +189,7 @@ describe('BlogWorkflowPage', () => {
 
     it('calls executeWorkflow when Start Workflow button is clicked', async () => {
       renderPage();
-      await waitFor(() =>
-        expect(mockApiClient.getAvailablePhases).toHaveBeenCalled()
-      );
+      await waitFor(() => expect(mockGetAvailablePhases).toHaveBeenCalled());
 
       await navigateToExecuteStep();
 
@@ -195,18 +197,18 @@ describe('BlogWorkflowPage', () => {
       fireEvent.click(startBtn);
 
       await waitFor(() => {
-        expect(mockApiClient.executeWorkflow).toHaveBeenCalledTimes(1);
+        expect(mockMakeRequest).toHaveBeenCalledWith(
+          expect.stringContaining('/execute/'),
+          'POST',
+          expect.any(Object)
+        );
       });
     });
 
     it('shows error message when executeWorkflow throws', async () => {
-      mockApiClient.executeWorkflow.mockRejectedValue(
-        new Error('Server error')
-      );
+      mockMakeRequest.mockRejectedValue(new Error('Server error'));
       renderPage();
-      await waitFor(() =>
-        expect(mockApiClient.getAvailablePhases).toHaveBeenCalled()
-      );
+      await waitFor(() => expect(mockGetAvailablePhases).toHaveBeenCalled());
 
       await navigateToExecuteStep();
 

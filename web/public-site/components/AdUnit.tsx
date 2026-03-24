@@ -1,77 +1,58 @@
 'use client';
 /**
- * AdUnit Component
- * Displays responsive Google AdSense ad units
- * Supports multiple formats: responsive, leaderboard, medium-rectangle
+ * AdUnit — Reusable in-content ad placement component
+ *
+ * Renders a Google AdSense ad unit. Only renders when NEXT_PUBLIC_ADSENSE_ID
+ * is set. Supports different formats (auto, rectangle, horizontal, vertical).
+ *
+ * Usage:
+ *   <AdUnit slot="1234567890" format="auto" />
  */
 
-import { useEffect } from 'react';
-
-type AdFormat = 'responsive' | 'leaderboard' | 'medium-rectangle';
+import { useEffect, useRef } from 'react';
 
 interface AdUnitProps {
-  format?: AdFormat;
+  slot: string;
+  format?: 'auto' | 'rectangle' | 'horizontal' | 'vertical';
+  responsive?: boolean;
   className?: string;
 }
 
 export default function AdUnit({
-  format = 'responsive',
+  slot,
+  format = 'auto',
+  responsive = true,
   className = '',
 }: AdUnitProps) {
+  const adRef = useRef<HTMLModElement>(null);
   const adSenseId = process.env.NEXT_PUBLIC_ADSENSE_ID;
+  const adSlot = slot || process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID;
 
   useEffect(() => {
-    // Push ad when component mounts if AdSense script is loaded
-    const w = window as unknown as { adsbygoogle?: object[] };
-    if (w.adsbygoogle && adSenseId) {
-      try {
-        w.adsbygoogle.push({});
-      } catch (error) {
-        console.warn('[AdUnit] Failed to push ad:', error);
-      }
+    if (!adSenseId || !adSlot) return;
+    try {
+      const w = window as unknown as { adsbygoogle?: object[] };
+      (w.adsbygoogle = w.adsbygoogle || []).push({});
+    } catch {
+      // AdSense not loaded — silent fail
     }
-  }, [adSenseId]);
+  }, [adSenseId, adSlot]);
 
-  // Return null if no AdSense ID configured
-  if (!adSenseId) {
-    return (
-      <div
-        className={`bg-slate-800 rounded-lg p-8 text-center text-slate-400 ${className}`}
-      >
-        <p className="text-sm">AdSense not configured</p>
-      </div>
-    );
+  if (!adSenseId || !adSlot) {
+    return null;
   }
 
-  // Determine ad dimensions based on format
-  const getAdStyle = (): React.CSSProperties => {
-    switch (format) {
-      case 'leaderboard':
-        return { minHeight: '90px' };
-      case 'medium-rectangle':
-        return { minHeight: '280px' };
-      default:
-        return { minHeight: '250px' };
-    }
-  };
-
   return (
-    <div
-      className={`bg-slate-900/50 rounded-lg border border-slate-800 p-4 flex items-center justify-center my-6 ${className}`}
-      style={getAdStyle()}
-    >
+    <div className={`ad-unit ${className}`} aria-hidden="true">
       <ins
+        ref={adRef}
         className="adsbygoogle"
-        style={{
-          display: 'block',
-          width: '100%',
-          height: '100%',
-        }}
+        style={{ display: 'block' }}
         data-ad-client={adSenseId}
-        data-ad-slot=""
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      ></ins>
+        data-ad-slot={adSlot}
+        data-ad-format={format}
+        data-full-width-responsive={responsive ? 'true' : 'false'}
+      />
     </div>
   );
 }

@@ -43,7 +43,8 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
     return posts
       .filter((p: { slug?: string }) => p.slug)
       .map((p: { slug: string }) => ({ slug: p.slug }));
-  } catch {
+  } catch (error) {
+    Sentry.captureException(error);
     return [];
   }
 }
@@ -221,7 +222,7 @@ export default async function PostPage({
         />
       )}
 
-      <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         {/* Header with Featured Image */}
         <div className="pt-20 pb-12">
           {imageUrl && (
@@ -250,7 +251,7 @@ export default async function PostPage({
               </h1>
 
               {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-4 text-slate-400 mb-8">
+              <div className="flex flex-wrap items-center gap-4 text-slate-300 mb-8">
                 <time dateTime={post.published_at || post.created_at}>
                   {publishDate}
                 </time>
@@ -348,12 +349,7 @@ export default async function PostPage({
           </div>
         </div>
 
-        {/* AdSense Placeholder */}
-        <div className="px-4 sm:px-6 lg:px-8 pb-12">
-          <div className="max-w-4xl mx-auto bg-slate-800/50 border border-slate-700 rounded-lg p-8 text-center">
-            <p className="text-slate-400 text-sm">Advertisement</p>
-          </div>
-        </div>
+        {/* AdSense — Bottom of article (enabled when NEXT_PUBLIC_ADSENSE_ID is set) */}
 
         {/* Comments Section */}
         <div className="px-4 sm:px-6 lg:px-8 pb-20 bg-slate-800/30">
@@ -361,7 +357,7 @@ export default async function PostPage({
             <GiscusWrapper postSlug={post.slug} postTitle={post.title} />
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

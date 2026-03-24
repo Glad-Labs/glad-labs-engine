@@ -17,8 +17,12 @@ import {
   Stop as StopIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { deleteContentTask } from '../../services/taskService';
-import { pauseTask, resumeTask, cancelTask } from '../../lib/apiClient';
+import {
+  deleteContentTask,
+  pauseTask,
+  resumeTask,
+  cancelTask,
+} from '../../services/taskService';
 import useStore from '../../store/useStore';
 
 /**
@@ -252,12 +256,17 @@ export const TaskControlPanel = ({ task, onTaskUpdated }) => {
           </Button>
         )}
 
-        {/* No Actions Available */}
-        {!canPause && !canResume && !canCancel && !canDelete && (
-          <Typography variant="body2" color="textSecondary">
-            No actions available for this task status
-          </Typography>
-        )}
+        {/* No Actions Available - only show when task is in a terminal state
+            (not when approval actions may be available via TaskApprovalForm) */}
+        {!canPause &&
+          !canResume &&
+          !canCancel &&
+          !canDelete &&
+          ['completed', 'cancelled', 'failed'].includes(task.status) && (
+            <Typography variant="body2" color="textSecondary">
+              No actions available for this task status
+            </Typography>
+          )}
       </Stack>
 
       {/* Confirmation Dialog */}

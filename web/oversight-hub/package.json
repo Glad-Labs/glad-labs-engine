@@ -1,6 +1,6 @@
 {
   "name": "oversight-hub",
-  "version": "3.0.66",
+  "version": "3.0.82",
   "private": true,
   "description": "Oversight Hub - React 18 admin interface for monitoring and controlling AI content agents with real-time integration",
   "license": "AGPL-3.0",
@@ -44,7 +44,6 @@
     "axios": "^1.13.5",
     "dompurify": "^3.3.3",
     "lucide-react": "^0.556.0",
-    "markdown": "^0.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-refresh": "^0.14.2",
@@ -65,7 +64,6 @@
     "autoprefixer": "^10.4.27",
     "cross-env": "^7.0.3",
     "eslint": "^9.39.2",
-    "eslint-plugin-jest": "^28.14.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.0.0",
     "globals": "^15.14.0",

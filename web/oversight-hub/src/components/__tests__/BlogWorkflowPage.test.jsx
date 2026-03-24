@@ -21,19 +21,32 @@ import {
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import BlogWorkflowPage from '../../pages/BlogWorkflowPage';
-import apiClient from '../../lib/apiClient';
+import * as cofounderAgentClient from '../../services/cofounderAgentClient';
+import * as workflowBuilderService from '../../services/workflowBuilderService';
+import * as workflowManagementService from '../../services/workflowManagementService';
 
-// Mock the API client
-vi.mock('../../lib/apiClient', () => ({
-  default: {
-    getAvailablePhases: vi.fn(),
-    executeWorkflow: vi.fn(),
-    getWorkflowProgress: vi.fn(),
-    getWorkflowResults: vi.fn(),
-    listWorkflowExecutions: vi.fn(),
-    cancelWorkflowExecution: vi.fn(),
-  },
+// Mock the services used by BlogWorkflowPage
+vi.mock('../../services/cofounderAgentClient', () => ({
+  makeRequest: vi.fn(),
 }));
+
+vi.mock('../../services/workflowBuilderService', () => ({
+  getAvailablePhases: vi.fn(),
+}));
+
+vi.mock('../../services/workflowManagementService', () => ({
+  getWorkflowHistory: vi.fn(),
+}));
+
+// Convenience aliases for existing test assertions
+const apiClient = {
+  getAvailablePhases: workflowBuilderService.getAvailablePhases,
+  executeWorkflow: cofounderAgentClient.makeRequest,
+  getWorkflowProgress: cofounderAgentClient.makeRequest,
+  getWorkflowResults: cofounderAgentClient.makeRequest,
+  listWorkflowExecutions: workflowManagementService.getWorkflowHistory,
+  cancelWorkflowExecution: cofounderAgentClient.makeRequest,
+};
 
 // ============================================================================
 // COMPONENT SETUP & FIXTURES
@@ -474,10 +487,16 @@ describe('BlogWorkflowPage - Step 3: Execute', () => {
   it('should display cancel button during execution', async () => {
     const user = userEvent.setup();
 
-    apiClient.executeWorkflow.mockResolvedValue({ execution_id: 'exec-123' });
-    apiClient.getWorkflowProgress.mockResolvedValue({
-      status: 'running',
-      progress_percent: 50,
+    // Both executeWorkflow and getWorkflowProgress use makeRequest,
+    // so route responses by URL pattern.
+    cofounderAgentClient.makeRequest.mockImplementation((url) => {
+      if (url.includes('/execute/')) {
+        return Promise.resolve({ execution_id: 'exec-123' });
+      }
+      if (url.includes('/progress')) {
+        return Promise.resolve({ status: 'running', progress_percent: 50 });
+      }
+      return Promise.resolve({});
     });
 
     const navigateComponent = async () => {

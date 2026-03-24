@@ -9,6 +9,7 @@
  */
 
 import { makeRequest } from './cofounderAgentClient';
+import logger from '@/lib/logger';
 
 const API_TIMEOUT = 30000; // 30 seconds
 
@@ -109,7 +110,7 @@ export const createTask = async (taskData) => {
  * Update task status via the backend API
  *
  * @param {string} taskId - Task ID to update
- * @param {object} updates - Fields to update
+ * @param {object} updates - Fields to update (must include status)
  * @returns {Promise<object>} Updated task object
  * @throws {Error} If update fails
  */
@@ -125,6 +126,31 @@ export const updateTask = async (taskId, updates) => {
 
   if (result.error) {
     throw new Error(`Could not update task: ${result.error}`);
+  }
+
+  return result;
+};
+
+/**
+ * Update task content fields (title, content, metadata) without changing status
+ *
+ * @param {string} taskId - Task ID to update
+ * @param {object} updates - Content fields to update
+ * @returns {Promise<object>} Updated task object
+ * @throws {Error} If update fails
+ */
+export const updateTaskContent = async (taskId, updates) => {
+  const result = await makeRequest(
+    `/api/tasks/${taskId}/content`,
+    'PATCH',
+    updates,
+    false,
+    null,
+    API_TIMEOUT
+  );
+
+  if (result.error) {
+    throw new Error(`Could not update task content: ${result.error}`);
   }
 
   return result;
@@ -182,13 +208,13 @@ export const revalidatePublicSite = async (paths = []) => {
     );
 
     if (result.error) {
-      console.warn('Revalidation returned error:', result.error);
+      logger.warn('Revalidation returned error:', result.error);
       return { success: false, error: result.error };
     }
 
     return result;
   } catch (error) {
-    console.warn('Could not trigger frontend revalidation:', error.message);
+    logger.warn('Could not trigger frontend revalidation:', error.message);
     // Don't throw - publish should succeed even if revalidation fails
     return { success: false, error: error.message };
   }
@@ -227,7 +253,7 @@ export const publishTask = async (taskId) => {
       paths.push(`/posts/${result.post_slug}`);
     }
     revalidatePublicSite(paths).catch((err) => {
-      console.warn('Revalidation failed silently:', err);
+      logger.warn('Revalidation failed silently:', err);
     });
   }
 

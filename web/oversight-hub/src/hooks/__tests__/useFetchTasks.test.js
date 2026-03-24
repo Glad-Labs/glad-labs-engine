@@ -213,17 +213,23 @@ describe('useFetchTasks', () => {
 
   describe('auto-refresh', () => {
     it('does NOT call getTasks more than once when autoRefreshInterval=0', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
       const { result } = renderHook(() => useFetchTasks(1, 10, 0));
 
       await waitFor(() => {
         expect(result.current.tasks).toHaveLength(2);
       });
 
-      // Wait a bit — no interval should fire
-      await new Promise((r) => setTimeout(r, 50));
+      // Advance fake timers well past any potential interval tick
+      await act(async () => {
+        vi.advanceTimersByTime(5000);
+      });
 
       // Should have been called exactly once (on mount)
       expect(mockGetTasks).toHaveBeenCalledTimes(1);
+
+      vi.useRealTimers();
     });
 
     it('calls getTasks immediately on mount', async () => {

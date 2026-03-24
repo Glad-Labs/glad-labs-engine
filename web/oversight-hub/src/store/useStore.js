@@ -13,7 +13,6 @@ const useStore = create(
 
       setUser: (user) => set({ user }),
       setAccessToken: (token) => set({ accessToken: token }),
-      setRefreshToken: (token) => set({ refreshToken: token }),
       setIsAuthenticated: (isAuth) => set({ isAuthenticated: isAuth }),
       setAuthInitialized: (initialized) =>
         set({ authInitialized: initialized }),
@@ -88,11 +87,6 @@ const useStore = create(
       notifications: {
         desktop: true,
       },
-      apiKeys: {
-        mercury: '',
-        gcp: '',
-      },
-
       setTheme: (theme) => set({ theme }),
       toggleTheme: () =>
         set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
@@ -103,13 +97,6 @@ const useStore = create(
           notifications: {
             ...state.notifications,
             desktop: !state.notifications.desktop,
-          },
-        })),
-      setApiKey: (key, value) =>
-        set((state) => ({
-          apiKeys: {
-            ...state.apiKeys,
-            [key]: value,
           },
         })),
 
@@ -140,14 +127,6 @@ const useStore = create(
         executionHistory: [],
       },
 
-      setActiveHost: (host) =>
-        set((state) => ({
-          orchestrator: {
-            ...state.orchestrator,
-            activeHost: host,
-          },
-        })),
-
       setSelectedModel: (model) =>
         set((state) => ({
           orchestrator: {
@@ -173,28 +152,6 @@ const useStore = create(
             },
           },
         })),
-
-      updateExecutionPhase: (phaseIndex, phaseData) =>
-        set((state) => {
-          const newExecution = { ...state.orchestrator.currentExecution };
-          if (phaseIndex >= 0 && phaseIndex < newExecution.phases.length) {
-            newExecution.phases[phaseIndex] = {
-              ...newExecution.phases[phaseIndex],
-              ...phaseData,
-            };
-            newExecution.currentPhaseIndex = phaseIndex;
-            newExecution.progress = Math.round(
-              ((phaseIndex + 1) / newExecution.phases.length) * 100
-            );
-            newExecution.status = 'executing';
-          }
-          return {
-            orchestrator: {
-              ...state.orchestrator,
-              currentExecution: newExecution,
-            },
-          };
-        }),
 
       completeExecution: (_result) =>
         set((state) => {
@@ -272,11 +229,6 @@ const useStore = create(
         }),
 
       /**
-       * Clear all messages from stream
-       */
-      clearMessages: () => set({ messages: [] }),
-
-      /**
        * Remove specific message from stream
        * @param {number} index - Index of message to remove
        */
@@ -291,6 +243,16 @@ const useStore = create(
     }),
     {
       name: 'oversight-hub-storage',
+      // Bump version to clear stale apiKeys from localStorage on existing clients.
+      version: 1,
+      migrate: (persisted, version) => {
+        if (version === 0 && persisted) {
+          // Drop apiKeys that may have been persisted by older versions
+          const { apiKeys, ...rest } = persisted;
+          return rest;
+        }
+        return persisted;
+      },
       partialize: (state) => ({
         // Persist non-sensitive auth state only (session token is HttpOnly cookie).
         user: state.user,
@@ -300,7 +262,6 @@ const useStore = create(
         theme: state.theme,
         autoRefresh: state.autoRefresh,
         notifications: state.notifications,
-        apiKeys: state.apiKeys,
       }), // persist theme and other settings
     }
   )

@@ -3,6 +3,9 @@
  * Handles OAuth flow, token exchange, and user verification
  */
 
+import * as Sentry from '@sentry/react';
+import logger from '@/lib/logger';
+
 // mockTokenGenerator is intentionally NOT imported statically.
 // Use dynamic import inside dev-only code paths (see calls below) so that
 // the file — including its signing secret — is tree-shaken from production
@@ -43,7 +46,7 @@ export const clearPersistedAuthState = () => {
 
     localStorage.setItem(PERSIST_KEY, JSON.stringify(updated));
   } catch (error) {
-    console.warn(
+    logger.warn(
       '[authService] Failed to clear persisted Zustand auth state:',
       error
     );
@@ -117,26 +120,51 @@ export const exchangeCodeForToken = async (code) => {
   try {
     // Check if this is a mock code (for development)
     if (code && code.startsWith('mock_auth_code_')) {
-      // Handle mock auth
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+      // Handle mock auth — fetch a real backend-signed JWT
+      const apiUrl = API_BASE_URL || 'http://localhost:8000';
+      let mockToken;
+      let mockUser;
 
-      const mockUser = {
-        id: 'mock_user_12345',
-        login: 'dev-user',
-        email: 'dev@example.com',
-        name: 'Development User',
-        avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
-      };
+      try {
+        const resp = await fetch(`${apiUrl}/api/auth/dev-token`, {
+          method: 'POST',
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          mockToken = data.token || data.access_token;
+          mockUser = data.user || {
+            id: 'dev_user_local',
+            login: 'dev-user',
+            email: 'dev@example.com',
+            name: 'Development User',
+            avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
+          };
+        }
+      } catch {
+        // Backend unreachable — fall back to client-side mock
+      }
 
-      // Dynamic import keeps mockTokenGenerator (and its secret) out of the
-      // production bundle — this branch only runs for mock_auth_code_ codes.
-      const { createMockJWTToken } =
-        await import('../utils/mockTokenGenerator');
-      const mockToken = await createMockJWTToken(mockUser);
+      if (!mockToken) {
+        const { createMockJWTToken } =
+          await import('../utils/mockTokenGenerator');
+        mockUser = {
+          id: 'mock_user_12345',
+          login: 'dev-user',
+          email: 'dev@example.com',
+          name: 'Development User',
+          avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
+        };
+        mockToken = await createMockJWTToken(mockUser);
+      }
 
-      // Store token in sessionStorage (not localStorage) to limit XSS exposure (#726)
-      sessionStorage.setItem('auth_token', mockToken);
-      sessionStorage.setItem('user', JSON.stringify(mockUser));
+      // Persist to both localStorage (survives navigation) and sessionStorage
+      if (mockToken && mockToken !== 'undefined') {
+        localStorage.setItem('auth_token', mockToken);
+        sessionStorage.setItem('auth_token', mockToken);
+      }
+      if (mockUser) {
+        sessionStorage.setItem('user', JSON.stringify(mockUser));
+      }
 
       return {
         token: mockToken,
@@ -173,7 +201,9 @@ export const exchangeCodeForToken = async (code) => {
 
     return data;
   } catch (error) {
-    console.error('Error exchanging code for token:', error);
+    Sentry.captureException(error, {
+      contexts: { custom: { action: 'exchangeCodeForToken' } },
+    });
     throw error;
   }
 };
@@ -220,7 +250,9 @@ export const verifySession = async () => {
     clearPersistedAuthState();
     return null;
   } catch (error) {
-    console.error('Error verifying session:', error);
+    Sentry.captureException(error, {
+      contexts: { custom: { action: 'verifySession' } },
+    });
     return null;
   }
 };
@@ -248,7 +280,9 @@ export const logout = async () => {
     clearPersistedAuthState();
     sessionStorage.removeItem('oauth_state');
   } catch (error) {
-    console.error('Error during logout:', error);
+    Sentry.captureException(error, {
+      contexts: { custom: { action: 'logout' } },
+    });
     // Still clear local storage even if API call fails
     clearPersistedAuthState();
   }
@@ -266,7 +300,7 @@ export const getStoredUser = () => {
     }
     return parsed;
   } catch (e) {
-    console.error('[authService.getStoredUser] Failed to parse user:', e);
+    logger.warn('[authService.getStoredUser] Failed to parse user:', e);
     return null;
   }
 };
@@ -307,7 +341,7 @@ export const isTokenExpired = (token) => {
 
     return isExpired;
   } catch (e) {
-    console.error('[authService.isTokenExpired] Error parsing token:', e);
+    logger.warn('[authService.isTokenExpired] Error parsing token:', e);
     return true; // If parsing fails, consider expired
   }
 };
@@ -326,20 +360,41 @@ export const getAuthToken = () => {
       const parsed = JSON.parse(persistedData);
       token = parsed.state?.accessToken || parsed.state?.auth_token;
     } catch (e) {
-      console.warn(
+      logger.warn(
         '[authService.getAuthToken] Failed to parse Zustand persist storage:',
         e
       );
     }
   }
 
-  // Fallback to sessionStorage if not found in Zustand persist store
+  // Fallback to dedicated auth_token in localStorage (set by mock auth)
+  if (!token) {
+    token = localStorage.getItem('auth_token');
+  }
+
+  // Fallback to sessionStorage
   if (!token) {
     token = sessionStorage.getItem('auth_token');
   }
 
+  // Fallback to in-memory authClient (used by mock auth in dev mode)
   if (!token) {
+    try {
+      const { authClient: ac } = require('../lib/authClient');
+      token = ac.getToken();
+    } catch {
+      // authClient not available
+    }
+  }
+
+  // Guard against string "undefined"/"null" from bad localStorage writes
+  if (!token || token === 'undefined' || token === 'null') {
     return null;
+  }
+
+  // dev-token is not a JWT — skip expiry check
+  if (token === 'dev-token') {
+    return token;
   }
 
   if (isTokenExpired(token)) {
@@ -373,7 +428,7 @@ export const initializeDevToken = async (options = {}) => {
         if (validateWithBackend) {
           const isValid = await validateTokenWithBackend(existingToken);
           if (!isValid) {
-            console.warn(
+            logger.warn(
               '[authService] Existing token failed backend validation, clearing and regenerating'
             );
             clearPersistedAuthState();
@@ -408,7 +463,7 @@ export const initializeDevToken = async (options = {}) => {
 
         return backendToken;
       } catch (backendError) {
-        console.warn(
+        logger.warn(
           '[authService] Backend dev token generation failed, using local mock token fallback:',
           backendError
         );
@@ -445,8 +500,9 @@ export const initializeDevToken = async (options = {}) => {
       // Verify token was actually stored
       const storedToken = sessionStorage.getItem('auth_token');
       if (!storedToken) {
-        console.error(
-          '[authService] ERROR: Token was not actually stored in sessionStorage!'
+        Sentry.captureMessage(
+          '[authService] Token was not stored in sessionStorage',
+          'error'
         );
         // Try to check if it's in Zustand store instead
         try {
@@ -464,7 +520,9 @@ export const initializeDevToken = async (options = {}) => {
         () => {
           if (process.env.NODE_ENV === 'development') {
             initializeDevToken().catch((e) => {
-              console.error('[authService] Failed to auto-refresh token:', e);
+              Sentry.captureException(e, {
+                contexts: { custom: { action: 'autoRefreshToken' } },
+              });
             });
           }
         },
@@ -473,7 +531,9 @@ export const initializeDevToken = async (options = {}) => {
 
       return mockToken;
     } catch (error) {
-      console.error('[authService] ERROR in initializeDevToken:', error);
+      Sentry.captureException(error, {
+        contexts: { custom: { action: 'initializeDevToken' } },
+      });
       // If development token fails, return null - frontend should redirect to login
       return null;
     } finally {
@@ -558,7 +618,9 @@ export async function getAvailableOAuthProviders() {
     const data = await response.json();
     return data.providers || [];
   } catch (error) {
-    console.error('Error fetching OAuth providers:', error);
+    Sentry.captureException(error, {
+      contexts: { custom: { action: 'getOAuthProviders' } },
+    });
     return [];
   }
 }
@@ -583,7 +645,9 @@ export async function getOAuthLoginURL(provider) {
     const data = await response.json();
     return data.login_url;
   } catch (error) {
-    console.error(`Error getting ${provider} login URL:`, error);
+    Sentry.captureException(error, {
+      contexts: { custom: { action: 'getOAuthLoginURL', provider } },
+    });
     throw error;
   }
 }
@@ -664,7 +728,9 @@ export async function handleOAuthCallbackNew(provider, code, state) {
 
     return data;
   } catch (error) {
-    console.error(`Error handling ${provider} callback:`, error);
+    Sentry.captureException(error, {
+      contexts: { custom: { action: 'handleOAuthCallback', provider } },
+    });
     throw error;
   }
 }
@@ -691,20 +757,26 @@ export async function validateAndGetCurrentUser() {
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Token expired
-        await logout();
+        // Token expired or invalid — return null to let AuthContext handle it.
+        // Do NOT call logout() here — it destroys persisted tokens and causes
+        // cascading auth failures on page reload.
         return null;
       }
       throw new Error(`Failed to validate user: ${response.statusText}`);
     }
 
     const data = await response.json();
-    if (data.user) {
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+    // /api/auth/me returns user fields directly (id, email, username, etc.)
+    // not wrapped in a .user property
+    const user = data.user || data;
+    if (user && user.id) {
+      sessionStorage.setItem('user', JSON.stringify(user));
     }
-    return data.user;
+    return user?.id ? user : null;
   } catch (error) {
-    console.error('Error validating user:', error);
+    Sentry.captureException(error, {
+      contexts: { custom: { action: 'validateUser' } },
+    });
     return null;
   }
 }

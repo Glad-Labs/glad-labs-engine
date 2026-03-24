@@ -48,9 +48,9 @@ export default function Error({ error, reset }: ErrorProps) {
 
           {/* Error Details */}
           <div className="bg-gray-800/50 rounded-lg p-6 mb-8 text-left border border-gray-700">
-            <p className="text-sm text-gray-400 mb-2 font-semibold">
-              Error Details:
-            </p>
+            <h2 className="text-sm text-gray-400 mb-2 font-semibold">
+              Error Details
+            </h2>
             <p className="text-sm text-red-300/80 font-mono break-words">
               {error?.message || 'Unknown error'}
             </p>
@@ -106,9 +106,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
           {/* Recovery Tips */}
           <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-6 mb-8 text-left">
-            <p className="text-blue-300 font-semibold mb-3">
-              💡 Recovery Tips:
-            </p>
+            <h2 className="text-blue-300 font-semibold mb-3">Recovery Tips</h2>
             <ul className="text-blue-200/80 space-y-2 text-sm">
               <li>✓ Check your internet connection</li>
               <li>✓ Clear your browser cache and cookies</li>
@@ -119,9 +117,9 @@ export default function Error({ error, reset }: ErrorProps) {
 
           {/* Helpful Links */}
           <div>
-            <p className="text-gray-400 mb-4">
+            <h2 className="text-gray-400 mb-4">
               Need help? Here are useful links:
-            </p>
+            </h2>
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href="/"

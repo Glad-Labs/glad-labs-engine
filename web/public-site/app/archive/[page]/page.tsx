@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
+import * as Sentry from '@sentry/nextjs';
+import logger from '@/lib/logger';
 
 interface Post {
   id: string;
@@ -50,7 +52,9 @@ async function getArchivePosts(page: number) {
       data?.total ?? data?.meta?.pagination?.total ?? posts.length ?? 0;
 
     return { posts, total };
-  } catch {
+  } catch (error) {
+    logger.error('Error fetching archive posts:', error);
+    Sentry.captureException(error);
     return { posts: [], total: 0 };
   }
 }
@@ -86,7 +90,7 @@ export default async function ArchivePage({ params }: ArchivePageProps) {
   const totalPages = Math.ceil(total / POSTS_PER_PAGE);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* Header Section */}
       <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -165,6 +169,8 @@ export default async function ArchivePage({ params }: ArchivePageProps) {
                         </div>
                         <Link
                           href={`/posts/${post.slug}`}
+                          aria-hidden="true"
+                          tabIndex={-1}
                           className="text-cyan-400 hover:text-cyan-300 font-semibold text-sm transition-colors flex items-center gap-2 self-start"
                         >
                           Read More
@@ -276,6 +282,6 @@ export default async function ArchivePage({ params }: ArchivePageProps) {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

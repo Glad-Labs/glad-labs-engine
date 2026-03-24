@@ -49,11 +49,11 @@ export const WritingStyleSelector = ({
           getUserWritingSamples(),
           getActiveWritingSample(),
         ]);
-        setSamples(samplesRes.samples || []);
-        setActiveSample(activeRes.sample || null);
+        setSamples(samplesRes?.samples || []);
+        setActiveSample(activeRes?.sample || null);
 
         // Auto-select active sample if no value provided
-        if (!value && activeRes.sample) {
+        if (!value && activeRes?.sample) {
           onChange(activeRes.sample.id);
         }
       } catch (err) {
@@ -69,8 +69,13 @@ export const WritingStyleSelector = ({
   if (loading) {
     return (
       <FormControl fullWidth disabled>
-        <InputLabel>Writing Style</InputLabel>
-        <Select value="" disabled>
+        <InputLabel id="writing-style-label">Writing Style</InputLabel>
+        <Select
+          labelId="writing-style-label"
+          label="Writing Style"
+          value=""
+          disabled
+        >
           <MenuItem value="">
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CircularProgress size={20} />
@@ -85,8 +90,8 @@ export const WritingStyleSelector = ({
   if (error) {
     return (
       <FormControl fullWidth error disabled>
-        <InputLabel>Writing Style</InputLabel>
-        <Select value="">
+        <InputLabel id="writing-style-label">Writing Style</InputLabel>
+        <Select labelId="writing-style-label" label="Writing Style" value="">
           <MenuItem value="">Error loading samples</MenuItem>
         </Select>
         <FormHelperText>{error}</FormHelperText>
@@ -97,8 +102,8 @@ export const WritingStyleSelector = ({
   if (samples.length === 0) {
     return (
       <FormControl fullWidth disabled>
-        <InputLabel>Writing Style</InputLabel>
-        <Select value="">
+        <InputLabel id="writing-style-label">Writing Style</InputLabel>
+        <Select labelId="writing-style-label" label="Writing Style" value="">
           <MenuItem value="">No writing samples available</MenuItem>
         </Select>
         <FormHelperText>
@@ -110,8 +115,9 @@ export const WritingStyleSelector = ({
 
   return (
     <FormControl fullWidth required={required} variant={variant}>
-      <InputLabel>Writing Style</InputLabel>
+      <InputLabel id="writing-style-label">Writing Style</InputLabel>
       <Select
+        labelId="writing-style-label"
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}

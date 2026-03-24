@@ -74,10 +74,12 @@ describe('AIStudio', () => {
       ).toBeInTheDocument();
     });
 
-    it('shows Models tab content by default', () => {
+    it('shows Models tab content by default', async () => {
       renderAIStudio();
-      // The fallback models table should be visible
-      expect(screen.getByText('GPT-4')).toBeInTheDocument();
+      // The fallback models table should be visible after async load
+      await waitFor(() => {
+        expect(screen.getByText('gpt-4')).toBeInTheDocument();
+      });
     });
   });
 
@@ -141,7 +143,8 @@ describe('AIStudio', () => {
       // Wait for model to be available and selected
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/api/tags')
+          expect.stringContaining('/api/tags'),
+          expect.any(Object)
         );
       });
 
@@ -173,7 +176,8 @@ describe('AIStudio', () => {
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('/api/tags')
+          expect.stringContaining('/api/tags'),
+          expect.any(Object)
         );
       });
 
@@ -216,7 +220,7 @@ describe('AIStudio', () => {
       // Component should still be mounted
       expect(container.firstChild).not.toBeNull();
       // The fallback models should still show
-      expect(screen.getByText('GPT-4')).toBeInTheDocument();
+      expect(screen.getByText('gpt-4')).toBeInTheDocument();
     });
   });
 });

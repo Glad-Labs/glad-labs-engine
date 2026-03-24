@@ -10,6 +10,7 @@
 import React, { useState } from 'react';
 import logger from '@/lib/logger';
 import useStore from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { bulkUpdateTasks } from '../services/cofounderAgentClient';
 import useFetchTasks from '../hooks/useFetchTasks';
 import CreateTaskModal from '../components/tasks/CreateTaskModal';
@@ -19,7 +20,9 @@ import { StatusDashboardMetrics } from '../components/tasks/StatusComponents';
 import './TaskManagement.css';
 
 function TaskManagement() {
-  const { setSelectedTask } = useStore();
+  const { setSelectedTask } = useStore(
+    useShallow((s) => ({ setSelectedTask: s.setSelectedTask }))
+  );
   const [sortBy, setSortBy] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('desc');
   const [statusFilter, setStatusFilter] = useState('');
@@ -37,10 +40,13 @@ function TaskManagement() {
     total,
     loading,
     refetch: refreshTasks,
+    prependTask,
+    updateTask: optimisticUpdateTask,
   } = useFetchTasks(
     page,
     limit,
-    30000 // Auto-refresh every 30 seconds
+    5000, // Auto-refresh every 5 seconds for responsive status updates
+    { status: statusFilter || undefined }
   );
 
   const normalizeDisplayText = (value) => {
@@ -91,11 +97,16 @@ function TaskManagement() {
     }
   };
 
-  // Handler for task detail modal updates
-  const handleTaskDetailUpdate = async () => {
+  // Handler for task detail modal updates — optimistic status change
+  const handleTaskDetailUpdate = async (taskId, newStatus) => {
+    // Optimistically update the task in local state for instant feedback
+    if (taskId && newStatus) {
+      optimisticUpdateTask(taskId, { status: newStatus });
+    }
     setShowDetailModal(false);
     setSelectedTask(null);
-    refreshTasks();
+    // Also refresh to get full server data
+    setTimeout(() => refreshTasks(), 1000);
   };
 
   // Handler for task actions (pause, resume, cancel)
@@ -118,16 +129,9 @@ function TaskManagement() {
     }
   };
 
-  // Filter and sort tasks
+  // Sort tasks (status filtering is now server-side via useFetchTasks)
   const getFilteredTasks = () => {
-    let filtered = localTasks || [];
-
-    // Apply status filter
-    if (statusFilter && statusFilter !== '') {
-      filtered = filtered.filter(
-        (t) => t.status?.toLowerCase() === statusFilter.toLowerCase()
-      );
-    }
+    let filtered = [...(localTasks || [])];
 
     // Apply sorting
     return filtered.sort((a, b) => {
@@ -493,20 +497,14 @@ function TaskManagement() {
                       })()}
                     </td>
                     <td className="actions">
-                      <button
-                        className="action-btn view"
-                        onClick={() => handleEditTask(task)}
-                        title="View Details"
-                        aria-label="View Details"
-                        disabled={deleting}
-                      >
-                        <span aria-hidden="true">👁️</span>
-                      </button>
                       {task.status?.toLowerCase() === 'running' && (
                         <>
                           <button
                             className="action-btn pause"
-                            onClick={() => handleTaskAction(task.id, 'pause')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTaskAction(task.id, 'pause');
+                            }}
                             title="Pause Task"
                             aria-label="Pause Task"
                             disabled={deleting}
@@ -515,7 +513,10 @@ function TaskManagement() {
                           </button>
                           <button
                             className="action-btn cancel"
-                            onClick={() => handleTaskAction(task.id, 'cancel')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTaskAction(task.id, 'cancel');
+                            }}
                             title="Cancel Task"
                             aria-label="Cancel Task"
                             disabled={deleting}
@@ -527,7 +528,10 @@ function TaskManagement() {
                       {task.status?.toLowerCase() === 'paused' && (
                         <button
                           className="action-btn resume"
-                          onClick={() => handleTaskAction(task.id, 'resume')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTaskAction(task.id, 'resume');
+                          }}
                           title="Resume Task"
                           aria-label="Resume Task"
                           disabled={deleting}
@@ -538,7 +542,10 @@ function TaskManagement() {
                       {task.status?.toLowerCase() === 'failed' && (
                         <button
                           className="action-btn retry"
-                          onClick={() => handleTaskAction(task.id, 'retry')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTaskAction(task.id, 'retry');
+                          }}
                           title="Retry Task"
                           aria-label="Retry Task"
                           disabled={deleting}
@@ -644,11 +651,21 @@ function TaskManagement() {
           isOpen={showCreateModal}
           onClose={() => {
             setShowCreateModal(false);
-            refreshTasks();
           }}
-          onTaskCreated={() => {
+          onTaskCreated={(newTask) => {
             setShowCreateModal(false);
-            refreshTasks();
+            // Show the new task instantly in the table
+            if (newTask) {
+              prependTask({
+                ...newTask,
+                task_id: newTask.task_id || newTask.id,
+                status: newTask.status || 'pending',
+                topic: newTask.topic || newTask.task_name || '',
+                created_at: newTask.created_at || new Date().toISOString(),
+              });
+            }
+            // Full refresh from server after 2s to get accurate data
+            setTimeout(() => refreshTasks(), 2000);
           }}
         />
       )}
@@ -659,6 +676,8 @@ function TaskManagement() {
           onClose={() => {
             setShowDetailModal(false);
             setSelectedTask(null);
+            // Refresh task list to reflect any approve/publish/reject actions
+            refreshTasks();
           }}
           onUpdate={handleTaskDetailUpdate}
         />

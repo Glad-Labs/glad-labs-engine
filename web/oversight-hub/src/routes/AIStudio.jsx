@@ -21,47 +21,48 @@ function AIStudio() {
   const FALLBACK_MODELS = [
     {
       id: 1,
-      name: 'GPT-4',
-      provider: 'OpenAI',
-      version: '4.0',
+      name: 'gpt-4',
+      displayName: 'gpt-4 (openai)',
+      provider: 'openai',
       status: 'Active',
-      accuracy: 94.2,
-      latency: '245ms',
-      usage: 8540,
+      isFree: false,
+      size: 'unknown',
+      description: 'Model from openai',
     },
     {
       id: 2,
-      name: 'Claude 3',
-      provider: 'Anthropic',
-      version: '3.0',
+      name: 'claude-3-opus',
+      displayName: 'claude-3-opus (anthropic)',
+      provider: 'anthropic',
       status: 'Active',
-      accuracy: 92.8,
-      latency: '312ms',
-      usage: 6230,
+      isFree: false,
+      size: 'unknown',
+      description: 'Model from anthropic',
     },
     {
       id: 3,
-      name: 'GPT-3.5',
-      provider: 'OpenAI',
-      version: '3.5',
+      name: 'gpt-3.5-turbo',
+      displayName: 'gpt-3.5-turbo (openai)',
+      provider: 'openai',
       status: 'Active',
-      accuracy: 88.5,
-      latency: '89ms',
-      usage: 12450,
+      isFree: false,
+      size: 'unknown',
+      description: 'Model from openai',
     },
     {
       id: 4,
-      name: 'Local Model',
-      provider: 'Custom',
-      version: '1.0',
-      status: 'Inactive',
-      accuracy: 85.2,
-      latency: '45ms',
-      usage: 2340,
+      name: 'llama3',
+      displayName: 'llama3 (ollama)',
+      provider: 'ollama',
+      status: 'Active',
+      isFree: true,
+      size: '7B-13B',
+      description: 'Model from ollama',
     },
   ];
 
-  const [models] = useState(FALLBACK_MODELS);
+  const [models, setModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
   const [ollamaModels, setOllamaModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [testPrompt, setTestPrompt] = useState('What is AI?');
@@ -176,7 +177,12 @@ function AIStudio() {
         // Use centralized config with fallback to localhost:11434 for local Ollama
         const ollamaUrl =
           import.meta.env.VITE_OLLAMA_URL || 'http://localhost:11434';
-        const response = await fetch(`${ollamaUrl}/api/tags`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(`${ollamaUrl}/api/tags`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
         if (!response.ok) throw new Error('Failed to fetch Ollama models');
 
         const data = await response.json();
@@ -194,6 +200,42 @@ function AIStudio() {
     hasInitializedRef.current = true;
     fetchOllamaModels();
   }, [selectedModel]);
+
+  // Fetch cloud provider models from API
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setModelsLoading(true);
+        const response = await makeRequest('/api/models/available', 'GET');
+        const fetched = response?.models || response;
+        if (Array.isArray(fetched) && fetched.length > 0) {
+          setModels(
+            fetched.map((m, idx) => ({
+              id: m.id || idx + 1,
+              name: m.name || m.model_name || 'Unknown',
+              displayName: m.displayName || m.name || 'Unknown',
+              provider: m.provider || 'Unknown',
+              status: m.status || 'Active',
+              isFree: m.isFree ?? false,
+              size: m.size || 'unknown',
+              description: m.description || '',
+            }))
+          );
+        } else {
+          setModels(FALLBACK_MODELS);
+        }
+      } catch (err) {
+        logger.warn(
+          'Could not fetch models from API, using fallback data:',
+          err
+        );
+        setModels(FALLBACK_MODELS);
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+    fetchModels();
+  }, []);
 
   // Load training data
 
@@ -339,6 +381,7 @@ function AIStudio() {
 
           <div className="provider-models-section">
             <h2 className="section-title">☁️ Cloud Provider Models</h2>
+            {modelsLoading && <p className="loading-text">Loading models...</p>}
             <div className="models-grid">
               {models.map((model) => (
                 <div key={model.id} className="model-card">
@@ -354,21 +397,29 @@ function AIStudio() {
                     </span>
                   </div>
                   <div className="model-version">
-                    <span className="version-label">Version:</span>
-                    <span className="version-value">{model.version}</span>
+                    <span className="version-label">Display Name:</span>
+                    <span className="version-value">
+                      {model.displayName || model.name}
+                    </span>
                   </div>
                   <div className="model-metrics">
                     <div className="metric">
-                      <span className="metric-label">Accuracy</span>
-                      <span className="metric-value">{model.accuracy}%</span>
+                      <span className="metric-label">Size</span>
+                      <span className="metric-value">
+                        {model.size || 'unknown'}
+                      </span>
                     </div>
                     <div className="metric">
-                      <span className="metric-label">Latency</span>
-                      <span className="metric-value">{model.latency}</span>
+                      <span className="metric-label">Free</span>
+                      <span className="metric-value">
+                        {model.isFree ? 'Yes' : 'No'}
+                      </span>
                     </div>
                     <div className="metric">
-                      <span className="metric-label">Usage</span>
-                      <span className="metric-value">{model.usage}</span>
+                      <span className="metric-label">Description</span>
+                      <span className="metric-value">
+                        {model.description || '-'}
+                      </span>
                     </div>
                   </div>
                 </div>
