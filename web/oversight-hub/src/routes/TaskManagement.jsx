@@ -16,7 +16,6 @@ import useFetchTasks from '../hooks/useFetchTasks';
 import CreateTaskModal from '../components/tasks/CreateTaskModal';
 import TaskDetailModal from '../components/tasks/TaskDetailModal';
 import TaskFilters from '../components/tasks/TaskFilters';
-import { StatusDashboardMetrics } from '../components/tasks/StatusComponents';
 import './TaskManagement.css';
 
 function TaskManagement() {
@@ -210,40 +209,6 @@ function TaskManagement() {
           <span>{successMessage}</span>
         </div>
       )}
-
-      {/* Summary Stats */}
-      <div className="summary-stats">
-        <div className="stat-box">
-          <span className="stat-count">{filteredTasks?.length || 0}</span>
-          <span className="stat-label">Filtered Tasks</span>
-        </div>
-        <div className="stat-box">
-          <span className="stat-count">
-            {localTasks?.filter((t) => t.status?.toLowerCase() === 'completed')
-              .length || 0}
-          </span>
-          <span className="stat-label">Completed</span>
-        </div>
-        <div className="stat-box">
-          <span className="stat-count">
-            {localTasks?.filter((t) => t.status?.toLowerCase() === 'running')
-              .length || 0}
-          </span>
-          <span className="stat-label">Running</span>
-        </div>
-        <div className="stat-box">
-          <span className="stat-count">
-            {localTasks?.filter((t) => t.status?.toLowerCase() === 'failed')
-              .length || 0}
-          </span>
-          <span className="stat-label">Failed</span>
-        </div>
-      </div>
-
-      {/* Metrics Dashboard */}
-      <div className="metrics-section" style={{ marginBottom: '30px' }}>
-        <StatusDashboardMetrics tasks={localTasks} compact={true} />
-      </div>
 
       {/* Task Filters */}
       <TaskFilters
