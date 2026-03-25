@@ -14,7 +14,7 @@ import logger from '@/lib/logger';
  * - Integration with Zustand store
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import useStore from '../store/useStore';
 import { getTasks } from '../services/cofounderAgentClient';
 
@@ -50,6 +50,9 @@ export const useFetchTasks = (
   const isAuthenticated = useStore((state) => state.isAuthenticated);
   const authInitialized = useStore((state) => state.authInitialized);
 
+  // Track whether we've done the initial load (background polls skip loading state)
+  const hasLoadedRef = useRef(false);
+
   // Core fetch function
   const fetchTasks = useCallback(async () => {
     if (!authInitialized || !isAuthenticated) {
@@ -62,7 +65,10 @@ export const useFetchTasks = (
     }
 
     try {
-      setLoading(true);
+      // Only show loading spinner on initial fetch, not background polls
+      if (!hasLoadedRef.current) {
+        setLoading(true);
+      }
       setError(null);
 
       logger.log('🔵 useFetchTasks: Fetching tasks...');
@@ -84,6 +90,7 @@ export const useFetchTasks = (
           setTasks(tasksData);
           setTotal(totalCount);
           setStoreTasks(tasksData);
+          hasLoadedRef.current = true;
           return;
         }
       } catch (apiError) {
