@@ -156,12 +156,12 @@ const ApprovalItemCard = ({
                 />
                 {task.quality_score && (
                   <Chip
-                    label={`Quality: ${task.quality_score.toFixed(1)}/10`}
+                    label={`Quality: ${task.quality_score >= 10 ? task.quality_score.toFixed(0) : task.quality_score.toFixed(1)}/100`}
                     size="small"
                     color={
-                      task.quality_score >= 7.5
+                      task.quality_score >= 70
                         ? 'success'
-                        : task.quality_score >= 5
+                        : task.quality_score >= 50
                           ? 'warning'
                           : 'error'
                     }

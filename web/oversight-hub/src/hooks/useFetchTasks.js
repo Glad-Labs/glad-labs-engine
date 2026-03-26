@@ -122,14 +122,26 @@ export const useFetchTasks = (
     authInitialized,
   ]);
 
-  // Auto-refresh effect — paused when modals are open
+  // Track previous paused state to detect modal close → immediate refetch
+  const wasPausedRef = useRef(paused);
+
+  // Auto-refresh effect — paused when modals are open.
+  // When paused goes true→false (modal closes), refetch immediately so
+  // mutations made in the modal are visible without waiting for the next poll.
   useEffect(() => {
-    if (!authInitialized || !isAuthenticated || paused) {
+    if (!authInitialized || !isAuthenticated) {
+      wasPausedRef.current = paused;
       return;
     }
 
-    // Fetch immediately on mount or when page/limit changes
+    if (paused) {
+      wasPausedRef.current = true;
+      return;
+    }
+
+    // Fetch immediately on mount, page change, or when unpaused (modal close)
     fetchTasks();
+    wasPausedRef.current = false;
 
     // Set up auto-refresh if interval > 0
     if (autoRefreshInterval > 0) {

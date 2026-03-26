@@ -266,11 +266,12 @@ const useApprovalQueue = ({ onSuccess, onError } = {}) => {
         onSuccess(`Task approved and published: ${selectedTask.task_name}`);
       }
       setApproveDialogOpen(false);
-
-      setTimeout(() => {
-        fetchPendingTasks();
-        if (onSuccess) onSuccess(null);
-      }, 1500);
+      // Optimistic removal: remove from local state immediately so user sees instant feedback
+      setTasks((prev) =>
+        prev.filter((t) => t.task_id !== selectedTask.task_id)
+      );
+      // Background refetch to sync with server
+      fetchPendingTasks();
     } catch (err) {
       if (onError) onError(err.message);
     } finally {
@@ -324,11 +325,12 @@ const useApprovalQueue = ({ onSuccess, onError } = {}) => {
       await response.json();
       if (onSuccess) onSuccess(`Task rejected: ${selectedTask.task_name}`);
       setRejectDialogOpen(false);
-
-      setTimeout(() => {
-        fetchPendingTasks();
-        if (onSuccess) onSuccess(null);
-      }, 1500);
+      // Optimistic removal: remove from local state immediately
+      setTasks((prev) =>
+        prev.filter((t) => t.task_id !== selectedTask.task_id)
+      );
+      // Background refetch to sync with server
+      fetchPendingTasks();
     } catch (err) {
       if (onError) onError(err.message);
     } finally {

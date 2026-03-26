@@ -22,7 +22,7 @@ describe('ApprovalQueue Component', () => {
       status: 'awaiting_approval',
       topic: 'AI Technology',
       task_type: 'blog_post',
-      quality_score: 8.5,
+      quality_score: 85,
       content_preview: 'This is a test blog post...',
       featured_image_url: 'https://example.com/image.jpg',
       created_at: '2026-02-20T10:00:00Z',
@@ -33,7 +33,7 @@ describe('ApprovalQueue Component', () => {
       status: 'awaiting_approval',
       topic: 'Weekly Updates',
       task_type: 'newsletter',
-      quality_score: 7.2,
+      quality_score: 72,
       content_preview: 'Newsletter content...',
       featured_image_url: null,
       created_at: '2026-02-20T09:00:00Z',
@@ -81,8 +81,8 @@ describe('ApprovalQueue Component', () => {
       render(<ApprovalQueue />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Quality: 8.5\/10/)).toBeInTheDocument();
-        expect(screen.getByText(/Quality: 7.2\/10/)).toBeInTheDocument();
+        expect(screen.getByText(/Quality: 85\/100/)).toBeInTheDocument();
+        expect(screen.getByText(/Quality: 72\/100/)).toBeInTheDocument();
       });
     });
 

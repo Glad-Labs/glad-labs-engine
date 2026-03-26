@@ -626,8 +626,7 @@ function TaskManagement() {
             setShowCreateModal(false);
           }}
           onTaskCreated={(newTask) => {
-            setShowCreateModal(false);
-            // Show the new task instantly in the table
+            // Show the new task instantly in the table (optimistic)
             if (newTask) {
               prependTask({
                 ...newTask,
@@ -637,8 +636,8 @@ function TaskManagement() {
                 created_at: newTask.created_at || new Date().toISOString(),
               });
             }
-            // Full refresh from server after 2s to get accurate data
-            setTimeout(() => refreshTasks(), 2000);
+            // Close modal — useFetchTasks will auto-refetch when paused→false
+            setShowCreateModal(false);
           }}
         />
       )}
@@ -649,8 +648,7 @@ function TaskManagement() {
           onClose={() => {
             setShowDetailModal(false);
             setSelectedTask(null);
-            // Refresh task list to reflect any approve/publish/reject actions
-            refreshTasks();
+            // useFetchTasks auto-refetches when paused→false (modal close)
           }}
           onUpdate={handleTaskDetailUpdate}
         />
