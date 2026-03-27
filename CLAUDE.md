@@ -93,7 +93,7 @@ npm run build                 # Build all workspaces
 
 ### Backend (`src/cofounder_agent/`)
 
-**Entry point:** `main.py` — FastAPI app initializing service container, database pools, orchestrator, and registering all 32 route modules via `register_all_routes()`.
+**Entry point:** `main.py` — FastAPI app initializing service container, database pools, orchestrator, and registering all 31 route modules via `register_all_routes()`.
 
 **Key services:**
 
