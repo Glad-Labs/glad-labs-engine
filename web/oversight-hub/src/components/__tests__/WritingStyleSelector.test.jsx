@@ -47,8 +47,12 @@ describe('WritingStyleSelector', () => {
 
     // Open the MUI Select to reveal MenuItems
     fireEvent.mouseDown(screen.getByRole('combobox'));
-    expect(screen.getByRole('option', { name: /Blog Voice/i })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /Newsletter Style/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: /Blog Voice/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: /Newsletter Style/i })
+    ).toBeInTheDocument();
   });
 
   it('shows error helper text when service call fails', async () => {
@@ -93,7 +97,9 @@ describe('WritingStyleSelector', () => {
 
   it('does not render "None" option when includeNone is false', async () => {
     makeResolvedSamples();
-    render(<WritingStyleSelector value="" onChange={vi.fn()} includeNone={false} />);
+    render(
+      <WritingStyleSelector value="" onChange={vi.fn()} includeNone={false} />
+    );
 
     await waitFor(() => {
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();

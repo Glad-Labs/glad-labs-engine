@@ -70,7 +70,10 @@ describe('StatusTimeline', () => {
 
   it('does not show empty-history message when history is provided', () => {
     render(
-      <StatusTimeline currentStatus="in_progress" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="in_progress"
+        statusHistory={sampleHistory}
+      />
     );
     expect(
       screen.queryByText('No status history available yet')
@@ -79,7 +82,10 @@ describe('StatusTimeline', () => {
 
   it('shows a detail panel when a timeline node is clicked', () => {
     render(
-      <StatusTimeline currentStatus="in_progress" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="in_progress"
+        statusHistory={sampleHistory}
+      />
     );
 
     // Click on the "Pending" node — find the node by its icon text (⧗)
@@ -93,7 +99,10 @@ describe('StatusTimeline', () => {
 
   it('shows Visited: Yes for a state in the history', () => {
     render(
-      <StatusTimeline currentStatus="in_progress" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="in_progress"
+        statusHistory={sampleHistory}
+      />
     );
 
     // Click on "In Progress" node
@@ -108,7 +117,10 @@ describe('StatusTimeline', () => {
 
   it('shows Visited: No for a state not in the history', () => {
     render(
-      <StatusTimeline currentStatus="in_progress" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="in_progress"
+        statusHistory={sampleHistory}
+      />
     );
 
     // Click on "Published" which was never visited
@@ -122,7 +134,10 @@ describe('StatusTimeline', () => {
 
   it('shows Current: Yes when clicking the current state node', () => {
     render(
-      <StatusTimeline currentStatus="in_progress" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="in_progress"
+        statusHistory={sampleHistory}
+      />
     );
 
     const inProgressNode = screen.getByTitle(/In Progress/);
@@ -136,7 +151,10 @@ describe('StatusTimeline', () => {
 
   it('closes the detail panel when the close button is clicked', () => {
     render(
-      <StatusTimeline currentStatus="in_progress" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="in_progress"
+        statusHistory={sampleHistory}
+      />
     );
 
     const inProgressNode = screen.getByTitle(/In Progress/);
@@ -154,7 +172,10 @@ describe('StatusTimeline', () => {
 
   it('displays duration for visited states', () => {
     render(
-      <StatusTimeline currentStatus="awaiting_approval" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="awaiting_approval"
+        statusHistory={sampleHistory}
+      />
     );
 
     // pending lasted 5 minutes → expect "5m" duration label
@@ -163,7 +184,10 @@ describe('StatusTimeline', () => {
 
   it('shows history entry count in detail panel', () => {
     render(
-      <StatusTimeline currentStatus="in_progress" statusHistory={sampleHistory} />
+      <StatusTimeline
+        currentStatus="in_progress"
+        statusHistory={sampleHistory}
+      />
     );
 
     const inProgressNode = screen.getByTitle(/In Progress/);

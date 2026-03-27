@@ -30,7 +30,11 @@ describe('ProtectedRoute', () => {
 
   describe('loading state', () => {
     it('shows loading indicator while auth is resolving', () => {
-      mockUseAuth.mockReturnValue({ user: null, loading: true, isAuthenticated: false });
+      mockUseAuth.mockReturnValue({
+        user: null,
+        loading: true,
+        isAuthenticated: false,
+      });
 
       renderWithRouter(
         <ProtectedRoute>
@@ -45,7 +49,11 @@ describe('ProtectedRoute', () => {
 
   describe('unauthenticated state', () => {
     it('redirects to /login when not authenticated', () => {
-      mockUseAuth.mockReturnValue({ user: null, loading: false, isAuthenticated: false });
+      mockUseAuth.mockReturnValue({
+        user: null,
+        loading: false,
+        isAuthenticated: false,
+      });
 
       renderWithRouter(
         <ProtectedRoute>

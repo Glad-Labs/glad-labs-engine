@@ -14,7 +14,11 @@ export function extractApiError(err) {
 
   if (err instanceof Error) {
     const msg = err.message || 'Unknown error';
-    if (msg === 'Failed to fetch' || msg.includes('NetworkError') || msg.includes('ERR_CONNECTION')) {
+    if (
+      msg === 'Failed to fetch' ||
+      msg.includes('NetworkError') ||
+      msg.includes('ERR_CONNECTION')
+    ) {
       return 'Cannot reach backend service (it may be restarting). Please wait a few seconds and try again.';
     }
     return msg;

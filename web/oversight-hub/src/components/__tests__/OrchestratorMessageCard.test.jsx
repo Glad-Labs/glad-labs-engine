@@ -76,7 +76,9 @@ describe('OrchestratorMessageCard Component', () => {
           <span>Main</span>
         </OrchestratorMessageCard>
       );
-      expect(document.querySelector('.MuiIconButton-root')).not.toBeInTheDocument();
+      expect(
+        document.querySelector('.MuiIconButton-root')
+      ).not.toBeInTheDocument();
     });
 
     it('expanded content is hidden by default', () => {
@@ -163,7 +165,10 @@ describe('OrchestratorMessageCard Component', () => {
         { label: 'Cancel', onClick: vi.fn(), variant: 'outlined' },
       ];
       render(
-        <OrchestratorMessageCard headerLabel="Test" footerActions={footerActions}>
+        <OrchestratorMessageCard
+          headerLabel="Test"
+          footerActions={footerActions}
+        >
           <span>Main</span>
         </OrchestratorMessageCard>
       );
@@ -177,7 +182,10 @@ describe('OrchestratorMessageCard Component', () => {
         { label: 'Execute', onClick: handleExecute, variant: 'contained' },
       ];
       render(
-        <OrchestratorMessageCard headerLabel="Test" footerActions={footerActions}>
+        <OrchestratorMessageCard
+          headerLabel="Test"
+          footerActions={footerActions}
+        >
           <span>Main</span>
         </OrchestratorMessageCard>
       );
@@ -190,7 +198,10 @@ describe('OrchestratorMessageCard Component', () => {
         { label: 'Execute', onClick: vi.fn(), disabled: true },
       ];
       render(
-        <OrchestratorMessageCard headerLabel="Test" footerActions={footerActions}>
+        <OrchestratorMessageCard
+          headerLabel="Test"
+          footerActions={footerActions}
+        >
           <span>Main</span>
         </OrchestratorMessageCard>
       );

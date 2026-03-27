@@ -77,9 +77,7 @@ describe('TaskApprovalForm Component', () => {
     });
 
     it('should disable buttons when approvalLoading is true', () => {
-      render(
-        <TaskApprovalForm {...defaultProps} approvalLoading={true} />
-      );
+      render(<TaskApprovalForm {...defaultProps} approvalLoading={true} />);
       const approveBtn = screen.getByText(/Approving/);
       expect(approveBtn.closest('button')).toBeDisabled();
       expect(screen.getByText(/Reject/).closest('button')).toBeDisabled();
@@ -88,7 +86,9 @@ describe('TaskApprovalForm Component', () => {
     it('should not show publish or re-review sections', () => {
       render(<TaskApprovalForm {...defaultProps} />);
       expect(screen.queryByText(/Publish to Site/)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Re-review Rejected Task/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Re-review Rejected Task/)
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -115,9 +115,7 @@ describe('TaskApprovalForm Component', () => {
     });
 
     it('should disable publish button when publishLoading is true', () => {
-      render(
-        <TaskApprovalForm {...approvedProps} publishLoading={true} />
-      );
+      render(<TaskApprovalForm {...approvedProps} publishLoading={true} />);
       expect(screen.getByText(/Publishing/).closest('button')).toBeDisabled();
     });
 
@@ -132,7 +130,10 @@ describe('TaskApprovalForm Component', () => {
     // Component uses 'failed_revisions_requested' (not 'rejected') to show the rejection UI
     const rejectedProps = {
       ...defaultProps,
-      task: { status: 'failed_revisions_requested', reviewer_feedback: 'Needs more detail' },
+      task: {
+        status: 'failed_revisions_requested',
+        reviewer_feedback: 'Needs more detail',
+      },
     };
 
     it('should show rejection section', () => {
@@ -181,15 +182,14 @@ describe('TaskApprovalForm Component', () => {
       expect(screen.queryByText(/Approval Notes/)).not.toBeInTheDocument();
       expect(screen.queryByText(/Approve \(Step 1\)/)).not.toBeInTheDocument();
       expect(screen.queryByText(/Publish \(Step 2\)/)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Re-review Rejected Task/)).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/Re-review Rejected Task/)
+      ).not.toBeInTheDocument();
     });
 
     it('should not show any approval UI for in_progress status', () => {
       render(
-        <TaskApprovalForm
-          {...defaultProps}
-          task={{ status: 'in_progress' }}
-        />
+        <TaskApprovalForm {...defaultProps} task={{ status: 'in_progress' }} />
       );
       expect(screen.queryByText(/Approval Notes/)).not.toBeInTheDocument();
     });

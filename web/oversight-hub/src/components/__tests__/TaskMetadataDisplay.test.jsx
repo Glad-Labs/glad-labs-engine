@@ -19,11 +19,7 @@ describe('TaskMetadataDisplay Component', () => {
   });
 
   it('should render the metadata header', () => {
-    render(
-      <TaskMetadataDisplay
-        task={{ id: '123', status: 'completed' }}
-      />
-    );
+    render(<TaskMetadataDisplay task={{ id: '123', status: 'completed' }} />);
     expect(screen.getByText(/Metadata & Metrics/)).toBeInTheDocument();
   });
 
@@ -50,11 +46,7 @@ describe('TaskMetadataDisplay Component', () => {
   });
 
   it('should display task status with color', () => {
-    render(
-      <TaskMetadataDisplay
-        task={{ id: '123', status: 'completed' }}
-      />
-    );
+    render(<TaskMetadataDisplay task={{ id: '123', status: 'completed' }} />);
     expect(screen.getByText('completed')).toBeInTheDocument();
   });
 
@@ -69,11 +61,7 @@ describe('TaskMetadataDisplay Component', () => {
   });
 
   it('should display Not rated when quality score is absent', () => {
-    render(
-      <TaskMetadataDisplay
-        task={{ id: '123', status: 'completed' }}
-      />
-    );
+    render(<TaskMetadataDisplay task={{ id: '123', status: 'completed' }} />);
     expect(screen.getByText('Not rated')).toBeInTheDocument();
   });
 
@@ -166,11 +154,7 @@ describe('TaskMetadataDisplay Component', () => {
   });
 
   it('should not display SEO section when no SEO data', () => {
-    render(
-      <TaskMetadataDisplay
-        task={{ id: '123', status: 'completed' }}
-      />
-    );
+    render(<TaskMetadataDisplay task={{ id: '123', status: 'completed' }} />);
     expect(screen.queryByText(/SEO Metadata/)).not.toBeInTheDocument();
   });
 

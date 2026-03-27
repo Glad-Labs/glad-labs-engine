@@ -130,7 +130,9 @@ describe('WebSocketService — reconnection logic', () => {
 
   test('attemptReconnect() uses exponential backoff delay', () => {
     websocketService.reconnectAttempts = 0;
-    const connectSpy = vi.spyOn(websocketService, 'connect').mockResolvedValue();
+    const connectSpy = vi
+      .spyOn(websocketService, 'connect')
+      .mockResolvedValue();
 
     // First attempt: delay = 3000 * 2^0 = 3000ms
     websocketService.attemptReconnect();
@@ -144,7 +146,9 @@ describe('WebSocketService — reconnection logic', () => {
   });
 
   test('attemptReconnect() increments reconnectAttempts', () => {
-    const connectSpy = vi.spyOn(websocketService, 'connect').mockResolvedValue();
+    const connectSpy = vi
+      .spyOn(websocketService, 'connect')
+      .mockResolvedValue();
     websocketService.reconnectAttempts = 0;
     websocketService.attemptReconnect();
     expect(websocketService.reconnectAttempts).toBe(1);
@@ -185,7 +189,9 @@ describe('WebSocketService — reconnection logic', () => {
   });
 
   test('stops reconnecting after maxReconnectAttempts', () => {
-    const connectSpy = vi.spyOn(websocketService, 'connect').mockResolvedValue();
+    const connectSpy = vi
+      .spyOn(websocketService, 'connect')
+      .mockResolvedValue();
     websocketService.reconnectAttempts = websocketService.maxReconnectAttempts;
     websocketService.attemptReconnect();
     vi.runAllTimers();
@@ -211,7 +217,10 @@ describe('WebSocketService — message queuing', () => {
     websocketService.ws = null;
     websocketService.send('test_event', { data: 'hello' });
     expect(websocketService.messageQueue).toHaveLength(1);
-    expect(websocketService.messageQueue[0]).toMatchObject({ event: 'test_event', data: 'hello' });
+    expect(websocketService.messageQueue[0]).toMatchObject({
+      event: 'test_event',
+      data: 'hello',
+    });
   });
 
   test('send() sends directly when connected', async () => {

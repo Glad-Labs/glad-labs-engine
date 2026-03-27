@@ -45,7 +45,7 @@ const TaskContentPreview = ({ task, onTaskUpdate }) => {
     // Also strips any remaining '#' characters from the captured title text
     const match = content.match(/^\s*#{1,6}\s+(.+?)(?:\n|$)/);
     if (match) {
-      let title = match[1].replace(/^#+\s*/, '').trim();
+      const title = match[1].replace(/^#+\s*/, '').trim();
       const cleanedContent = content
         .replace(/^\s*#{1,6}\s+.+?(?:\n|$)/, '')
         .trim();

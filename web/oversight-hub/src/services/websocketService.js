@@ -33,8 +33,7 @@ class WebSocketService {
         this.isIntentionallyClosed = false;
         // Append auth token as query param (required by server)
         const token =
-          authClient.getToken() ||
-          (import.meta.env.DEV ? 'dev-token' : null);
+          authClient.getToken() || (import.meta.env.DEV ? 'dev-token' : null);
         if (!token) {
           reject(new Error('Not authenticated'));
           return;

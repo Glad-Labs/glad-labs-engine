@@ -84,7 +84,9 @@ describe('serviceStatus — subscribers', () => {
   });
 
   test('faulty listener does not break other listeners', () => {
-    const bad = vi.fn(() => { throw new Error('oops'); });
+    const bad = vi.fn(() => {
+      throw new Error('oops');
+    });
     const good = vi.fn();
     serviceStatus.subscribe(bad);
     serviceStatus.subscribe(good);

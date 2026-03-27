@@ -92,7 +92,8 @@ export const STATUS_DESCRIPTIONS = {
   [STATUS_ENUM.FAILED]: 'Task execution failed',
   [STATUS_ENUM.ON_HOLD]: 'Task is on hold pending review or action',
   [STATUS_ENUM.CANCELLED]: 'Task has been cancelled',
-  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]: 'Task was rejected; revisions have been requested',
+  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]:
+    'Task was rejected; revisions have been requested',
 };
 
 /**
@@ -132,7 +133,10 @@ export const VALID_STATUS_TRANSITIONS = {
     STATUS_ENUM.CANCELLED,
   ],
   [STATUS_ENUM.CANCELLED]: [],
-  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]: [STATUS_ENUM.PENDING, STATUS_ENUM.ON_HOLD],
+  [STATUS_ENUM.FAILED_REVISIONS_REQUESTED]: [
+    STATUS_ENUM.PENDING,
+    STATUS_ENUM.ON_HOLD,
+  ],
 };
 
 /**

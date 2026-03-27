@@ -36,7 +36,9 @@ describe('ErrorBoundary Component', () => {
       </ErrorBoundary>
     );
     expect(screen.getByText('Oops! Something Went Wrong')).toBeInTheDocument();
-    expect(screen.getByText(/An unexpected error occurred/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/An unexpected error occurred/)
+    ).toBeInTheDocument();
   });
 
   it('should show Try Again, Reload Page, and Go Home buttons', () => {
@@ -102,9 +104,7 @@ describe('ErrorBoundary Component', () => {
     fireEvent.click(screen.getByText('Try Again'));
     // count = 3 after third catch
 
-    expect(
-      screen.getByText(/Multiple errors detected/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Multiple errors detected/)).toBeInTheDocument();
   });
 
   it('should have Go Home button linking to /', () => {
