@@ -223,23 +223,23 @@ describe('TaskManagement — summary stats', () => {
     setupHook();
   });
 
-  it('shows correct completed count', () => {
+  it('shows task count in stats line', () => {
     renderComponent();
-    // 1 completed task
-    const completedStat = screen.getAllByText('1');
-    expect(completedStat.length).toBeGreaterThan(0);
+    // Component renders "{filteredTasks.length} of {total} tasks"
+    expect(screen.getByText(/3 of 3 tasks/)).toBeInTheDocument();
   });
 
-  it('shows correct running count', () => {
+  it('updates stats line when tasks are filtered', () => {
+    // Setup with fewer tasks to verify count changes
+    setupHook([MOCK_TASKS[0]]);
     renderComponent();
-    // 1 running task
-    const runningStat = screen.getAllByText('1');
-    expect(runningStat.length).toBeGreaterThan(0);
+    expect(screen.getByText(/1 of 1 tasks/)).toBeInTheDocument();
   });
 
-  it('shows filtered tasks count stat box', () => {
-    renderComponent();
-    expect(screen.getByText('Filtered Tasks')).toBeInTheDocument();
+  it('shows stats in the stats-line container', () => {
+    const { container } = renderComponent();
+    const statsLine = container.querySelector('.stats-line');
+    expect(statsLine).toBeInTheDocument();
   });
 });
 

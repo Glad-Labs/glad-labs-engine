@@ -70,11 +70,13 @@ function makeAuthValue({ isAuthenticated = true, loading = false } = {}) {
 
 // Helper: wrap with AuthContext + WebSocketProvider
 function makeWrapper({ isAuthenticated = true, loading = false } = {}) {
-  return ({ children }) => (
-    <AuthContext.Provider value={makeAuthValue({ isAuthenticated, loading })}>
-      <WebSocketProvider>{children}</WebSocketProvider>
-    </AuthContext.Provider>
-  );
+  return function TestWrapper({ children }) {
+    return (
+      <AuthContext.Provider value={makeAuthValue({ isAuthenticated, loading })}>
+        <WebSocketProvider>{children}</WebSocketProvider>
+      </AuthContext.Provider>
+    );
+  };
 }
 
 describe('useWebSocket — outside provider', () => {

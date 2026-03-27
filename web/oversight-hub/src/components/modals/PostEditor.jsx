@@ -180,7 +180,7 @@ function PostEditor({ post, onClose, onSave }) {
       // Blockquotes
       .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
       // Unordered lists
-      .replace(/^[\-\*] (.*$)/gim, '<li>$1</li>')
+      .replace(/^[-*] (.*$)/gim, '<li>$1</li>')
       // Horizontal rule
       .replace(/^---$/gim, '<hr/>')
       // Paragraphs

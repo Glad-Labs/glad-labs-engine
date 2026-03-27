@@ -296,8 +296,6 @@ export const getStoredUser = () => {
   const userStr = sessionStorage.getItem('user');
   try {
     const parsed = userStr ? JSON.parse(userStr) : null;
-    if (parsed) {
-    }
     return parsed;
   } catch (e) {
     logger.warn('[authService.getStoredUser] Failed to parse user:', e);
@@ -504,13 +502,6 @@ export const initializeDevToken = async (options = {}) => {
           '[authService] Token was not stored in sessionStorage',
           'error'
         );
-        // Try to check if it's in Zustand store instead
-        try {
-          const zustandData = localStorage.getItem(PERSIST_KEY);
-          if (zustandData) {
-            const parsed = JSON.parse(zustandData);
-          }
-        } catch {}
         throw new Error('Failed to store token in sessionStorage');
       }
 

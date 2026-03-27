@@ -41,11 +41,11 @@ export async function getOllamaModels() {
 
     const response = await fetch(`${getOllamaEndpoint()}/tags`, {
       method: 'GET',
-      headers: getAuthHeaders(),
-      signal: controller.signal,
       headers: {
+        ...getAuthHeaders(),
         'Content-Type': 'application/json',
       },
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);

@@ -69,7 +69,7 @@ const sanitizePhases = (phases = []) =>
     };
   });
 
-const validatePhases = (phases = []) => {
+const _validatePhases = (phases = []) => {
   const hasEmptyName = phases.some((phase) => !normalizePhaseName(phase?.name));
   if (hasEmptyName) {
     throw new Error('Every phase must have a name');
@@ -356,7 +356,7 @@ export const listExecutions = async (workflowId, options = {}) => {
 export const exportWorkflowToJSON = (workflow) => {
   try {
     return JSON.stringify(workflow, null, 2);
-  } catch (error) {
+  } catch {
     throw new Error('Failed to export workflow');
   }
 };

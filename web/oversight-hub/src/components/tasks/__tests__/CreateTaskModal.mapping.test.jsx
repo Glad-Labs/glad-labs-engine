@@ -14,7 +14,7 @@ vi.mock('../../../services/cofounderAgentClient', () => ({
 }));
 
 vi.mock('../../ModelSelectionPanel', () => ({
-  default: ({ onSelectionChange }) => {
+  default: function MockModelSelectionPanel({ onSelectionChange }) {
     React.useEffect(() => {
       onSelectionChange({
         modelSelections: {},
@@ -87,7 +87,7 @@ describe('TONE_TO_BACKEND mapping', () => {
     ['academic', 'academic'],
     ['inspirational', 'inspirational'],
     ['authoritative', 'professional'], // alias
-    ['friendly', 'casual'],            // alias
+    ['friendly', 'casual'], // alias
   ])('%s → %s', (input, expected) => {
     expect(toBackendTone(input)).toBe(expected);
   });
@@ -115,7 +115,11 @@ describe('CreateTaskModal — component', () => {
 
   test('renders task type selection buttons when open', () => {
     render(
-      <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+      <CreateTaskModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onTaskCreated={vi.fn()}
+      />
     );
     expect(screen.getByText(/📝 Blog Post/i)).toBeInTheDocument();
     expect(screen.getByText(/📱 Social Media Post/i)).toBeInTheDocument();
@@ -123,14 +127,22 @@ describe('CreateTaskModal — component', () => {
 
   test('does not render when isOpen is false', () => {
     render(
-      <CreateTaskModal isOpen={false} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+      <CreateTaskModal
+        isOpen={false}
+        onClose={vi.fn()}
+        onTaskCreated={vi.fn()}
+      />
     );
     expect(screen.queryByText(/blog post/i)).not.toBeInTheDocument();
   });
 
   test('clicking a task type reveals the form', async () => {
     render(
-      <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+      <CreateTaskModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onTaskCreated={vi.fn()}
+      />
     );
     fireEvent.click(screen.getByText(/📝 Blog Post/i));
     await waitFor(() => {
@@ -140,7 +152,11 @@ describe('CreateTaskModal — component', () => {
 
   test('clicking Blog Post shows the form with Topic field', async () => {
     render(
-      <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+      <CreateTaskModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onTaskCreated={vi.fn()}
+      />
     );
     fireEvent.click(screen.getByText(/📝 Blog Post/i));
     await waitFor(() => {
@@ -151,7 +167,11 @@ describe('CreateTaskModal — component', () => {
 
   test('blog post form shows Campaign Brief textarea field (#116)', async () => {
     render(
-      <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+      <CreateTaskModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onTaskCreated={vi.fn()}
+      />
     );
     fireEvent.click(screen.getByText(/📝 Blog Post/i));
     await waitFor(() => {
@@ -163,7 +183,11 @@ describe('CreateTaskModal — component', () => {
     createTask.mockResolvedValue({ id: 'task-123', status: 'pending' });
 
     const { container } = render(
-      <CreateTaskModal isOpen={true} onClose={vi.fn()} onTaskCreated={vi.fn()} />
+      <CreateTaskModal
+        isOpen={true}
+        onClose={vi.fn()}
+        onTaskCreated={vi.fn()}
+      />
     );
     fireEvent.click(screen.getByText(/📝 Blog Post/i));
 
@@ -179,8 +203,12 @@ describe('CreateTaskModal — component', () => {
       target: { value: 'Q1 campaign for enterprise buyers' },
     });
     // Select style and tone by their stable id attributes
-    fireEvent.change(container.querySelector('#style'), { target: { value: 'technical' } });
-    fireEvent.change(container.querySelector('#tone'), { target: { value: 'professional' } });
+    fireEvent.change(container.querySelector('#style'), {
+      target: { value: 'technical' },
+    });
+    fireEvent.change(container.querySelector('#tone'), {
+      target: { value: 'professional' },
+    });
 
     fireEvent.click(screen.getByText(/✓ Create Task/));
 

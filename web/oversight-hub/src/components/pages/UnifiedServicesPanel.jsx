@@ -396,7 +396,7 @@ const UnifiedServicesPanel = () => {
       if (response.execution_id) {
         void waitForExecutionTerminalStatus(
           response.execution_id,
-          `Workflow \"${workflow.name}\"`
+          `Workflow "${workflow.name}"`
         );
       }
     } catch (err) {
@@ -440,7 +440,7 @@ const UnifiedServicesPanel = () => {
       if (execution.execution_id) {
         void waitForExecutionTerminalStatus(
           execution.execution_id,
-          `Template \"${template.name}\"`
+          `Template "${template.name}"`
         );
       }
 
@@ -539,7 +539,7 @@ const UnifiedServicesPanel = () => {
 
     void recoverActiveExecution(
       persistedWorkflow.id,
-      `Workflow \"${persistedWorkflow.name || persistedWorkflow.id}\"`
+      `Workflow "${persistedWorkflow.name || persistedWorkflow.id}"`
     );
   }, [workflows, executionMonitor]);
 
@@ -807,8 +807,8 @@ const UnifiedServicesPanel = () => {
           <Stack spacing={2}>
             {templates.length === 0 && (
               <Alert severity="info">
-                No persisted templates yet. Use "Create Template" to build one
-                in the editor.
+                No persisted templates yet. Use &quot;Create Template&quot; to
+                build one in the editor.
               </Alert>
             )}
 

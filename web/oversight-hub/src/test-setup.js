@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 
 // jsdom does not implement scrollIntoView — mock it globally
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -23,7 +24,12 @@ document.createRange = () => {
     collapse: vi.fn(),
     selectNodeContents: vi.fn(),
     cloneRange: vi.fn(() => ({ setStart: vi.fn(), setEnd: vi.fn() })),
-    getBoundingClientRect: vi.fn(() => ({ top: 0, left: 0, width: 0, height: 0 })),
+    getBoundingClientRect: vi.fn(() => ({
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0,
+    })),
     getClientRects: vi.fn(() => []),
     ...range,
   };

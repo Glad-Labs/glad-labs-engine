@@ -395,7 +395,7 @@ const ApprovalQueue = () => {
           Approval Queue
         </Typography>
         <Typography variant="body1" color="textSecondary">
-          Review and approve content before it's published.
+          Review and approve content before it&apos;s published.
         </Typography>
       </Box>
 
