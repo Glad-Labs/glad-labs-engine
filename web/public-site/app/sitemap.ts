@@ -135,7 +135,7 @@ async function fetchPublishedContent() {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gladlabs.io';
   const { allPosts, allCategories, allTags } = await fetchPublishedContent();
 
   // Static pages
@@ -143,26 +143,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily',
       priority: 1,
     },
     {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/archive/1`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
       priority: 0.8,
     },
+  ];
+
+  // Legal pages
+  const legalPages: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/privacy-policy`,
+      url: `${baseUrl}/legal/privacy`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
-      priority: 0.5,
+      priority: 0.3,
     },
     {
-      url: `${baseUrl}/terms-of-service`,
+      url: `${baseUrl}/legal/terms`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
-      priority: 0.5,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/legal/cookie-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/legal/data-requests`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
   ];
 
@@ -173,8 +195,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: post.updatedAt
         ? new Date(post.updatedAt)
         : new Date(post.publishedAt || new Date()),
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
     })
   );
 
@@ -196,5 +218,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...postPages, ...categoryPages, ...tagPages];
+  return [
+    ...staticPages,
+    ...legalPages,
+    ...postPages,
+    ...categoryPages,
+    ...tagPages,
+  ];
 }
