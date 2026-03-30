@@ -2,27 +2,43 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## IMPORTANT: Read session_45_handoff.md first
+
+If this is a new session, read `~/.claude/projects/C--users-mattm-glad-labs-website/memory/session_45_handoff.md` for full context on what was built March 29-30, 2026.
+
 ## Project Overview
 
-Glad Labs is an AI orchestration system (v0.1.0) — a monorepo with two integrated services:
+Glad Labs is an AI-operated content business — a solo founder using AI to run an autonomous content pipeline that generates, reviews, publishes, and monetizes blog content.
 
-- **Backend:** Python FastAPI orchestrator with ~76 service modules (port 8000)
-- **Public Site:** Next.js 15 content distribution website (port 3000)
+**Architecture inspired by human brain anatomy:**
 
-Operations management is handled via **OpenClaw** (external ops platform) and **Grafana** for monitoring.
+- **Brainstem** (`brain/`) — standalone daemon on Railway, monitors all services, self-heals
+- **Cerebrum** (`src/cofounder_agent/`) — FastAPI backend, content pipeline, business logic
+- **Cerebellum** — anticipation engine + QA registry (learned patterns, quality calibration)
+- **Limbic System** — brain_knowledge graph + revenue engine (memory, motivation, rewards)
+- **Thalamus** — process composer + API layer (routes all inputs to the right processor)
+- **Hypothalamus** — settings service + cost guard (homeostasis, budget regulation)
+- **Spinal Cord** — PostgreSQL (all components communicate through shared DB)
 
-**Latest Milestone:** Phase 1C (Issue #6) Complete — All 312 exception handlers standardized with consistent error handling patterns. Error handling uniformity achieved across all service files (March 5, 2026).
+### Production URLs
 
-### Phase 1C: Error Handling Standardization ✅ COMPLETE
+| Service       | URL                                             |
+| ------------- | ----------------------------------------------- |
+| Public site   | https://gladlabs.io (→ www.gladlabs.io)         |
+| Backend API   | https://cofounder-production.up.railway.app     |
+| Brain daemon  | Separate Railway service (brain/)               |
+| Grafana       | https://gladlabs.grafana.net                    |
+| GitHub        | https://github.com/Glad-Labs/glad-labs-codebase |
+| Project board | https://github.com/orgs/Glad-Labs/projects/2    |
 
-**Pattern Established:** All exception handlers now use `logger.error(f"[operation_name] message", exc_info=True)` with appropriate fallback strategies.
+### Key Numbers (as of March 30, 2026)
 
-- **Coverage:** 312/312 exceptions (100%) across 68 service files
-- **Completion Time:** ~24 hours across 15 batches
-- **Verification:** Zero unstandardized handlers remaining (automated script verified)
-- **Code Quality:** All files compile successfully, no regressions
-
-**Impact:** Consistent error handling, stack traces captured for all exceptions, improved debugging capabilities.
+- 64 published posts on gladlabs.io
+- 16 custom services built
+- 7 Grafana dashboards, 90+ panels, 5 alert rules
+- 5,564 backend tests passing
+- $30/month operating cost
+- $362.75 in Mercury checking
 
 ## Development Commands
 
@@ -34,125 +50,155 @@ npm run dev:cofounder        # Backend only (FastAPI + uvicorn)
 npm run dev:public           # Next.js only
 ```
 
-### Setup & Installation
+### Worker (local GPU content generation)
 
-```bash
-npm run clean:install        # Full reset: remove node_modules, reinstall everything
-npm run install:all          # Install all Node + Python deps
-npm run setup                # Full setup with environment config
+```powershell
+.\scripts\start-worker.ps1   # Start worker connected to production DB
 ```
 
 ### Testing
 
 ```bash
 # Python backend
-npm run test:python           # Integration + e2e (full suite)
-npm run test:python:unit      # Unit tests only
-npm run test:python:smoke     # Fast smoke tests
-npm run test:python:coverage  # With coverage report
+cd src/cofounder_agent && poetry run pytest tests/unit/ -q    # Unit tests
+cd src/cofounder_agent && poetry run pytest tests/integration/ -q  # Integration
 
 # JavaScript (public site)
 npm run test                  # Jest for public site
-npm run test:ci               # CI mode (coverage, no watch)
 
-# Single test file (Python):
-cd src/cofounder_agent && poetry run pytest tests/unit/routes/test_task_routes.py -v
-
-# Browser E2E
+# Playwright E2E
 npm run test:e2e              # All Playwright tests (headless)
-npm run test:e2e:headed       # With visible browser
-npm run test:e2e:debug        # Debug mode
-npm run test:public           # Public site tests only
 ```
 
 ### Code Quality
 
 ```bash
 npm run lint                  # ESLint all workspaces
-npm run lint:fix              # Fix ESLint issues
-npm run lint:python           # Python pylint
-npm run format                # Prettier (JS/TS/JSON/MD)
-npm run format:check          # Check without writing
-npm run format:python         # Black + isort
+npm run format                # Prettier
 npm run type:check            # Python mypy
-```
-
-### Build
-
-```bash
-npm run build                 # Build all workspaces
-# Public Site output: web/public-site/.next/
 ```
 
 ## Architecture
 
+### Brain Daemon (`brain/`)
+
+**Standalone service on Railway.** Independent of FastAPI — only needs Python + asyncpg.
+
+- Monitors site, API from the cloud (5-minute cycles)
+- Self-maintains knowledge graph (brain_knowledge table)
+- Processes reasoning queue (brain_queue table)
+- Logs all decisions (brain_decisions table)
+- Alerts via Telegram when services are down
+- Auto-restarts local services when running on Matt's PC
+
 ### Backend (`src/cofounder_agent/`)
 
-**Entry point:** `main.py` — FastAPI app initializing service container, database pools, orchestrator, and registering all 31 route modules via `register_all_routes()`.
+**Entry point:** `main.py` — FastAPI app with two deployment modes:
 
-**Key services:**
+- `DEPLOYMENT_MODE=coordinator` (Railway) — serves API, webhook delivery, scheduled publisher
+- `DEPLOYMENT_MODE=worker` (local PC) — claims tasks, runs content pipeline via Ollama
 
-- `services/model_router.py` — LLM provider selection with automatic fallback: Ollama → Anthropic → OpenAI → Google → echo/mock. **Never hardcode model names; use cost tiers.**
-- `services/database_service.py` — Coordinates 5 specialized DB modules (Users, Tasks, Content, Admin, WritingStyle). PostgreSQL-only; no SQLite fallback.
-- `services/unified_orchestrator.py` — Master agent choreography and task distribution
-- `services/workflow_executor.py` — Phase-based workflow execution with real-time WebSocket progress events
-- `services/capability_registry.py` — Intent-based task routing; auto-selects agents from natural language requests
+**Key services (16 custom-built):**
 
-**Agent system:** Four core agent types in `src/cofounder_agent/agents/` (Content, Financial, Market Insight, Compliance). The content agent runs a 6-stage self-critiquing pipeline: Research → Creative Draft → QA Critique → Creative Refinement → Image Selection → Publishing Prep (with DB Storage). QA agents critique without rewriting; Creative agents apply the feedback.
+| Service                     | Purpose                                              |
+| --------------------------- | ---------------------------------------------------- |
+| `content_router_service.py` | 6-stage content pipeline with cross-model QA         |
+| `content_validator.py`      | Anti-hallucination rules (programmatic, no LLM)      |
+| `multi_model_qa.py`         | Adversarial review (different LLMs check each other) |
+| `qa_registry.py`            | Composable QA workflows (dynamic from DB)            |
+| `process_composer.py`       | Intent → plan → approve → execute orchestration      |
+| `settings_service.py`       | DB-backed config (app_settings, 33+ keys)            |
+| `cost_guard.py`             | Daily/monthly spend limits                           |
+| `revenue_engine.py`         | Content performance analysis + topic suggestions     |
+| `anticipation_engine.py`    | Observe gaps → propose proactive actions             |
+| `big_brain.py`              | Self-maintaining knowledge graph                     |
+| `internal_linker.py`        | Auto-adds related post links                         |
+| `affiliate_linker.py`       | Auto-injects affiliate links (DB-backed)             |
+| `social_poster.py`          | Generates X/LinkedIn posts via Ollama                |
+| `newsletter_service.py`     | Weekly digest generator                              |
+| `finance_service.py`        | Mercury banking integration + P&L reports            |
+| `business_report.py`        | Daily/weekly metrics summaries                       |
 
-**Database:** asyncpg for direct PostgreSQL interaction + Python migration modules (containing raw SQL) in `services/migrations/`. Five domain modules delegate from `DatabaseService`.
+**Content pipeline stages:**
 
-**Python toolchain:** Poetry for dependency management. Run with `poetry run` inside `src/cofounder_agent/`. pytest markers: `unit`, `integration`, `api`, `e2e`, `performance`, `slow`, `voice`, `websocket`.
+1. Research (Ollama) → 2. Draft (Ollama) → 3. QA Score (Ollama) → 3.5. Programmatic validator → 3.7. Cross-model review (Claude Haiku) → 4. SEO metadata → 5. Training data capture → 6. Finalize (awaiting_approval or auto-publish if score >= 80)
 
-### Frontend
+**Database tables (key ones):**
 
-**Public Site** (`web/public-site/`): Next.js 15 app router (no `pages/` directory). Markdown content via gray-matter. Static generation with ISR. Jest + React Testing Library for tests.
+- `content_tasks` — pipeline task queue and results
+- `posts` — published blog posts
+- `app_settings` — all config (replaces env vars)
+- `affiliate_links` — partner links (DB-managed)
+- `page_views` — own analytics tracking
+- `brain_knowledge` — knowledge graph (entity/attribute/value)
+- `brain_queue` — reasoning queue for the brain
+- `brain_decisions` — decision audit trail
+- `pipeline_events` — event bus (PostgreSQL LISTEN/NOTIFY)
+- `cost_logs` — LLM API cost tracking
 
-**API integration:** The public site calls `http://localhost:8000/*`. No direct database access from frontend.
+### Frontend (`web/public-site/`)
 
-**Authentication:** API endpoints are protected by `API_TOKEN` header validation. Set `API_TOKEN` in `.env.local` for the backend and `NEXT_PUBLIC_API_TOKEN` for the public site.
+Next.js 15 app router. ISR with 5-minute revalidation. Features:
+
+- Blog posts with internal links, affiliate links, related reading
+- Giscus comments (GitHub Discussions)
+- Google AdSense (ca-pub-4578747062758519, pending approval)
+- Google Analytics (G-NJMBCYNDWN)
+- ViewTracker beacon (own analytics → page_views table)
+- Sitemap.xml (dynamic, 72+ URLs)
+- Google Search Console verified
+
+### MCP Server (`mcp-server/`)
+
+Custom MCP server for Claude desktop app. 12 tools: create_post, approve, publish, check_health, get_budget, compose_plan, compose_execute, get/set/list_settings, get_post_count.
 
 ### Configuration
 
-Each service reads from its own `.env.local` file:
+**Production env vars (minimal — only 3 on Railway):**
 
-- **Backend:** Reads `.env.local` from project root (configured in `src/cofounder_agent/config/__init__.py`)
-- **Public Site (Next.js):** Reads `.env.local` from `web/public-site/`
+- `DATABASE_URL` — auto from Railway Postgres
+- `PORT` — auto from Railway
+- `ENVIRONMENT=production`
 
-**Minimum required:**
-
-```env
-DATABASE_URL=postgresql://user:pass@localhost:5432/glad_labs_dev
-# Plus at least ONE of: ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY, or OLLAMA_BASE_URL
-```
-
-**Key feature flags:** `ENABLE_TRACING`, `ENABLE_QUERY_MONITORING` (in `.env.example`); `ENABLE_TRAINING_CAPTURE`, `SENTRY_ENABLED`, `REDIS_ENABLED` (code-only, not in `.env.example`).
-
-### Monorepo Structure
-
-npm workspaces cover `web/public-site`. `npm install` at root installs everything. Python deps are managed separately via Poetry in `src/cofounder_agent/`.
+**Everything else lives in `app_settings` table (33+ keys).** Manage via API or OpenClaw.
 
 ### Deployment
 
-- `main` branch → Vercel (frontend) + Railway (backend) production auto-deploy + GitHub Release tag
-- `staging` branch → Railway staging auto-deploy; Release Please manages changelog + version bumps here
-- `dev` branch → runs tests only (no deployment)
-- Feature branches (`feature/*`, `bugfix/*`) → runs tests on PR, no deployment
+- `main` branch → Vercel (frontend) + Railway (backend + brain) production auto-deploy
+- `staging` branch → Railway staging auto-deploy (PR required)
+- `dev` branch → working branch, runs tests on push
+- **Workflow:** dev → PR to staging → verify → PR to main → production
 
 ## Key Principles
 
 - **Async-everywhere:** FastAPI uses async/await throughout; never block the event loop
-- **API-first:** All state access goes through REST endpoints, not direct DB calls from frontend
-- **PostgreSQL as source of truth:** All task results, agent memories, and content stored there
-- **Model router first:** Use cost tiers (`free`/`budget`/`standard`/`premium`/`flagship`) not hardcoded model names
-- **Monorepo with workspaces:** `npm install` once at root covers everything
-- **API versioning policy:** All ~193 endpoints live at `/api/{resource}` (no `/v1/` prefix). This is the current v1 surface, version read from `pyproject.toml` at startup, OpenAPI at `/api/openapi.json`. **Policy:** Breaking changes to any public endpoint (field renames, status code changes, required field additions) MUST introduce a new URL version prefix (`/api/v2/`). Non-breaking additions (new optional fields, new endpoints) do not require a new version. Document breaking changes in `CHANGELOG.md`.
+- **Brain architecture:** System modeled after human brain anatomy — each region independent
+- **PostgreSQL as spinal cord:** All components communicate through shared DB tables, not imports
+- **Anti-hallucination:** Three layers — prompts, LLM QA, programmatic validator
+- **Config in DB, not env vars:** `app_settings` table replaces environment variables
+- **Self-healing:** Brain daemon monitors and restarts services autonomously
+- **Model router first:** Use cost tiers (`free`/`budget`/`standard`/`premium`) not hardcoded model names
+- **Revenue-aware:** Content decisions informed by what generates traffic and money
+- **Matt's preferences:** Autonomous work (don't ask "what's next"), minimize env vars, manage from phone via Telegram/Grafana, no client/agency work — fully automated passive income
+
+## Monitoring
+
+- **Grafana Cloud:** gladlabs.grafana.net — 7 dashboards, 90+ panels
+- **Dashboards:** Ops (home), Performance, Hardware, Pipeline, Cost, Quality, plus built-in
+- **Alerts → Telegram + Discord:** stuck tasks, failure rate, worker offline, GPU temp, VRAM usage
+- **Playlist:** "Glad Labs Command Center" cycles all dashboards every 30s
+
+## Cron Jobs (re-create on new sessions)
+
+```
+Self-healing agent: hourly at :13 — health check + auto-fix
+Code quality agent: every 4h at :37 — security/dead code/error handling scans
+```
 
 ## Reference Documentation
 
-- Documentation index: `docs/README.md`
-- Architecture: `docs/architecture/system-design.md`
-- Deployment/CI: `docs/operations/deployment.md`, `docs/development/workflow.md`
-- AI agents: `docs/architecture/multi-agent-pipeline.md`
-- Troubleshooting: `docs/operations/troubleshooting.md`
-- Environment variables: `docs/operations/env-vars.md`, `.env.example`
+- **Operations runbook:** `docs/operations/runbook.md` (current as of March 30)
+- **Session handoff:** `~/.claude/projects/.../memory/session_45_handoff.md`
+- **Architecture vision:** `~/.claude/projects/.../memory/project_brain_architecture.md`
+- **Revenue model:** `~/.claude/projects/.../memory/project_revenue_model.md`
+- **Marketing drafts:** `docs/marketing/hacker-news-post.md`, `docs/marketing/twitter-thread.md`
