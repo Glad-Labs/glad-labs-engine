@@ -12,12 +12,12 @@ export const metadata = {
   description:
     'Exploring the future of technology, AI, and digital innovation at Glad Labs',
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://glad-labs.com'
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://gladlabs.io'
   ),
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://glad-labs.com',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://gladlabs.io',
     title: 'Glad Labs',
     description:
       'Exploring the future of technology, AI, and digital innovation',
@@ -34,6 +34,9 @@ export const metadata = {
     card: 'summary_large_image',
     site: '@GladLabsAI',
     creator: '@GladLabsAI',
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || '',
   },
   robots: {
     index: true,
