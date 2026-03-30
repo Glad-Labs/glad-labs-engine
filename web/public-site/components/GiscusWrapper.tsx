@@ -9,9 +9,11 @@ interface GiscusWrapperProps {
 
 export function GiscusWrapper({ postSlug, postTitle }: GiscusWrapperProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const repo = process.env.NEXT_PUBLIC_GISCUS_REPO;
-  const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID;
-  const categoryId = process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID;
+  const repo =
+    process.env.NEXT_PUBLIC_GISCUS_REPO || 'Glad-Labs/glad-labs-codebase';
+  const repoId = process.env.NEXT_PUBLIC_GISCUS_REPO_ID || 'R_kgDOQInTBg';
+  const categoryId =
+    process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID || 'DIC_kwDOQInTBs4CxB4P';
   const enabled = process.env.NEXT_PUBLIC_ENABLE_COMMENTS !== 'false';
 
   useEffect(() => {
@@ -26,8 +28,8 @@ export function GiscusWrapper({ postSlug, postTitle }: GiscusWrapperProps) {
     script.setAttribute('data-strict', '0');
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
-    script.setAttribute('data-input-position', 'top');
-    script.setAttribute('data-theme', 'dark_dimmed');
+    script.setAttribute('data-input-position', 'bottom');
+    script.setAttribute('data-theme', 'preferred_color_scheme');
     script.setAttribute('data-lang', 'en');
     script.setAttribute('data-loading', 'lazy');
     script.setAttribute('crossorigin', 'anonymous');
