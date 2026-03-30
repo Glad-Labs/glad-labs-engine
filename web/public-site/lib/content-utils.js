@@ -339,14 +339,17 @@ export function stripHtmlTags(html) {
     return '';
   }
 
-  return html
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/&nbsp;/g, ' ') // Replace non-breaking spaces
-    .replace(/&amp;/g, '&') // Decode HTML entities
+  // Strip HTML tags first, then decode entities, then strip again for safety
+  let text = html.replace(/<[^>]*>/g, ''); // Remove all HTML tags
+  text = text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+  // Decode angle brackets LAST and strip any reconstructed tags immediately
+  text = text
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/<[^>]*>/g, '') // Strip any tags reconstructed from decoded entities
-    .trim();
+    .replace(/<[^>]*>/g, ''); // Safety: strip anything that looks like a tag after decoding
+  return text.trim();
 }
