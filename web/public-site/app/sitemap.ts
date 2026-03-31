@@ -128,7 +128,7 @@ async function fetchPublishedContent() {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gladlabs.io';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
   const { allPosts, allCategories, allTags } = await fetchPublishedContent();
 
   // Static pages

@@ -15,12 +15,12 @@ export const metadata = {
   description:
     'Exploring the future of technology, AI, and digital innovation at Glad Labs',
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://gladlabs.io'
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io'
   ),
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://gladlabs.io',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io',
     title: 'Glad Labs',
     description:
       'Exploring the future of technology, AI, and digital innovation',

@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://gladlabs.io';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = SITE_URL.replace(/\/$/, ''); // Remove trailing slash if present
