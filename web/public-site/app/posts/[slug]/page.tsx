@@ -192,6 +192,46 @@ export default async function PostPage({
     { label: post.title, url: `/posts/${post.slug}` },
   ];
 
+  // Reading time estimate (avg 238 words/min for technical content)
+  const wordCount = post.content.split(/\s+/).length;
+  const readingTime = Math.max(1, Math.round(wordCount / 238));
+
+  // Extract headings for table of contents
+  const headingRegex = /<h([23])[^>]*(?:id="([^"]*)")?[^>]*>(.*?)<\/h\1>/gi;
+  const tocEntries: { level: number; text: string; id: string }[] = [];
+  let match;
+  const contentWithIds = post.content.replace(
+    /<h([23])([^>]*)>(.*?)<\/h\1>/gi,
+    (_m: string, level: string, attrs: string, text: string) => {
+      const plainText = text.replace(/<[^>]+>/g, '').trim();
+      const id = plainText
+        .toLowerCase()
+        .replace(/[^\w]+/g, '-')
+        .slice(0, 60);
+      tocEntries.push({ level: parseInt(level), text: plainText, id });
+      return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
+    }
+  );
+
+  // Fetch related posts by category
+  let relatedPosts: Post[] = [];
+  try {
+    const relRes = await fetch(
+      `${API_BASE}/api/posts?offset=0&limit=4&published_only=true`,
+      { next: { revalidate: 3600 } }
+    );
+    if (relRes.ok) {
+      const relData = await relRes.json();
+      const allPosts = relData.posts || relData.data || [];
+      relatedPosts = allPosts
+        .filter((p: Post) => p.slug !== post.slug)
+        .slice(0, 3);
+    }
+  } catch {}
+
+  const shareUrl = `${SITE_URL}/posts/${post.slug}`;
+  const shareTitle = encodeURIComponent(post.title);
+
   const canonicalUrl = generateCanonicalURL(post.slug, SITE_URL);
   const structuredData = generateBlogPostingSchema(
     {
@@ -261,6 +301,8 @@ export default async function PostPage({
                     day: 'numeric',
                   })}
                 </time>
+                <span>•</span>
+                <span>{readingTime} min read</span>
                 {post.view_count > 0 && (
                   <>
                     <span>•</span>
@@ -282,6 +324,65 @@ export default async function PostPage({
         {/* Article Content */}
         <div className="px-4 sm:px-6 lg:px-8 pb-20">
           <div className="max-w-4xl mx-auto">
+            {/* Table of Contents */}
+            {tocEntries.length >= 3 && (
+              <nav
+                className="mb-10 p-6 bg-slate-800/50 rounded-xl border border-slate-700"
+                aria-label="Table of contents"
+              >
+                <h2 className="text-lg font-semibold text-white mb-3">
+                  In this article
+                </h2>
+                <ul className="space-y-2">
+                  {tocEntries.map((entry) => (
+                    <li
+                      key={entry.id}
+                      className={entry.level === 3 ? 'ml-4' : ''}
+                    >
+                      <a
+                        href={`#${entry.id}`}
+                        className="text-cyan-400 hover:text-cyan-300 transition-colors text-sm"
+                      >
+                        {entry.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
+
+            {/* Social Share Buttons */}
+            <div className="flex items-center gap-3 mb-8">
+              <span className="text-sm text-slate-400">Share:</span>
+              <a
+                href={`https://twitter.com/intent/tweet?text=${shareTitle}&url=${encodeURIComponent(shareUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-sm transition-colors border border-slate-700"
+                aria-label="Share on X/Twitter"
+              >
+                X / Twitter
+              </a>
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-sm transition-colors border border-slate-700"
+                aria-label="Share on LinkedIn"
+              >
+                LinkedIn
+              </a>
+              <a
+                href={`https://news.ycombinator.com/submitlink?u=${encodeURIComponent(shareUrl)}&t=${shareTitle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-sm transition-colors border border-slate-700"
+                aria-label="Share on Hacker News"
+              >
+                HN
+              </a>
+            </div>
+
             <article
               className="prose prose-invert max-w-none
                        prose-headings:font-bold
@@ -301,7 +402,7 @@ export default async function PostPage({
             >
               <div
                 dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(post.content, {
+                  __html: sanitizeHtml(contentWithIds, {
                     allowedTags: sanitizeHtml.defaults.allowedTags.concat([
                       'img',
                       'h1',
@@ -354,6 +455,45 @@ export default async function PostPage({
             </div>
           </div>
         </div>
+
+        {/* Related Posts */}
+        {relatedPosts.length > 0 && (
+          <div className="px-4 sm:px-6 lg:px-8 pb-12">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl font-bold text-white mb-6">
+                More from Glad Labs
+              </h2>
+              <div className="grid gap-6 md:grid-cols-3">
+                {relatedPosts.map((rp) => (
+                  <Link
+                    key={rp.slug}
+                    href={`/posts/${rp.slug}`}
+                    className="group block bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700 hover:border-cyan-500/50 transition-all"
+                  >
+                    {(rp.featured_image_url || rp.cover_image_url) && (
+                      <div className="relative h-36 overflow-hidden">
+                        <Image
+                          src={
+                            rp.featured_image_url || rp.cover_image_url || ''
+                          }
+                          alt=""
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors line-clamp-2">
+                        {rp.title}
+                      </h3>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* View tracking beacon */}
         <ViewTracker slug={post.slug} />
