@@ -70,24 +70,13 @@ export default function RootLayout({ children }) {
         <Footer />
         {/* Client-side components that need hydration */}
         <WebVitals />
-        <AdSenseScript />
-        {GA_ID && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="gtag-init" strategy="afterInteractive">
-              {`window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_ID}');`}
-            </Script>
-          </>
-        )}
+        {/*
+          GDPR: GA and AdSense are NOT loaded here.
+          CookieConsentBanner handles loading them ONLY after user consent.
+          AdSenseScript and GA Script tags were removed from layout to comply.
+          See: components/CookieConsentBanner.tsx
+        */}
         <CookieConsentBanner />
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

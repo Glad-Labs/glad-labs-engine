@@ -173,7 +173,7 @@ export default function TermsOfService() {
           <br />
           Email: hello@gladlabs.io
           <br />
-          Website: https://yourdomain.com
+          Website: https://www.gladlabs.io
         </p>
       </div>
     </div>

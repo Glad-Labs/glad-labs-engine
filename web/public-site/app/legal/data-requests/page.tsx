@@ -175,7 +175,7 @@ export default function DataRequests() {
           </h2>
 
           <form
-            action="/api/data-requests"
+            action="/api/privacy/data-requests"
             method="POST"
             className="space-y-6"
             aria-labelledby="form-title"
