@@ -240,12 +240,13 @@ const nextConfig = {
   // Redirects for URL structure changes
   redirects: async () => {
     return [
-      // Redirect old blog URLs to new structure if needed
-      // {
-      //   source: '/blog/:slug',
-      //   destination: '/posts/:slug',
-      //   permanent: true,
-      // },
+      // Common URLs Google tries that don't exist — redirect to real pages
+      { source: '/blog', destination: '/archive/1', permanent: true },
+      { source: '/blog/:slug', destination: '/posts/:slug', permanent: true },
+      { source: '/posts', destination: '/archive/1', permanent: true },
+      { source: '/tags', destination: '/archive/1', permanent: true },
+      { source: '/archive', destination: '/archive/1', permanent: true },
+      { source: '/page/:num', destination: '/archive/:num', permanent: true },
     ];
   },
 
