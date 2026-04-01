@@ -2,20 +2,22 @@ import Link from 'next/link';
 import Image from 'next/image';
 import * as Sentry from '@sentry/nextjs';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
+
 // SEO Metadata
 export const metadata = {
   title: 'Glad Labs - AI & Technology Insights',
   description:
     'Deep dives into AI, technology, and digital transformation. Explore our latest insights and expert analysis.',
   alternates: {
-    canonical: 'https://www.gladlabs.io/',
+    canonical: `${SITE_URL}/`,
   },
   openGraph: {
     title: 'Glad Labs - AI & Technology Insights',
     description: 'Deep dives into AI, technology, and digital transformation',
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.gladlabs.io/',
+    url: `${SITE_URL}/`,
     images: [
       {
         url: '/og-image.jpg',

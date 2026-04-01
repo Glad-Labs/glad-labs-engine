@@ -129,12 +129,12 @@ export default function NotFound() {
                 Homepage
               </Link>
               <span className="text-gray-600">•</span>
-              <a
-                href="https://www.gladlabs.io"
+              <Link
+                href="/"
                 className="text-cyan-400 hover:text-cyan-300 underline"
               >
                 Glad Labs Main Site
-              </a>
+              </Link>
             </div>
           </div>
         </div>

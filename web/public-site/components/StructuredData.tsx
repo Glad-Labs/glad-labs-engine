@@ -3,6 +3,8 @@
  * Schema.org markup for enhanced SEO
  */
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
+
 /**
  * Breadcrumb Schema
  * Shows breadcrumb navigation in Google search results
@@ -19,7 +21,7 @@ export function BreadcrumbSchema({
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      item: `https://www.gladlabs.io${item.url}`,
+      item: `${SITE_URL}${item.url}`,
     })),
   };
 
@@ -72,8 +74,8 @@ export function OrganizationSchema() {
     name: 'Glad Labs',
     description:
       'AI and digital innovation research organization focused on autonomous intelligence',
-    url: 'https://www.gladlabs.io',
-    logo: 'https://www.gladlabs.io/og-image.jpg',
+    url: SITE_URL,
+    logo: `${SITE_URL}/og-image.jpg`,
     sameAs: [
       'https://twitter.com/GladLabsAI',
       'https://linkedin.com/company/glad-labs',
@@ -130,7 +132,7 @@ export function BlogPostingSchema({
       name: 'Glad Labs',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.gladlabs.io/og-image.jpg',
+        url: `${SITE_URL}/og-image.jpg`,
         width: 1200,
         height: 630,
       },
@@ -175,7 +177,7 @@ export function NewsArticleSchema({
       name: 'Glad Labs',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.gladlabs.io/og-image.jpg',
+        url: `${SITE_URL}/og-image.jpg`,
         width: 1200,
         height: 630,
       },
