@@ -51,7 +51,9 @@ export default function Error({ error, reset }: ErrorProps) {
               Error Details
             </h2>
             <p className="text-sm text-red-300/80 font-mono break-words">
-              {error?.message || 'Unknown error'}
+              {isNetworkError
+                ? 'Unable to connect to the server'
+                : 'An unexpected error occurred'}
             </p>
           </div>
 

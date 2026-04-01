@@ -13,7 +13,16 @@ export async function POST(request) {
   try {
     // Verify revalidation token for security
     const secret = request.headers.get('x-revalidate-secret');
-    const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET || 'dev-secret-key';
+    const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET;
+    if (!REVALIDATE_SECRET) {
+      return new Response(
+        JSON.stringify({ error: 'Revalidation not configured' }),
+        {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
     if (secret !== REVALIDATE_SECRET) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
