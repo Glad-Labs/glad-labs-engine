@@ -1,7 +1,7 @@
 # Headscale — self-hosted Tailscale control server
 # Docs: https://headscale.net/
 
-server_url: http://localhost:8080
+server_url: https://192.168.1.176:8080
 listen_addr: 0.0.0.0:8080
 metrics_listen_addr: 0.0.0.0:9090
 
@@ -37,9 +37,9 @@ dns:
 noise:
   private_key_path: /var/lib/headscale/noise_private.key
 
-# Disable TLS for local use (behind your own network)
-tls_cert_path: ""
-tls_key_path: ""
+# TLS for Tailscale client compatibility
+tls_cert_path: /etc/headscale/certs/cert.pem
+tls_key_path: /etc/headscale/certs/key.pem
 
 # Node registration
 # After starting, create a user and pre-auth key:
