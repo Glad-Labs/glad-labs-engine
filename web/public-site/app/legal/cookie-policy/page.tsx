@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function CookiePolicy() {
-  const lastUpdated = new Date('2026-02-10').toLocaleDateString('en-US', {
+  const lastUpdated = new Date('2026-04-01').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -20,360 +20,332 @@ export default function CookiePolicy() {
         <strong>Last Updated:</strong> {lastUpdated}
       </p>
 
+      <p>
+        This is the cookie policy for{' '}
+        <a
+          href="https://www.gladlabs.io"
+          className="text-cyan-400 hover:text-cyan-300"
+        >
+          www.gladlabs.io
+        </a>
+        , operated by Glad Labs, LLC. We try to be straightforward here — no
+        walls of legalese, just an honest explanation of what cookies and
+        third-party services our site uses and why.
+      </p>
+
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
         1. What Are Cookies?
       </h2>
       <p>
-        Cookies are small text files that are placed on your computer or mobile
-        device when you visit a website. They are widely used to make websites
-        work, or work more efficiently, and to provide information to the
-        website owners.
+        Cookies are small text files stored on your device when you visit a
+        website. They help sites remember things (like your preferences) and
+        collect usage data. Some are set by us, others by third-party services
+        we integrate.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        2. How We Use Cookies
+        2. Our Cookie Consent Banner
       </h2>
       <p>
-        Glad Labs uses cookies to enhance your browsing experience and for
-        analytics purposes:
+        When you first visit the site, you will see a cookie consent banner at
+        the bottom of the page. You have three options:
       </p>
-
-      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
-        2.1 Essential Cookies
-      </h3>
+      <ul className="list-disc list-inside space-y-2 mb-4">
+        <li>
+          <strong>Accept All:</strong> Enables essential, analytics, and
+          advertising cookies/services.
+        </li>
+        <li>
+          <strong>Reject All:</strong> Only essential cookies remain active. No
+          analytics or advertising scripts are loaded.
+        </li>
+        <li>
+          <strong>Customize:</strong> Choose exactly which categories to enable
+          or disable.
+        </li>
+      </ul>
       <p>
-        These cookies are necessary for the website to function properly. They
-        enable core functionality such as security, network management, and
-        accessibility features. The website cannot function properly without
-        these cookies.
-      </p>
-
-      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
-        2.2 Performance & Optimization Cookies
-      </h3>
-      <p>
-        These cookies collect information about how you interact with our
-        website, including which pages you visit, how long you spend on pages,
-        and any errors encountered. We use this information to improve website
-        performance and optimize user experience. These cookies are placed under
-        our <strong>legitimate interest</strong> (Article 6(1)(f) GDPR) in
-        providing a better service and do not require explicit consent.
-      </p>
-
-      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
-        2.3 Analytical Cookies
-      </h3>
-      <p>
-        We use Google Analytics 4 (GA4) via Google Tag Manager to understand how
-        visitors use our website. GA4 places cookies on your browser to collect
-        usage data including pages visited, time spent, and user interactions.
-        This helps us understand user behavior and improve our content and user
-        experience.
-      </p>
-
-      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
-        2.4 Advertising Cookies
-      </h3>
-      <p>
-        Google AdSense uses cookies to serve advertisements that are relevant to
-        your interests. These cookies allow Google to track your interests
-        across websites and deliver personalized ads.
+        Your choice is saved in your browser&apos;s <code>localStorage</code>{' '}
+        (specifically the keys <code>cookieConsent</code> and{' '}
+        <code>cookieConsentDate</code>). We do not set a cookie to track your
+        consent — we use localStorage instead.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        3. Cookie Names and Purposes
+        3. What We Actually Use
+      </h2>
+      <p>
+        Here is an honest breakdown of the cookies and third-party services on
+        this site:
+      </p>
+
+      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
+        3.1 Essential (Always Active)
+      </h3>
+      <p>
+        These cannot be disabled because the site needs them to function:
+      </p>
+      <ul className="list-disc list-inside space-y-2 mb-4">
+        <li>
+          <strong>Cookie consent state</strong> — stored in{' '}
+          <code>localStorage</code>, not as a cookie. Records whether you
+          accepted, rejected, or customized your preferences.
+        </li>
+        <li>
+          <strong>Vercel hosting</strong> — our hosting provider (Vercel) may
+          process your IP address for routing, security, and basic
+          infrastructure purposes. This is standard for any hosted website.
+        </li>
+      </ul>
+
+      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
+        3.2 Analytics (Consent Required)
+      </h3>
+      <p>
+        These are only loaded if you opt in via the consent banner:
+      </p>
+      <ul className="list-disc list-inside space-y-2 mb-4">
+        <li>
+          <strong>Google Analytics 4 (GA4)</strong> — loaded dynamically after
+          consent. Sets cookies like <code>_ga</code> and{' '}
+          <code>_ga_*</code> to track page views and usage patterns. These
+          cookies last up to 2 years. If you reject analytics, the GA script is
+          never loaded and no GA cookies are set.
+        </li>
+      </ul>
+
+      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
+        3.3 Advertising (Consent Required)
+      </h3>
+      <p>
+        These are only activated if you opt in:
+      </p>
+      <ul className="list-disc list-inside space-y-2 mb-4">
+        <li>
+          <strong>Google AdSense</strong> — may serve ads and set cookies for ad
+          personalization. The AdSense script is not loaded unless you consent to
+          advertising cookies.
+        </li>
+      </ul>
+
+      <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
+        3.4 Third-Party Embeds (No Cookies From Us)
+      </h3>
+      <p>
+        These services are used on the site but are not gated by our consent
+        banner because they do not set tracking cookies through our site:
+      </p>
+      <ul className="list-disc list-inside space-y-2 mb-4">
+        <li>
+          <strong>Giscus</strong> — powers the comment system on blog posts.
+          Loads a script from <code>giscus.app</code> which connects to GitHub
+          Discussions. If you interact with comments, Giscus and GitHub may set
+          their own cookies. We do not control those.
+        </li>
+        <li>
+          <strong>Pexels</strong> — some images on the site are served from
+          Pexels. Loading these images means your browser makes requests to
+          Pexels servers, which may log your IP. Pexels has its own privacy
+          policy.
+        </li>
+      </ul>
+
+      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
+        4. Cookie Reference Table
       </h2>
       <div className="overflow-x-auto my-4">
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-gray-600">
-              <th className="px-3 py-2">Cookie Name</th>
+              <th className="px-3 py-2">Cookie / Storage</th>
               <th className="px-3 py-2">Provider</th>
               <th className="px-3 py-2">Purpose</th>
               <th className="px-3 py-2">Duration</th>
+              <th className="px-3 py-2">Requires Consent</th>
             </tr>
           </thead>
           <tbody>
             <tr className="border-b border-gray-700">
-              <td className="px-3 py-2">_ga</td>
-              <td className="px-3 py-2">Google Analytics 4</td>
-              <td className="px-3 py-2">Stores a unique user identifier</td>
-              <td className="px-3 py-2">2 years</td>
+              <td className="px-3 py-2">
+                <code>cookieConsent</code>
+              </td>
+              <td className="px-3 py-2">Glad Labs (localStorage)</td>
+              <td className="px-3 py-2">
+                Stores your consent preferences
+              </td>
+              <td className="px-3 py-2">Persistent</td>
+              <td className="px-3 py-2">No (essential)</td>
             </tr>
             <tr className="border-b border-gray-700">
-              <td className="px-3 py-2">_ga_*</td>
+              <td className="px-3 py-2">
+                <code>cookieConsentDate</code>
+              </td>
+              <td className="px-3 py-2">Glad Labs (localStorage)</td>
+              <td className="px-3 py-2">
+                Records when consent was given
+              </td>
+              <td className="px-3 py-2">Persistent</td>
+              <td className="px-3 py-2">No (essential)</td>
+            </tr>
+            <tr className="border-b border-gray-700">
+              <td className="px-3 py-2">
+                <code>_ga</code>
+              </td>
+              <td className="px-3 py-2">Google Analytics 4</td>
+              <td className="px-3 py-2">Unique user identifier</td>
+              <td className="px-3 py-2">2 years</td>
+              <td className="px-3 py-2">Yes (analytics)</td>
+            </tr>
+            <tr className="border-b border-gray-700">
+              <td className="px-3 py-2">
+                <code>_ga_*</code>
+              </td>
               <td className="px-3 py-2">Google Analytics 4</td>
               <td className="px-3 py-2">
-                Groups analytics events by measurement ID
+                Groups events by measurement ID
               </td>
               <td className="px-3 py-2">2 years</td>
-            </tr>
-            <tr className="border-b border-gray-700">
-              <td className="px-3 py-2">_gat_gtag_*</td>
-              <td className="px-3 py-2">Google Analytics 4</td>
-              <td className="px-3 py-2">Throttles request rate</td>
-              <td className="px-3 py-2">1 minute</td>
+              <td className="px-3 py-2">Yes (analytics)</td>
             </tr>
             <tr>
-              <td className="px-3 py-2">Advertising IDs</td>
+              <td className="px-3 py-2">AdSense IDs</td>
               <td className="px-3 py-2">Google AdSense</td>
-              <td className="px-3 py-2">Ad personalization and ad serving</td>
+              <td className="px-3 py-2">Ad personalization and serving</td>
               <td className="px-3 py-2">Varies</td>
+              <td className="px-3 py-2">Yes (advertising)</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        4. Third-Party Cookies
+        5. What We Do Not Do
       </h2>
-      <p>
-        Third-party cookies are placed by services other than Glad Labs,
-        including:
-      </p>
+      <p>To be clear:</p>
       <ul className="list-disc list-inside space-y-2 mb-4">
         <li>
-          <strong>Google Analytics:</strong> Analyzes website traffic
+          We do not load Google Analytics or AdSense scripts unless you
+          explicitly consent. If you reject all, those scripts never touch your
+          browser.
         </li>
         <li>
-          <strong>Google AdSense:</strong> Serves and personalizes
-          advertisements
+          We do not sell your personal data.
         </li>
         <li>
-          <strong>Social Media Platforms:</strong> If embedded content is
-          present
+          We do not use third-party ad networks without your consent.
+        </li>
+        <li>
+          We do not use fingerprinting or any other tracking that bypasses your
+          cookie preferences.
         </li>
       </ul>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        5. Your Cookie Preferences
+        6. Managing Your Preferences
       </h2>
-      <p>
-        Most web browsers allow you to control cookies through their settings.
-        You can:
-      </p>
+      <p>You can change your mind at any time:</p>
       <ul className="list-disc list-inside space-y-2 mb-4">
-        <li>Delete existing cookies</li>
-        <li>Block all cookies</li>
-        <li>Allow only certain cookies</li>
-        <li>Be notified when a cookie is being set</li>
+        <li>
+          Clear your browser&apos;s localStorage for this site — the consent
+          banner will reappear on your next visit.
+        </li>
+        <li>
+          Use your browser&apos;s built-in cookie controls to delete any cookies
+          set by third parties.
+        </li>
+        <li>
+          Contact us at{' '}
+          <a
+            href="mailto:privacy@gladlabs.io"
+            className="text-cyan-400 hover:text-cyan-300"
+          >
+            privacy@gladlabs.io
+          </a>{' '}
+          if you need help.
+        </li>
       </ul>
-      <p className="mt-4 text-gray-300">
-        <strong>Note:</strong> Blocking cookies may affect website
-        functionality. Essential cookies cannot be disabled as they are required
-        for the website to operate.
-      </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        6. Cookie Consent
+        7. Your Rights
       </h2>
       <p>
-        We provide a cookie consent banner when you first visit our website. By
-        interacting with the banner, you can:
+        <strong>If you are in the EU (GDPR):</strong> You have the right to
+        access, rectify, erase, restrict, port, and object to processing of
+        your personal data. You can withdraw consent at any time without
+        affecting the lawfulness of prior processing. You also have the right to
+        lodge a complaint with your local Data Protection Authority.
       </p>
-      <ul className="list-disc list-inside space-y-2 mb-4">
-        <li>
-          <strong>Accept All:</strong> Consent to all cookies (essential,
-          analytics, and advertising)
-        </li>
-        <li>
-          <strong>Reject All:</strong> Only essential cookies are enabled; you
-          opt-out of analytics and advertising
-        </li>
-        <li>
-          <strong>Customize:</strong> Choose which types of cookies to accept
-        </li>
-      </ul>
-      <p className="mt-4 text-gray-300">
-        <strong>Important:</strong> Essential cookies are always enabled as they
-        are required for the website to function. Your consent choices are saved
-        in your browser's local storage and remain valid for one year.
-      </p>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        7. Your Rights Under GDPR & CCPA
-      </h2>
-      <p>
-        <strong>For EU Residents (GDPR):</strong> You have the following rights:
-      </p>
-      <ul className="list-disc list-inside space-y-2 mb-4">
-        <li>
-          <strong>Right to be informed:</strong> See this policy for how we use
-          cookies
-        </li>
-        <li>
-          <strong>Right to withdraw consent:</strong> You can change your cookie
-          preferences at any time without penalty
-        </li>
-        <li>
-          <strong>Right of access:</strong> Request a copy of the personal data
-          we hold about you
-        </li>
-        <li>
-          <strong>Right to erasure:</strong> Request deletion of your data (with
-          exceptions for legal obligations)
-        </li>
-        <li>
-          <strong>Right to restrict processing:</strong> Ask us to limit how we
-          use your data
-        </li>
-        <li>
-          <strong>Right to rectification:</strong> Correct inaccurate personal
-          data
-        </li>
-        <li>
-          <strong>Right to data portability:</strong> Receive your data in a
-          machine-readable format
-        </li>
-        <li>
-          <strong>Right to object:</strong> Object to specific processing based
-          on legitimate interest
-        </li>
-        <li>
-          <strong>Right to lodge a complaint:</strong> Contact your supervisory
-          authority (Data Protection Authority) if you believe your rights are
-          violated
-        </li>
-      </ul>
-
       <p className="mt-4">
-        <strong>For California Residents (CCPA):</strong> You have the right to
-        know, delete, and opt-out of the sale of your personal information.
+        <strong>If you are in California (CCPA):</strong> You have the right to
+        know what personal information is collected, request its deletion, and
+        opt out of its sale. We do not sell personal information.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        8. Data Processors & Third Parties
+        8. Data Processors
       </h2>
       <p>
-        When you use our website, your data may be shared with the following
-        third parties who act as data processors:
+        When you consent to analytics or advertising, your data may be processed
+        by:
       </p>
       <ul className="list-disc list-inside space-y-2 mb-4">
         <li>
-          <strong>Google LLC</strong> (Analytics 4 & AdSense) - Processes data
-          in the United States under Standard Contractual Clauses
+          <strong>Google LLC</strong> — for GA4 and/or AdSense. Data may be
+          processed in the United States under Standard Contractual Clauses.
         </li>
         <li>
-          <strong>Vercel, Inc.</strong> (Hosting) - Hosts our website and may
-          process IP addresses for analytics and security
+          <strong>Vercel, Inc.</strong> — hosts the site and may process IP
+          addresses for infrastructure and security.
         </li>
         <li>
-          <strong>Social Media Platforms</strong> - If you interact with
-          embedded content from social networks
+          <strong>GitHub / Giscus</strong> — if you use the comment system on
+          blog posts.
         </li>
       </ul>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        9. International Data Transfers
+        9. Updates to This Policy
       </h2>
       <p>
-        Our service providers process data in the United States. We ensure
-        adequate protection through Standard Contractual Clauses (SCCs) and
-        other legal mechanisms approved by the EU adequate decision or UK
-        adequacy decision, as applicable.
+        If we change this policy, we will update the date at the top. We are not
+        going to email you about cookie policy changes — just check back here if
+        you are curious.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        10. Withdrawing Consent
-      </h2>
-      <p>You can withdraw your consent to cookies at any time by:</p>
-      <ul className="list-disc list-inside space-y-2 mb-4">
-        <li>
-          Clicking the cookie consent banner at the bottom of the page and
-          adjusting your preferences
-        </li>
-        <li>Clearing cookies from your browser settings</li>
-        <li>Contacting us directly at privacy@gladlabs.ai</li>
-      </ul>
-      <p className="mt-4 text-gray-300">
-        <strong>Note:</strong> Withdrawing consent will not affect the
-        lawfulness of processing before consent was withdrawn.
-      </p>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        11. Legal Basis for Processing
-      </h2>
-      <p>Under GDPR, we process data based on the following legal bases:</p>
-      <ul className="list-disc list-inside space-y-2 mb-4">
-        <li>
-          <strong>Consent (Article 6(1)(a)):</strong> Analytics and advertising
-          cookies
-        </li>
-        <li>
-          <strong>Contract Performance (Article 6(1)(b)):</strong> Session
-          cookies for website functionality
-        </li>
-        <li>
-          <strong>Legal Obligation (Article 6(1)(c)):</strong> Security and
-          fraud prevention
-        </li>
-        <li>
-          <strong>Legitimate Interest (Article 6(1)(f)):</strong> Website
-          optimization and user experience
-        </li>
-      </ul>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        12. Performance & Optimization Cookies (Legitimate Interest)
+        10. Contact
       </h2>
       <p>
-        Some performance cookies may be enabled under our legitimate interest in
-        optimizing website performance and user experience, even without
-        explicit consent. These are limited to technical data (page load times,
-        error tracking) and do not identify you personally.
-      </p>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        13. External Links
-      </h2>
-      <p>
-        This website may contain links to external websites. We are not
-        responsible for the cookie practices of external sites. Please review
-        their cookie policies before interacting with their content.
-      </p>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        14. Updates to This Policy
-      </h2>
-      <p>
-        We may update this Cookie Policy from time to time. Changes will be
-        posted on this page with an updated "Last Modified" date. Your continued
-        use of the website constitutes your acceptance of the updated policy.
-      </p>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        15. Data Protection Officer & Contact
-      </h2>
-      <p>
-        If you have questions about our Cookie Policy or wish to exercise your
-        rights, please contact us at:
+        Questions? Reach out:
       </p>
       <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
         <p>
           <strong>Glad Labs, LLC</strong>
           <br />
-          Email: privacy@gladlabs.ai
-          <br />
-          Website: https://gladlabs.io
-          <br />
-          <br />
-          <strong>EU Data Representative (Article 27 GDPR):</strong>
-          <br />
-          For GDPR inquiries, submit a data subject request via our{' '}
+          Email:{' '}
           <a
-            href="/legal/data-requests"
+            href="mailto:matt@gladlabs.io"
             className="text-cyan-400 hover:text-cyan-300"
           >
-            Data Request Portal
+            matt@gladlabs.io
+          </a>{' '}
+          or{' '}
+          <a
+            href="mailto:privacy@gladlabs.io"
+            className="text-cyan-400 hover:text-cyan-300"
+          >
+            privacy@gladlabs.io
+          </a>
+          <br />
+          Website:{' '}
+          <a
+            href="https://www.gladlabs.io"
+            className="text-cyan-400 hover:text-cyan-300"
+          >
+            https://www.gladlabs.io
           </a>
         </p>
       </div>
-
-      <p className="mt-4 text-gray-300 text-sm">
-        <strong>Supervisory Authority:</strong> If you believe your rights have
-        been violated, you have the right to lodge a complaint with your local
-        Data Protection Authority without filing a complaint with us first.
-      </p>
     </div>
   );
 }
