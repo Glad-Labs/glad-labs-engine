@@ -278,14 +278,20 @@ export default function DataRequests() {
                 {[
                   {
                     value: 'analytics',
-                    label: 'Analytics data (Google Analytics)',
+                    label: 'First-party analytics (ViewTracker page views)',
+                  },
+                  {
+                    value: 'google-analytics',
+                    label: 'Google Analytics data (if consented)',
                   },
                   {
                     value: 'advertising',
-                    label: 'Advertising data (Google AdSense)',
+                    label: 'Advertising data / Google AdSense (if consented)',
                   },
+                  { value: 'errors', label: 'Error monitoring data (Sentry)' },
                   { value: 'cookies', label: 'Cookie preferences' },
                   { value: 'logs', label: 'Server logs (IP addresses)' },
+                  { value: 'comments', label: 'Comments (Giscus/GitHub)' },
                   { value: 'all', label: 'All my data' },
                 ].map(({ value, label }) => (
                   <label key={value} className="flex items-center gap-2">

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicy() {
-  const lastUpdated = new Date('2026-03-30').toLocaleDateString('en-US', {
+  const lastUpdated = new Date('2026-03-31').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -18,12 +18,12 @@ export default function PrivacyPolicy() {
     {
       question: 'How long do you keep my data?',
       answer:
-        'We keep Google Analytics data for 14 months, AdSense data for 30 months, ViewTracker page view data indefinitely (no IP stored), Sentry error data for 90 days, server logs for 90 days, and cookie preferences indefinitely unless you delete them.',
+        'ViewTracker page views are kept indefinitely (no IP stored). Sentry error data: 90 days. Server logs: 90 days. If you consent to Google Analytics: 14 months. If you consent to AdSense: up to 30 months.',
     },
     {
       question: 'What third parties have access to my data?',
       answer:
-        'We work with Google LLC (Analytics & AdSense), Vercel (Hosting), Sentry (Error Monitoring), and GitHub (Giscus Comments). Each has their own privacy policies that you can review.',
+        'Always active: Vercel (Hosting), Sentry (Error Monitoring), GitHub (Giscus Comments). Consent-gated: Google (Analytics & AdSense, only if you opt in). Each has their own privacy policies.',
     },
     {
       question: 'How do I download my data?',
@@ -63,36 +63,38 @@ export default function PrivacyPolicy() {
           1. Introduction
         </h2>
         <p>
-          Glad Labs ("we," "us," "our," or "Company") is committed to protecting
-          your privacy. This Privacy Policy explains how we collect, use,
-          disclose, and safeguard your information when you visit our website.
+          Glad Labs (&quot;we,&quot; &quot;us,&quot; &quot;our&quot;) respects
+          your privacy. This policy explains what data we collect when you visit
+          gladlabs.io, how we use it, and your rights regarding that data. We
+          keep it straightforward because privacy policies shouldn&apos;t
+          require a law degree to understand.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           2. Legal Basis for Processing (GDPR)
         </h2>
         <p>
-          Under the GDPR, we process your personal data based on one or more of
-          the following legal bases:
+          Under the GDPR, we process your personal data based on the following
+          legal bases:
         </p>
         <ul className="list-disc list-inside space-y-2 mb-4">
           <li>
-            <strong>Consent (Article 6(1)(a)):</strong> For analytics and
-            advertising cookies (you provide explicit consent via our cookie
-            banner)
+            <strong>Consent (Article 6(1)(a)):</strong> Google Analytics and
+            AdSense are only loaded after you explicitly opt in via our cookie
+            banner
           </li>
           <li>
-            <strong>Contract Performance (Article 6(1)(b)):</strong> For session
-            cookies and website functionality necessary to provide our services
+            <strong>Contract Performance (Article 6(1)(b)):</strong> Essential
+            cookies and website functionality necessary to serve content
           </li>
           <li>
-            <strong>Legal Obligation (Article 6(1)(c)):</strong> For security
-            logs, fraud prevention, and compliance with applicable laws
+            <strong>Legal Obligation (Article 6(1)(c)):</strong> Security logs,
+            fraud prevention, and legal compliance
           </li>
           <li>
-            <strong>Legitimate Interest (Article 6(1)(f)):</strong> For website
-            optimization, performance improvement, and user experience
-            enhancement (with no consent required for essential functionality)
+            <strong>Legitimate Interest (Article 6(1)(f)):</strong> First-party
+            analytics (ViewTracker), error monitoring (Sentry), and site
+            optimization
           </li>
         </ul>
 
@@ -100,220 +102,215 @@ export default function PrivacyPolicy() {
           3. Information We Collect
         </h2>
         <p>
-          We may collect information about you in a variety of ways. The
-          information we may collect on the site includes:
+          We collect minimal data. Here&apos;s exactly what and why:
         </p>
 
         <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
-          3.1 Automatic Data Collection
+          3.1 Always-Active Data Collection
         </h3>
         <ul className="list-disc list-inside space-y-2 mb-4">
           <li>
-            <strong>Cookies & Tracking Technologies:</strong> We use cookies,
-            web beacons, and similar technologies to track your activity on our
-            website and store your preferences.
+            <strong>ViewTracker (First-Party Analytics):</strong> Our own
+            lightweight analytics system records page path, post slug, referrer
+            URL, and user-agent string for each page view. No IP addresses are
+            stored. This data stays in our database and is never shared with
+            third parties. Legal basis: Legitimate Interest (Article 6(1)(f)).
           </li>
           <li>
-            <strong>Google Analytics:</strong> We use Google Analytics to
-            understand how visitors interact with our website.
+            <strong>Sentry (Error Monitoring):</strong> Sentry captures error
+            data including IP addresses, browser information, and stack traces
+            when something breaks. This helps us fix bugs fast. Legal basis:
+            Legitimate Interest (Article 6(1)(f)).
           </li>
           <li>
-            <strong>ViewTracker (First-Party Analytics):</strong> We operate our
-            own lightweight analytics system that records page path, post slug,
-            referrer URL, and user-agent string for each page view. This data is
-            stored in our own database and is not shared with third parties.
-            Legal basis: Legitimate Interest (Article 6(1)(f)).
-          </li>
-          <li>
-            <strong>Sentry (Error Monitoring):</strong> We use Sentry to detect
-            and diagnose errors on our website. Sentry may collect IP addresses,
-            browser information, and error stack traces when an error occurs.
-            Legal basis: Legitimate Interest (Article 6(1)(f)).
-          </li>
-          <li>
-            <strong>Log Data:</strong> Our servers automatically log IP
-            addresses, browser type, operating system, pages visited, and time
-            spent on pages.
+            <strong>Server Logs:</strong> Our hosting provider (Vercel)
+            automatically logs IP addresses, browser type, and pages visited for
+            security and operational purposes.
           </li>
         </ul>
 
         <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
-          3.2 Information from Third Parties
+          3.2 Consent-Gated Data Collection
+        </h3>
+        <p>
+          The following services are only activated if you explicitly consent
+          via our cookie banner:
+        </p>
+        <ul className="list-disc list-inside space-y-2 mb-4">
+          <li>
+            <strong>Google Analytics 4:</strong> If you consent to analytics
+            cookies, GA4 collects usage data including pages visited, time
+            spent, and interactions. If you reject analytics, the GA script is
+            never loaded.
+          </li>
+          <li>
+            <strong>Google AdSense:</strong> If you consent to advertising
+            cookies, AdSense may serve ads and set cookies for personalization.
+            If you reject advertising, the AdSense script is never loaded.
+          </li>
+        </ul>
+
+        <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
+          3.3 Third-Party Services
         </h3>
         <ul className="list-disc list-inside space-y-2 mb-4">
           <li>
-            <strong>Google AdSense:</strong> We partner with Google AdSense to
-            serve advertisements on our website. Google may use cookies to
-            personalize ads based on your interests.
-          </li>
-          <li>
             <strong>Giscus (Comments):</strong> Our blog uses Giscus, a
-            commenting system powered by GitHub Discussions. When you post a
-            comment, you authenticate via your GitHub account. Your GitHub
-            username, avatar, and comment content are stored on GitHub. Giscus
-            does not use cookies or track you beyond the comment interaction.
-            Review GitHub's privacy policy for details.
-          </li>
-          <li>
-            <strong>Social Media:</strong> If you interact with our content on
-            social platforms, those platforms may collect additional
-            information.
+            commenting system powered by GitHub Discussions. When you comment,
+            you authenticate via GitHub. Your GitHub username, avatar, and
+            comment content are stored on GitHub&apos;s servers. Giscus does not
+            use cookies or track you beyond the comment interaction.
           </li>
         </ul>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           4. How We Use Your Information
         </h2>
-        <p>We use the information we collect to:</p>
+        <p>We use collected data to:</p>
         <ul className="list-disc list-inside space-y-2 mb-4">
-          <li>Personalize and improve your browsing experience</li>
-          <li>Serve relevant advertisements through Google AdSense</li>
           <li>
-            Analyze website traffic and user behavior (via Google Analytics)
+            Understand which content performs well (first-party analytics)
           </li>
-          <li>Ensure security and prevent fraudulent activity</li>
+          <li>Fix errors and improve site reliability (Sentry)</li>
+          <li>Ensure security and prevent abuse (server logs)</li>
           <li>Comply with legal obligations</li>
         </ul>
+        <p>
+          Google Analytics and AdSense are only active if you consent. If you
+          reject those categories, we collect zero third-party tracking data.
+        </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           5. Information Sharing & Disclosure
         </h2>
         <p>
           We do <strong>NOT</strong> sell, trade, or rent your personal
-          information to third parties. However, we may share information with:
+          information. Period. We share data only with:
         </p>
         <ul className="list-disc list-inside space-y-2 mb-4">
           <li>
-            <strong>Google Analytics & AdSense:</strong> Google receives data
-            about your interactions on our website. Review Google's privacy
-            policy for more details.
+            <strong>Service Providers:</strong> Vercel (hosting), Sentry (error
+            monitoring), GitHub (comments) — only the data necessary for them to
+            provide their services.
           </li>
           <li>
-            <strong>Service Providers:</strong> We may share data with vendors
-            who help us operate our website (hosting providers, analytics
-            services).
+            <strong>Google (consent-gated):</strong> If you opt in to analytics
+            and/or advertising, Google receives interaction data per their
+            privacy policy.
           </li>
           <li>
-            <strong>Legal Compliance:</strong> We may disclose information if
-            required by law or when we believe in good faith that disclosure is
-            necessary.
+            <strong>Legal Compliance:</strong> If required by law or to prevent
+            fraud.
           </li>
         </ul>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          6. Cookies & Tracking Technologies
+          6. Cookies
         </h2>
         <p>
-          Our website uses cookies to enhance your experience. Most browsers
-          allow you to refuse cookies or alert you when cookies are being sent.
-          However, blocking cookies may affect website functionality.
+          We use minimal cookies. Essential cookies are required for the site to
+          function. We do not use third-party advertising or tracking cookies.
+          See our{' '}
+          <a
+            href="/legal/cookie-policy"
+            className="text-cyan-400 hover:text-cyan-300"
+          >
+            Cookie Policy
+          </a>{' '}
+          for full details.
         </p>
-        <p>
-          <strong>Types of cookies we use:</strong>
-        </p>
-        <ul className="list-disc list-inside space-y-2 mb-4">
-          <li>
-            <strong>Essential Cookies:</strong> Required for website
-            functionality
-          </li>
-          <li>
-            <strong>Performance Cookies:</strong> Collect data on how visitors
-            use our site
-          </li>
-          <li>
-            <strong>Advertising Cookies:</strong> Used by Google AdSense to
-            personalize ads
-          </li>
-        </ul>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           7. Your Privacy Rights
         </h2>
-        <p>Depending on your location, you may have the following rights:</p>
+        <p>You have the right to:</p>
         <ul className="list-disc list-inside space-y-2 mb-4">
           <li>
-            <strong>Right to Access:</strong> Request a copy of the data we hold
-            about you
+            <strong>Access:</strong> Request a copy of the data we hold about
+            you
           </li>
           <li>
-            <strong>Right to Deletion:</strong> Request that we delete your data
+            <strong>Deletion:</strong> Request that we delete your data
           </li>
           <li>
-            <strong>Right to Opt-Out:</strong> Opt-out of certain data
-            collection or marketing
+            <strong>Portability:</strong> Receive your data in a portable,
+            machine-readable format
           </li>
           <li>
-            <strong>Right to Portability:</strong> Receive your data in a
-            portable format
+            <strong>Rectification:</strong> Correct inaccurate data
+          </li>
+          <li>
+            <strong>Restriction:</strong> Limit how we process your data
+          </li>
+          <li>
+            <strong>Objection:</strong> Object to processing based on
+            legitimate interest
+          </li>
+          <li>
+            <strong>Withdraw Consent:</strong> Where consent is the legal
+            basis, withdraw it at any time
           </li>
         </ul>
+        <p>
+          Exercise these rights via our{' '}
+          <a
+            href="/legal/data-requests"
+            className="text-cyan-400 hover:text-cyan-300"
+          >
+            Data Request page
+          </a>{' '}
+          or by emailing privacy@gladlabs.ai.
+        </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           8. Data Security
         </h2>
         <p>
-          We implement appropriate technical and organizational measures to
-          protect your information against unauthorized access, alteration,
-          disclosure, or destruction. However, no method of transmission over
-          the internet is 100% secure.
+          We use appropriate technical and organizational measures to protect
+          your data. Our infrastructure runs on Vercel and Railway with HTTPS
+          everywhere. That said, no system is 100% secure — we&apos;re honest
+          about that.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          9. Third-Party Links
+          9. Data Retention
         </h2>
         <p>
-          Our website may contain links to third-party websites. We are not
-          responsible for the privacy practices of external sites. Please review
-          their privacy policies before providing any personal information.
-        </p>
-
-        <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          10. Data Retention
-        </h2>
-        <p>
-          We retain your personal data only for as long as necessary to provide
-          our services or comply with legal obligations. Specific retention
-          periods:
+          We keep data only as long as necessary:
         </p>
         <ul className="list-disc list-inside space-y-2 mb-4">
-          <li>
-            <strong>Google Analytics Data:</strong> Analytics data is retained
-            for up to 14 months by Google. Session data expires after 30 days of
-            inactivity.
-          </li>
-          <li>
-            <strong>Google AdSense Data:</strong> Advertising cookies are
-            retained for up to 30 months, subject to user activity.
-          </li>
           <li>
             <strong>ViewTracker Data:</strong> Page view analytics (path, slug,
             referrer, user-agent) are retained indefinitely in aggregated form.
             No IP addresses are stored.
           </li>
           <li>
+            <strong>Google Analytics Data:</strong> If consented, retained for
+            up to 14 months by Google.
+          </li>
+          <li>
+            <strong>Google AdSense Data:</strong> If consented, advertising
+            cookies retained for up to 30 months.
+          </li>
+          <li>
             <strong>Sentry Error Data:</strong> Error reports are retained for
             90 days.
           </li>
           <li>
-            <strong>Server Logs:</strong> IP addresses and server logs are
-            retained for 90 days for security purposes.
+            <strong>Server Logs:</strong> IP addresses and access logs are
+            retained for 90 days.
           </li>
           <li>
-            <strong>Cookie Preferences:</strong> Your consent preferences are
-            stored indefinitely until you withdraw consent.
-          </li>
-          <li>
-            <strong>Contact Form Submissions:</strong> Messages are retained for
-            1 year.
+            <strong>Cookie Preferences:</strong> Stored in your browser until
+            you clear them.
           </li>
         </ul>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          11. Data Processors & Third Parties
+          10. Data Processors & Third Parties
         </h2>
         <p>
-          We work with the following third parties who may process your personal
-          data:
+          The following third parties may process your data:
         </p>
         <div className="overflow-x-auto my-4">
           <table className="w-full text-sm border border-gray-600">
@@ -332,9 +329,11 @@ export default function PrivacyPolicy() {
             <tbody>
               <tr>
                 <td className="px-3 py-2 border border-gray-600">Google LLC</td>
-                <td className="px-3 py-2 border border-gray-600">Analytics</td>
                 <td className="px-3 py-2 border border-gray-600">
-                  IP, behavior, pages visited
+                  Analytics & AdSense (consent-gated)
+                </td>
+                <td className="px-3 py-2 border border-gray-600">
+                  Pages visited, interactions, ad personalization
                 </td>
                 <td className="px-3 py-2 border border-gray-600">
                   <a
@@ -346,23 +345,6 @@ export default function PrivacyPolicy() {
                 </td>
               </tr>
               <tr className="bg-gray-900">
-                <td className="px-3 py-2 border border-gray-600">Google Inc</td>
-                <td className="px-3 py-2 border border-gray-600">
-                  AdSense (Ads)
-                </td>
-                <td className="px-3 py-2 border border-gray-600">
-                  IP, interests, cookies
-                </td>
-                <td className="px-3 py-2 border border-gray-600">
-                  <a
-                    href="https://policies.google.com/privacy"
-                    className="text-cyan-400 hover:text-cyan-300"
-                  >
-                    View Policy
-                  </a>
-                </td>
-              </tr>
-              <tr>
                 <td className="px-3 py-2 border border-gray-600">Vercel Inc</td>
                 <td className="px-3 py-2 border border-gray-600">Hosting</td>
                 <td className="px-3 py-2 border border-gray-600">
@@ -418,73 +400,57 @@ export default function PrivacyPolicy() {
         </div>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          12. International Data Transfers
+          11. International Data Transfers
         </h2>
         <p>
-          Your data may be transferred to and stored in the United States for
-          processing by our third-party service providers (Google, Vercel).
-          These transfers are protected by:
-        </p>
-        <ul className="list-disc list-inside space-y-2 mb-4">
-          <li>
-            <strong>Standard Contractual Clauses (SCCs):</strong> Google Inc.
-            and Vercel have Standard Contractual Clauses in place to ensure
-            adequate protection of data transferred outside the EU/EEA.
-          </li>
-          <li>
-            <strong>Legitimate Interest:</strong> We process data
-            internationally because it is necessary to provide our website
-            services.
-          </li>
-        </ul>
-        <p>
-          If you have concerns about international data transfers, you may
-          contact us at privacy@gladlabs.ai.
+          Your data may be processed in the United States by our service
+          providers (Vercel, Sentry, and Google if you consent). These
+          transfers are protected by Standard Contractual Clauses (SCCs) where
+          applicable.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          13. Automated Decision Making
+          12. Automated Decision Making
         </h2>
         <p>
           We do not use automated decision-making or profiling that produces
-          legal or similarly significant effects about you. However, Google
-          AdSense may use interest-based profiling to serve personalized
-          advertisements.
-        </p>
-        <p>
-          <strong>Your rights:</strong> You have the right to object to
-          profiling, request human review, or restrict automated processing.
-          Submit requests to privacy@gladlabs.ai.
+          legal or similarly significant effects about you.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          14. Children's Privacy
+          13. Children&apos;s Privacy
         </h2>
         <p>
           We do not knowingly collect personal information from children under
-          13 (or 16 in the EU). If we become aware that we have collected
-          information from a child under these ages, we will promptly delete it.
+          13 (or 16 in the EU). If we learn we&apos;ve collected data from a
+          child under these ages, we&apos;ll delete it promptly. Parents: if
+          you believe your child&apos;s information was collected, contact us at
+          privacy@gladlabs.ai.
         </p>
+
+        <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
+          14. Third-Party Links
+        </h2>
         <p>
-          <strong>For parents:</strong> If you believe your child's information
-          has been collected, please contact us at privacy@gladlabs.ai.
+          Our site links to external websites. We&apos;re not responsible for
+          their privacy practices. Check their policies before sharing personal
+          information.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           15. Contact Us
         </h2>
         <p>
-          If you have questions about this Privacy Policy or our privacy
-          practices, please contact us:
+          Questions about privacy? Get in touch:
         </p>
         <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
           <p>
             <strong>Glad Labs, LLC</strong>
             <br />
-            Privacy Email:
+            Privacy Email:{' '}
             <a
               href="mailto:privacy@gladlabs.ai"
-              className="text-cyan-400 hover:text-cyan-300 ml-2"
+              className="text-cyan-400 hover:text-cyan-300"
             >
               privacy@gladlabs.ai
             </a>
@@ -501,70 +467,18 @@ export default function PrivacyPolicy() {
           </p>
         </div>
         <p className="text-sm text-gray-400 mt-4">
-          <strong>Response Time:</strong> We aim to respond to all privacy
-          inquiries within 30 days as required by GDPR.
+          <strong>Response Time:</strong> We respond to all privacy inquiries
+          within 30 days as required by GDPR. If you&apos;re not satisfied with
+          our response, you have the right to lodge a complaint with your local
+          data protection authority.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           16. Policy Updates
         </h2>
         <p>
-          We may update this Privacy Policy from time to time. Changes will be
-          posted on this page with an updated "Last Modified" date. Your
-          continued use of our website following the posting of revised Privacy
-          Policy means you accept and agree to the changes.
-        </p>
-
-        <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-          17. Your GDPR Rights
-        </h2>
-        <p>
-          If you are located in the EU or EEA, you have the following rights
-          under GDPR:
-        </p>
-        <ul className="list-disc list-inside space-y-2 mb-4">
-          <li>
-            <strong>Right to Access (Article 15):</strong> Request a copy of
-            your data
-          </li>
-          <li>
-            <strong>Right to Rectification (Article 16):</strong> Correct
-            inaccurate data
-          </li>
-          <li>
-            <strong>Right to Erasure (Article 17):</strong> Request deletion of
-            your data
-          </li>
-          <li>
-            <strong>Right to Restrict Processing (Article 18):</strong> Limit
-            how we use your data
-          </li>
-          <li>
-            <strong>Right to Data Portability (Article 20):</strong> Export your
-            data
-          </li>
-          <li>
-            <strong>Right to Object (Article 21):</strong> Object to certain
-            processing
-          </li>
-          <li>
-            <strong>Right to Withdraw Consent:</strong> Withdraw consent at any
-            time
-          </li>
-        </ul>
-        <p>
-          To exercise any of these rights, visit our{' '}
-          <a
-            href="/legal/data-requests"
-            className="text-cyan-400 hover:text-cyan-300"
-          >
-            data request page
-          </a>{' '}
-          or contact privacy@gladlabs.ai.
-        </p>
-        <p className="mt-4 text-sm text-gray-400">
-          If you are not satisfied with our response, you have the right to
-          lodge a complaint with your local data protection authority.
+          We may update this policy. Changes get posted here with an updated
+          date. Continued use of the site means you accept the current version.
         </p>
       </div>
     </>

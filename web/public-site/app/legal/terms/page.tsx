@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function TermsOfService() {
-  const lastUpdated = new Date('2025-12-19').toLocaleDateString('en-US', {
+  const lastUpdated = new Date('2026-03-31').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -26,146 +26,127 @@ export default function TermsOfService() {
         1. Agreement to Terms
       </h2>
       <p>
-        By accessing and using this website, you accept and agree to be bound by
-        the terms and provision of this agreement. If you do not agree to abide
-        by the above, please do not use this service.
+        By accessing gladlabs.io ("the Site"), you agree to these terms. If
+        you don&apos;t agree, don&apos;t use the site. Simple as that.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        2. Use License
+        2. What You Can Do
       </h2>
       <p>
-        Permission is granted to temporarily download one copy of the materials
-        (information or software) on Glad Labs' website for personal,
-        non-commercial transitory viewing only. This is the grant of a license,
-        not a transfer of title, and under this license you may not:
+        You&apos;re welcome to read, share, and learn from our content.
+        You may not:
       </p>
       <ul className="list-disc list-inside space-y-2 mb-4">
-        <li>Modifying or copying the materials</li>
+        <li>Copy or republish our content without attribution</li>
         <li>
-          Using the materials for any commercial purpose or for any public
-          display
+          Use our content for commercial purposes without permission
         </li>
         <li>
-          Attempting to decompile or reverse engineer any software contained on
-          the website
+          Attempt to reverse engineer, scrape, or exploit any software on
+          the site
         </li>
         <li>
-          Removing any copyright or other proprietary notations from the
-          materials
+          Remove any copyright or proprietary notices from our materials
         </li>
         <li>
-          Transferring the materials to another person or "mirroring" the
-          materials on any other server
+          Mirror the site or redistribute materials on another server
         </li>
       </ul>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        3. Disclaimer
+        3. AI-Generated Content
       </h2>
       <p>
-        The materials on Glad Labs' website are provided on an 'as is' basis.
-        Glad Labs makes no warranties, expressed or implied, and hereby
-        disclaims and negates all other warranties including, without
-        limitation, implied warranties or conditions of merchantability, fitness
-        for a particular purpose, or non-infringement of intellectual property
-        or other violation of rights.
+        Some content on this site is produced or assisted by AI systems.
+        All published content is reviewed and approved by Glad Labs before
+        publication. We stand behind what we publish, regardless of how it
+        was produced. That said, AI-generated content may contain errors —
+        use your judgment.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        4. Limitations
+        4. Disclaimer
       </h2>
       <p>
-        In no event shall Glad Labs or its suppliers be liable for any damages
-        (including, without limitation, damages for loss of data or profit, or
-        due to business interruption) arising out of the use or inability to use
-        the materials on Glad Labs' website, even if Glad Labs or a Glad Labs
-        authorized representative has been notified orally or in writing of the
-        possibility of such damage.
+        Everything on this site is provided &quot;as is.&quot; We share what
+        we know and what we&apos;re building, but we make no warranties —
+        expressed or implied — about accuracy, completeness, or fitness for
+        any particular purpose. Use the information at your own discretion.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        5. Accuracy of Materials
+        5. Limitations of Liability
       </h2>
       <p>
-        The materials appearing on Glad Labs' website could include technical,
-        typographical, or photographic errors. Glad Labs does not warrant that
-        any of the materials on its website are accurate, complete, or current.
-        Glad Labs may make changes to the materials contained on its website at
-        any time without notice.
-      </p>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">6. Links</h2>
-      <p>
-        Glad Labs has not reviewed all of the sites linked to its website and is
-        not responsible for the contents of any such linked site. The inclusion
-        of any link does not imply endorsement by Glad Labs of the site. Use of
-        any such linked website is at the user's own risk.
+        Glad Labs is not liable for any damages arising from your use of
+        (or inability to use) this site or its content. This includes loss
+        of data, profit, or business interruption — even if we&apos;ve been
+        told it might happen.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        7. Modifications
+        6. Accuracy of Materials
       </h2>
       <p>
-        Glad Labs may revise these terms of service for its website at any time
-        without notice. By using this website, you are agreeing to be bound by
-        the then current version of these terms of service.
+        We do our best to keep things accurate, but technical content moves
+        fast. Articles may reference tools, APIs, or configurations that
+        have changed since publication. We may update content at any time
+        without notice.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        8. Governing Law
+        7. External Links
       </h2>
       <p>
-        These terms and conditions are governed by and construed in accordance
-        with the laws of the United States, and you irrevocably submit to the
-        exclusive jurisdiction of the courts located in that location.
+        We link to third-party sites for reference. We don&apos;t control
+        those sites and aren&apos;t responsible for their content. A link
+        isn&apos;t an endorsement.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        9. User Content
+        8. User Content
       </h2>
       <p>
-        You acknowledge that you are responsible for any content you submit to
-        Glad Labs. You represent and warrant that such content:
-      </p>
-      <ul className="list-disc list-inside space-y-2 mb-4">
-        <li>Is original and does not violate any third-party rights</li>
-        <li>
-          Does not contain defamatory, obscene, or other unlawful material
-        </li>
-        <li>
-          Does not infringe on any patent, trademark, copyright, or other
-          intellectual property
-        </li>
-      </ul>
-
-      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        10. Prohibited Conduct
-      </h2>
-      <p>
-        You may not access or use the website for any purpose other than that
-        for which we make the website available. The website may not be used in
-        connection with any commercial endeavor except those specifically
-        endorsed or approved by us.
+        If you submit content to Glad Labs (e.g., comments via Giscus), you
+        represent that it&apos;s your original work, doesn&apos;t violate
+        anyone&apos;s rights, and doesn&apos;t contain anything defamatory,
+        obscene, or unlawful.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        11. Intellectual Property Rights
+        9. Intellectual Property
       </h2>
       <p>
-        All content on Glad Labs' website, including text, graphics, logos,
-        images, and software, is the property of Glad Labs or its content
-        suppliers and is protected by international copyright laws. You are not
-        granted any rights to use such content except as necessary to view and
-        use the website in the ordinary course.
+        All content on gladlabs.io — text, graphics, logos, images, and
+        software — is the property of Glad Labs or its content suppliers and
+        is protected by copyright law. You&apos;re not granted any rights
+        beyond normal viewing and personal use.
       </p>
 
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
-        12. Contact Information
+        10. Modifications
       </h2>
       <p>
-        If you have any questions about these Terms of Service, please contact
-        us at:
+        We may update these terms at any time. Continued use of the site
+        means you accept the current version. We&apos;ll update the date at
+        the top when changes are made.
+      </p>
+
+      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
+        11. Governing Law
+      </h2>
+      <p>
+        These terms are governed by the laws of the United States. Any
+        disputes will be resolved in the courts of the applicable
+        jurisdiction.
+      </p>
+
+      <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
+        12. Contact
+      </h2>
+      <p>
+        Questions about these terms? Reach out:
       </p>
       <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
         <p>
@@ -173,7 +154,7 @@ export default function TermsOfService() {
           <br />
           Email: hello@gladlabs.io
           <br />
-          Website: https://www.gladlabs.io
+          Website: https://gladlabs.io
         </p>
       </div>
     </div>

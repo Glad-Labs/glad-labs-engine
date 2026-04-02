@@ -4,19 +4,22 @@ import { OrganizationSchema } from '../../components/StructuredData';
 export const metadata = {
   title: 'About Glad Labs',
   description:
-    "Glad Labs is Matthew Gladding's one-person AI lab. Building autonomous agent systems for content operations and writing about what actually works.",
+    'Glad Labs is what happens when one developer, local AI, and relentless automation collide. Built by Matt Gladding — autonomous content systems, real hardware, no corporate theater.',
   keywords: [
     'AI content operations',
     'autonomous agents',
     'AI publishing',
     'content automation',
     'AI lab',
+    'solo AI business',
     'Matthew Gladding',
+    'local AI inference',
+    'Ollama',
   ],
   openGraph: {
     title: 'About Glad Labs',
     description:
-      'A one-person AI lab building autonomous agent systems for content operations.',
+      'One person + AI = unlimited scale. Glad Labs is building the future of autonomous content operations.',
     type: 'website',
   },
 };
@@ -40,52 +43,54 @@ export default function AboutPage() {
             </p>
 
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-tight">
-              A one-person AI lab,
+              One person. Local AI.
               <br />
               <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                building in public.
+                Unlimited scale.
               </span>
             </h1>
 
             {/* Main prose */}
             <div className="space-y-6 text-lg text-slate-300 leading-relaxed">
               <p>
-                Hi — I&apos;m{' '}
-                <span className="text-white font-medium">Matthew Gladding</span>
-                . Glad Labs is where I build AI systems and write about what I
-                learn along the way.
+                I&apos;m{' '}
+                <span className="text-white font-medium">Matt Gladding</span>,
+                and Glad Labs is my proof that the rules of business just
+                changed. One developer with the right AI systems can do what
+                used to require an entire team — and I&apos;m building that
+                reality in the open.
               </p>
 
               <p>
-                The core project is a content operations platform I built for
-                myself: an autonomous agent pipeline that handles research,
-                drafting, critique, refinement, and publishing — with me in the
-                loop at every meaningful decision point. The articles on this
-                site are produced by that system. When the system improves, so
-                does the writing.
+                The system running this site is an autonomous content pipeline:
+                AI agents that research, draft, critique, refine, and publish —
+                with quality scoring at every stage. It&apos;s not a toy demo.
+                There are{' '}
+                <span className="text-cyan-400 font-medium">
+                  79+ published articles
+                </span>{' '}
+                on this site right now, and the system gets better with every
+                run.
               </p>
 
               <p>
-                The pipeline runs on a FastAPI backend with a multi-provider LLM
-                router (Anthropic, OpenAI, Gemini, and local Ollama) that
-                selects models by cost tier and task complexity. A React admin
-                dashboard gives me real-time visibility into every agent run.
-                The whole thing is deployed on Railway and Vercel, versioned in
-                GitHub, and tested enough that I trust it not to embarrass me at
-                2am.
+                The big idea? A{' '}
+                <span className="text-white font-medium">
+                  Personal Media Operating System
+                </span>{' '}
+                — autonomous content generation, multi-platform distribution,
+                social scheduling, stream clipping, photo-to-multi-format —
+                everything a creator needs to run a professional media presence
+                without the operational overhead. I&apos;m building it for
+                myself first, then opening it up.
               </p>
 
               <p>
-                Right now this is a solo operation — I&apos;m learning what
-                works, generating some revenue, and iterating fast. The longer
-                arc is to turn the platform into something other content teams
-                can use. But I&apos;m not pretending that&apos;s happened yet.
-              </p>
-
-              <p>
-                I write about AI, developer tooling, and the practical side of
-                building systems like this. No hype, no enterprise positioning —
-                just what I actually built and what I actually think.
+                This isn&apos;t corporate AI theater. No pitch deck, no
+                buzzwords, no pretending GPT wrappers are products. I write
+                about what I actually build, what actually works, and what
+                doesn&apos;t. If something breaks, you&apos;ll read about
+                that too.
               </p>
             </div>
 
@@ -96,52 +101,85 @@ export default function AboutPage() {
             <div className="grid sm:grid-cols-2 gap-6 mb-12">
               <div className="bg-slate-800/40 rounded-xl p-6 border border-slate-700/50">
                 <h2 className="text-sm font-mono text-cyan-500 uppercase tracking-widest mb-3">
-                  The Platform
+                  The Stack
                 </h2>
                 <ul className="space-y-2 text-slate-300 text-sm">
-                  <li>FastAPI backend · async throughout</li>
+                  <li>Local AI on RTX 5090 via Ollama</li>
+                  <li>Multi-provider LLM routing (Anthropic, OpenAI, Gemini)</li>
                   <li>6-stage self-critiquing agent pipeline</li>
-                  <li>Multi-provider LLM routing</li>
-                  <li>PostgreSQL · Railway · Vercel</li>
-                  <li>Next.js 15 content distribution</li>
+                  <li>FastAPI backend, async throughout</li>
+                  <li>PostgreSQL + embeddings (shared brain)</li>
+                  <li>Next.js 15 on Vercel + Railway</li>
                 </ul>
               </div>
 
               <div className="bg-slate-800/40 rounded-xl p-6 border border-slate-700/50">
                 <h2 className="text-sm font-mono text-cyan-500 uppercase tracking-widest mb-3">
-                  The Blog
+                  The Mission
                 </h2>
                 <ul className="space-y-2 text-slate-300 text-sm">
-                  <li>AI · developer tooling · building in public</li>
-                  <li>Written with the system, edited by me</li>
-                  <li>No recycled takes · no sponsored posts</li>
-                  <li>Published when it&apos;s ready, not on a schedule</li>
+                  <li>Prove one person + AI = unlimited output</li>
+                  <li>Build systems that run while you sleep</li>
+                  <li>No hype — only what actually works</li>
+                  <li>AI as coworker, not just a tool</li>
+                  <li>Open and honest about the process</li>
+                  <li>Ship it, don&apos;t deck it</li>
                 </ul>
+              </div>
+            </div>
+
+            {/* Stats strip */}
+            <div className="grid grid-cols-3 gap-4 mb-12">
+              <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/50 text-center">
+                <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  79+
+                </p>
+                <p className="text-xs text-slate-400 mt-1 font-mono uppercase tracking-wide">
+                  Published Posts
+                </p>
+              </div>
+              <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/50 text-center">
+                <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  1
+                </p>
+                <p className="text-xs text-slate-400 mt-1 font-mono uppercase tracking-wide">
+                  Human Operator
+                </p>
+              </div>
+              <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/50 text-center">
+                <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  24/7
+                </p>
+                <p className="text-xs text-slate-400 mt-1 font-mono uppercase tracking-wide">
+                  AI Uptime
+                </p>
               </div>
             </div>
 
             {/* CTA Section */}
             <div className="text-center">
               <h2 className="text-3xl font-bold mb-6 text-white">
-                Ready to Scale Your AI Operations?
+                The future is one person with the right systems.
               </h2>
               <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-                Explore how Glad Labs orchestrates autonomous agents, optimizes
-                LLM costs, and delivers enterprise-ready AI at scale.
+                Read what we&apos;re building, how we&apos;re building it, and
+                why the old rules don&apos;t apply anymore.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/posts"
                   className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300"
                 >
-                  Read Our Blog
+                  Read the Blog
                 </Link>
-                <Link
-                  href="/"
+                <a
+                  href="https://x.com/_gladlabs"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="px-8 py-4 border border-cyan-500/50 text-cyan-400 font-semibold rounded-xl hover:bg-cyan-500/10 transition-all duration-300"
                 >
-                  Back to Home
-                </Link>
+                  Follow on X
+                </a>
               </div>
             </div>
           </div>
