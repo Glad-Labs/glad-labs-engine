@@ -59,21 +59,21 @@ const Footer = () => {
             >
               <Link
                 href="/"
-                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2 py-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Home
               </Link>
               <Link
                 href="/archive/1"
-                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2 py-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Articles
               </Link>
               <Link
                 href="/about"
-                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2 py-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 About Us
@@ -93,21 +93,21 @@ const Footer = () => {
             >
               <Link
                 href="/legal/privacy"
-                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2 py-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Privacy Policy
               </Link>
               <Link
                 href="/legal/terms"
-                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2 py-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Terms of Service
               </Link>
               <Link
                 href="/legal/cookie-policy"
-                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2"
+                className="text-sm text-slate-300 hover:text-cyan-300 transition-colors duration-200 font-medium group inline-flex items-center gap-2 py-2"
               >
                 <span className="w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 Cookie Policy
