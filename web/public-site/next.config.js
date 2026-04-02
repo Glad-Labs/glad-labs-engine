@@ -144,10 +144,11 @@ const nextConfig = {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
-          // Prevent clickjacking
+          // Prevent clickjacking — DENY because this site should never be framed.
+          // Aligned with vercel.json which also sets DENY.
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
+            value: 'DENY',
           },
           // Disable legacy XSS auditor — modern browsers removed it; setting to 1 can
           // introduce new vulnerabilities in older browsers. Backend already sets this to 0.
@@ -186,6 +187,11 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value:
               'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()',
+          },
+          // Cross-Origin-Opener-Policy — prevent cross-origin window references
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
           },
           // Enable DNS prefetch for performance
           {

@@ -13,7 +13,7 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-NJMBCYNDWN';
 export const metadata = {
   title: 'Glad Labs - Technology & Innovation',
   description:
-    'Exploring the future of technology, AI, and digital innovation at Glad Labs',
+    'Exploring the future of technology, AI, and digital innovation. In-depth articles on AI agents, cloud infrastructure, and modern development.',
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io'
   ),

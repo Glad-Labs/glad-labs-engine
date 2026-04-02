@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import * as Sentry from '@sentry/nextjs';
+import { OrganizationSchema } from '../components/StructuredData';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
 
@@ -8,13 +9,14 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
 export const metadata = {
   title: 'Glad Labs - AI & Technology Insights',
   description:
-    'Deep dives into AI, technology, and digital transformation. Explore our latest insights and expert analysis.',
+    'Deep dives into AI, technology, and digital transformation. Explore our latest insights, expert analysis, and practical guides.',
   alternates: {
     canonical: `${SITE_URL}/`,
   },
   openGraph: {
     title: 'Glad Labs - AI & Technology Insights',
-    description: 'Deep dives into AI, technology, and digital transformation',
+    description:
+      'Deep dives into AI, technology, and digital transformation. Explore our latest insights, expert analysis, and practical guides.',
     type: 'website',
     locale: 'en_US',
     url: `${SITE_URL}/`,
@@ -107,7 +109,30 @@ export default async function HomePage() {
   const { posts, error } = await getPosts();
   const currentPost = posts[0];
 
+  // WebSite structured data for Google sitelinks search box
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Glad Labs',
+    url: SITE_URL,
+    description:
+      'Deep dives into AI, technology, and digital transformation. Explore our latest insights, expert analysis, and practical guides.',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Glad Labs',
+      url: SITE_URL,
+    },
+  };
+
   return (
+    <>
+      {/* Structured Data */}
+      <OrganizationSchema />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -328,5 +353,6 @@ export default async function HomePage() {
         </div>
       </section>
     </div>
+    </>
   );
 }
