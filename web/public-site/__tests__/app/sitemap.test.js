@@ -56,6 +56,7 @@ describe('sitemap()', () => {
     const urls = result.map((entry) => entry.url);
     expect(urls).toContain('https://example.com');
     expect(urls).toContain('https://example.com/about');
+    expect(urls).toContain('https://example.com/posts');
     expect(urls).toContain('https://example.com/archive/1');
     expect(urls).toContain('https://example.com/legal/privacy');
     expect(urls).toContain('https://example.com/legal/terms');
@@ -108,8 +109,8 @@ describe('sitemap()', () => {
     const sitemap = await loadSitemap();
     const result = await sitemap();
 
-    // Should have exactly 7 static + legal pages
-    expect(result.length).toBe(7);
+    // Should have exactly 8 static + legal pages (includes /posts)
+    expect(result.length).toBe(8);
   });
 
   it('should set priority=1 for the homepage', async () => {
@@ -132,8 +133,8 @@ describe('sitemap()', () => {
     const sitemap = await loadSitemap();
     const result = await sitemap();
 
-    // Only static + legal pages — no API calls made
-    expect(result.length).toBe(7);
+    // Only static + legal pages (includes /posts) — no API calls made
+    expect(result.length).toBe(8);
     expect(global.fetch).not.toHaveBeenCalled();
   });
 });

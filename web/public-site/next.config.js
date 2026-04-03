@@ -239,7 +239,7 @@ const nextConfig = {
       // Common URLs Google tries that don't exist — redirect to real pages
       { source: '/blog', destination: '/archive/1', permanent: true },
       { source: '/blog/:slug', destination: '/posts/:slug', permanent: true },
-      { source: '/posts', destination: '/archive/1', permanent: true },
+      // /posts now has its own page.tsx — no redirect needed
       { source: '/tags', destination: '/archive/1', permanent: true },
       { source: '/archive', destination: '/archive/1', permanent: true },
       { source: '/page/:num', destination: '/archive/:num', permanent: true },

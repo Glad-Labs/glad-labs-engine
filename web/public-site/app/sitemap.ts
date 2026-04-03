@@ -6,6 +6,9 @@ import type { MetadataRoute } from 'next';
  */
 interface Post {
   slug: string;
+  updated_at?: string;
+  published_at?: string;
+  // Legacy camelCase variants (in case API format changes)
   updatedAt?: string;
   publishedAt?: string;
 }
@@ -48,10 +51,25 @@ async function fetchPublishedContent() {
     );
   }
 
-  // If URL is invalid or not set, return empty results (use static pages only)
-  if (!isValidUrl || FASTAPI_URL === 'http://localhost:8000') {
+  // If URL is invalid, return empty results (use static pages only)
+  if (!isValidUrl) {
     logger.log(
-      'NEXT_PUBLIC_FASTAPI_URL not properly configured for Vercel build. Skipping dynamic content fetch.'
+      'NEXT_PUBLIC_FASTAPI_URL is invalid. Skipping dynamic content fetch.'
+    );
+    return { allPosts: [], allCategories: [], allTags: [] };
+  }
+
+  // Skip fetching when using the default localhost fallback (no real API configured).
+  // In local dev, the homepage and archive pages fetch from localhost directly,
+  // but the sitemap should only include dynamic content when a real API is available.
+  const isLocalhost =
+    FASTAPI_URL.includes('localhost') || FASTAPI_URL.includes('127.0.0.1');
+  const hasExplicitApiUrl =
+    Boolean(process.env.NEXT_PUBLIC_API_BASE_URL) ||
+    Boolean(process.env.NEXT_PUBLIC_FASTAPI_URL);
+  if (isLocalhost && !hasExplicitApiUrl) {
+    logger.log(
+      'No API URL configured (using localhost fallback). Skipping dynamic sitemap content.'
     );
     return { allPosts: [], allCategories: [], allTags: [] };
   }
@@ -146,6 +164,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${baseUrl}/posts`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/archive/1`,
       lastModified: new Date(),
       changeFrequency: 'daily',
@@ -181,13 +205,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Blog posts
+  // Blog posts — API returns snake_case fields (updated_at, published_at)
   const postPages: MetadataRoute.Sitemap = (allPosts || []).map(
     (post: Post) => ({
       url: `${baseUrl}/posts/${post.slug}`,
-      lastModified: post.updatedAt
-        ? new Date(post.updatedAt)
-        : new Date(post.publishedAt || new Date()),
+      lastModified:
+        post.updated_at || post.updatedAt
+          ? new Date((post.updated_at || post.updatedAt)!)
+          : new Date(post.published_at || post.publishedAt || new Date()),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     })
