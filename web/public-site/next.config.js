@@ -257,6 +257,16 @@ const nextConfig = {
       { source: '/my-account', destination: '/', permanent: true },
       { source: '/sample-page', destination: '/', permanent: true },
       { source: '/privacy-policy-2', destination: '/privacy', permanent: true },
+      // WordPress artifacts — redirect to homepage
+      { source: '/woocommerce-placeholder', destination: '/', permanent: true },
+      { source: '/site-logo', destination: '/', permanent: true },
+      { source: '/feed', destination: '/', permanent: true },
+      { source: '/feed/:path*', destination: '/', permanent: true },
+      {
+        source: '/gemini_generated_image_:path*',
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
 
