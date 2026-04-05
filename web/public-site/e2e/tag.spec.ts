@@ -16,8 +16,17 @@ import { test, expect } from '@playwright/test';
 
 // A tag that almost certainly exists in any populated DB, or gracefully shows empty
 const KNOWN_TAG_SLUG = 'ai';
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
 test.describe('Tag Archive Page', () => {
+  test.beforeAll(async ({ request }) => {
+    try {
+      const resp = await request.get(`${API_URL}/api/health`);
+      if (!resp.ok()) test.skip(true, 'Backend API unavailable');
+    } catch {
+      test.skip(true, 'Backend API unavailable');
+    }
+  });
   test('loads tag page without 500 error', async ({ page }) => {
     const response = await page.goto(`/tag/${KNOWN_TAG_SLUG}`);
     // Page may 404 if tag not found (via notFound()), but should never 500

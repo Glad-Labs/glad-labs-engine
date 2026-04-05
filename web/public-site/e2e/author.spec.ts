@@ -12,8 +12,17 @@ import { test, expect } from '@playwright/test';
  */
 
 const KNOWN_AUTHOR_ID = 'poindexter-ai';
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
 test.describe('Author Page', () => {
+  test.beforeAll(async ({ request }) => {
+    try {
+      const resp = await request.get(`${API_URL}/api/health`);
+      if (!resp.ok()) test.skip(true, 'Backend API unavailable');
+    } catch {
+      test.skip(true, 'Backend API unavailable');
+    }
+  });
   test('loads known author page without error', async ({ page }) => {
     const response = await page.goto(`/author/${KNOWN_AUTHOR_ID}`);
     expect(response?.status()).not.toBe(500);
