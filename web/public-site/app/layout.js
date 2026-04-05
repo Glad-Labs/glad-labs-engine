@@ -64,7 +64,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
-        {/* 
+        {/* AdSense account verification (ads.txt alone should suffice, but belt-and-suspenders) */}
+        <meta name="google-adsense-account" content="ca-pub-4578747062758519" />
+        {/*
           GDPR COMPLIANCE: Analytics scripts are NOT loaded here.
           They are only loaded AFTER user consent via CookieConsentBanner.tsx
           See: components/CookieConsentBanner.tsx loadGoogleAnalytics()
