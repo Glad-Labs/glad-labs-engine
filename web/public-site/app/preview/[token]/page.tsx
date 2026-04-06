@@ -20,6 +20,8 @@ interface PreviewPost {
   status: string;
   has_podcast?: boolean;
   has_video?: boolean;
+  podcast_url?: string;
+  video_url?: string;
   is_preview: boolean;
   created_at: string;
 }
@@ -135,6 +137,37 @@ export default async function PreviewPage({
             {post.status.toUpperCase()}
           </span>
         </div>
+
+        {/* Podcast Player */}
+        {post.podcast_url && (
+          <div className="mb-8 p-4 bg-slate-800/50 rounded-xl border border-green-500/30">
+            <h3 className="text-sm font-mono text-green-400 uppercase tracking-widest mb-3">
+              Podcast Episode
+            </h3>
+            <audio controls className="w-full" preload="metadata">
+              <source src={post.podcast_url} type="audio/mpeg" />
+              Your browser does not support the audio element.
+            </audio>
+          </div>
+        )}
+
+        {/* Video Player */}
+        {post.video_url && (
+          <div className="mb-8 p-4 bg-slate-800/50 rounded-xl border border-blue-500/30">
+            <h3 className="text-sm font-mono text-blue-400 uppercase tracking-widest mb-3">
+              Video Episode
+            </h3>
+            <video
+              controls
+              className="w-full rounded-lg"
+              preload="metadata"
+              playsInline
+            >
+              <source src={post.video_url} type="video/mp4" />
+              Your browser does not support the video element.
+            </video>
+          </div>
+        )}
 
         {/* Content */}
         <article
