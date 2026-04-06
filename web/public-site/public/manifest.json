@@ -16,11 +16,5 @@
     }
   ],
   "categories": ["technology", "artificial intelligence", "business"],
-  "screenshots": [
-    {
-      "src": "/images/screenshot-1.png",
-      "sizes": "540x720",
-      "type": "image/png"
-    }
-  ]
+  "screenshots": []
 }
