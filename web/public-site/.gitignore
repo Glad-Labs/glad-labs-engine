@@ -25,6 +25,9 @@ yarn-error.log*
 .DS_Store
 *.pem
 
+# Media files (copied during build, not committed)
+/public/media/
+
 # Vercel (if used)
 .vercel
 
