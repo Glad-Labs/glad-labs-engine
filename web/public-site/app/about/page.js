@@ -5,6 +5,9 @@ export const metadata = {
   title: 'About Glad Labs',
   description:
     'Glad Labs is what happens when one developer, local AI, and relentless automation collide. Built by Matt Gladding — autonomous content systems, real hardware, no corporate theater.',
+  alternates: {
+    canonical: 'https://www.gladlabs.io/about',
+  },
   keywords: [
     'AI content operations',
     'autonomous agents',

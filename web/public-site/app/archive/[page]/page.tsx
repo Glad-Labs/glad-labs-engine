@@ -68,6 +68,7 @@ export async function generateMetadata({
   return {
     title: `Article Archive — Page ${pageNum} | Glad Labs`,
     description: `Browse our collection of in-depth articles and insights. Page ${pageNum} of the Glad Labs article archive.`,
+    alternates: { canonical: `https://www.gladlabs.io/archive/${pageNum}` },
     openGraph: {
       title: `Article Archive — Page ${pageNum} | Glad Labs`,
       description: `Browse our collection of in-depth articles and insights. Page ${pageNum}.`,

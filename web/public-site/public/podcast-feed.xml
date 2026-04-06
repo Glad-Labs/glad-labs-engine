@@ -13,7 +13,9 @@
       <itunes:name>Matt Gladding</itunes:name>
       <itunes:email>mattg@gladlabs.io</itunes:email>
     </itunes:owner>
+    <itunes:image href="https://www.gladlabs.io/og-image.jpg" />
     <itunes:category text="Technology" />
+    <itunes:type>episodic</itunes:type>
     <itunes:explicit>no</itunes:explicit>
     <atom:link href="https://www.gladlabs.io/podcast-feed.xml" rel="self" type="application/rss+xml" />
     <item>
@@ -23,6 +25,7 @@
       <guid>gladlabs-podcast-f66aa41c-0569-40b6-9f56-bd8d7d01cfc2</guid>
       <pubDate>Thu, 02 Apr 2026 13:17:12 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/f66aa41c-0569-40b6-9f56-bd8d7d01cfc2.mp3" length="3324960" type="audio/mpeg" />
+      <itunes:duration>00:03:27</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
     <item>
@@ -32,6 +35,7 @@
       <guid>gladlabs-podcast-dba04c0b-cdb9-4d3a-ad5f-0e21e75c0e46</guid>
       <pubDate>Thu, 02 Apr 2026 02:49:38 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/dba04c0b-cdb9-4d3a-ad5f-0e21e75c0e46.mp3" length="4913568" type="audio/mpeg" />
+      <itunes:duration>00:05:07</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
     <item>
@@ -41,6 +45,7 @@
       <guid>gladlabs-podcast-9bac432e-a64a-48eb-9884-5d4ef3f542e0</guid>
       <pubDate>Wed, 01 Apr 2026 12:43:05 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/9bac432e-a64a-48eb-9884-5d4ef3f542e0.mp3" length="3992976" type="audio/mpeg" />
+      <itunes:duration>00:04:09</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
     <item>
@@ -50,6 +55,7 @@
       <guid>gladlabs-podcast-e75b1923-b645-4c69-b6c9-2c4630fad17d</guid>
       <pubDate>Wed, 01 Apr 2026 05:53:21 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/e75b1923-b645-4c69-b6c9-2c4630fad17d.mp3" length="4135392" type="audio/mpeg" />
+      <itunes:duration>00:04:18</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
     <item>
@@ -59,6 +65,7 @@
       <guid>gladlabs-podcast-9ebea394-3425-4efc-a659-5809e0161187</guid>
       <pubDate>Tue, 31 Mar 2026 12:15:16 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/9ebea394-3425-4efc-a659-5809e0161187.mp3" length="3701808" type="audio/mpeg" />
+      <itunes:duration>00:03:51</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
     <item>
@@ -68,6 +75,7 @@
       <guid>gladlabs-podcast-4737744c-fa56-4409-9d9a-bd5e02c84ac3</guid>
       <pubDate>Tue, 31 Mar 2026 06:24:52 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/4737744c-fa56-4409-9d9a-bd5e02c84ac3.mp3" length="3428784" type="audio/mpeg" />
+      <itunes:duration>00:03:34</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
     <item>
@@ -77,6 +85,7 @@
       <guid>gladlabs-podcast-74554fca-f534-4d46-a596-8258ec2153d7</guid>
       <pubDate>Tue, 31 Mar 2026 06:24:49 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/74554fca-f534-4d46-a596-8258ec2153d7.mp3" length="4322592" type="audio/mpeg" />
+      <itunes:duration>00:04:30</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
     <item>
@@ -86,6 +95,7 @@
       <guid>gladlabs-podcast-cbab7c16-4db7-4edc-b496-46345aae0e67</guid>
       <pubDate>Tue, 31 Mar 2026 01:02:44 +0000</pubDate>
       <enclosure url="https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/podcast/cbab7c16-4db7-4edc-b496-46345aae0e67.mp3" length="4782672" type="audio/mpeg" />
+      <itunes:duration>00:04:58</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
     </item>
   </channel>

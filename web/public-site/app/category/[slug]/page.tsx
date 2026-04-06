@@ -102,6 +102,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `https://www.gladlabs.io/category/${slug}` },
     openGraph: { title, description },
   };
 }

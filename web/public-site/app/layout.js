@@ -66,6 +66,19 @@ export default function RootLayout({ children }) {
       <head>
         {/* AdSense account verification (ads.txt alone should suffice, but belt-and-suspenders) */}
         <meta name="google-adsense-account" content="ca-pub-4578747062758519" />
+        {/* RSS autodiscovery for feed readers */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Glad Labs"
+          href="https://www.gladlabs.io/feed.xml"
+        />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Glad Labs Podcast"
+          href="https://www.gladlabs.io/podcast-feed.xml"
+        />
         {/*
           GDPR COMPLIANCE: Analytics scripts are NOT loaded here.
           They are only loaded AFTER user consent via CookieConsentBanner.tsx
