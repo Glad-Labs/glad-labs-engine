@@ -101,9 +101,7 @@ export default function PrivacyPolicy() {
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           3. Information We Collect
         </h2>
-        <p>
-          We collect minimal data. Here&apos;s exactly what and why:
-        </p>
+        <p>We collect minimal data. Here&apos;s exactly what and why:</p>
 
         <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
           3.1 Always-Active Data Collection
@@ -243,12 +241,12 @@ export default function PrivacyPolicy() {
             <strong>Restriction:</strong> Limit how we process your data
           </li>
           <li>
-            <strong>Objection:</strong> Object to processing based on
-            legitimate interest
+            <strong>Objection:</strong> Object to processing based on legitimate
+            interest
           </li>
           <li>
-            <strong>Withdraw Consent:</strong> Where consent is the legal
-            basis, withdraw it at any time
+            <strong>Withdraw Consent:</strong> Where consent is the legal basis,
+            withdraw it at any time
           </li>
         </ul>
         <p>
@@ -267,7 +265,7 @@ export default function PrivacyPolicy() {
         </h2>
         <p>
           We use appropriate technical and organizational measures to protect
-          your data. Our infrastructure runs on Vercel and Railway with HTTPS
+          your data. Our infrastructure runs on Vercel and Cloudflare with HTTPS
           everywhere. That said, no system is 100% secure — we&apos;re honest
           about that.
         </p>
@@ -275,9 +273,7 @@ export default function PrivacyPolicy() {
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           9. Data Retention
         </h2>
-        <p>
-          We keep data only as long as necessary:
-        </p>
+        <p>We keep data only as long as necessary:</p>
         <ul className="list-disc list-inside space-y-2 mb-4">
           <li>
             <strong>ViewTracker Data:</strong> Page view analytics (path, slug,
@@ -309,9 +305,7 @@ export default function PrivacyPolicy() {
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           10. Data Processors & Third Parties
         </h2>
-        <p>
-          The following third parties may process your data:
-        </p>
+        <p>The following third parties may process your data:</p>
         <div className="overflow-x-auto my-4">
           <table className="w-full text-sm border border-gray-600">
             <thead>
@@ -404,9 +398,8 @@ export default function PrivacyPolicy() {
         </h2>
         <p>
           Your data may be processed in the United States by our service
-          providers (Vercel, Sentry, and Google if you consent). These
-          transfers are protected by Standard Contractual Clauses (SCCs) where
-          applicable.
+          providers (Vercel, Sentry, and Google if you consent). These transfers
+          are protected by Standard Contractual Clauses (SCCs) where applicable.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
@@ -423,8 +416,8 @@ export default function PrivacyPolicy() {
         <p>
           We do not knowingly collect personal information from children under
           13 (or 16 in the EU). If we learn we&apos;ve collected data from a
-          child under these ages, we&apos;ll delete it promptly. Parents: if
-          you believe your child&apos;s information was collected, contact us at
+          child under these ages, we&apos;ll delete it promptly. Parents: if you
+          believe your child&apos;s information was collected, contact us at
           privacy@gladlabs.ai.
         </p>
 
@@ -440,9 +433,7 @@ export default function PrivacyPolicy() {
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
           15. Contact Us
         </h2>
-        <p>
-          Questions about privacy? Get in touch:
-        </p>
+        <p>Questions about privacy? Get in touch:</p>
         <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
           <p>
             <strong>Glad Labs, LLC</strong>
