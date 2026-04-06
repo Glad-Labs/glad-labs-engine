@@ -100,13 +100,11 @@ export default function AboutPage() {
                 </h2>
                 <ul className="space-y-2 text-slate-300 text-sm">
                   <li>Local AI on RTX 5090 via Ollama</li>
-                  <li>
-                    Multi-provider LLM routing (Anthropic, OpenAI, Gemini)
-                  </li>
-                  <li>6-stage self-critiquing agent pipeline</li>
-                  <li>FastAPI backend, async throughout</li>
-                  <li>PostgreSQL + embeddings (shared brain)</li>
-                  <li>Next.js 15 on Vercel + Railway</li>
+                  <li>Self-hosted: PostgreSQL, Grafana, Gitea, Prometheus</li>
+                  <li>Content pipeline with quality gate + human approval</li>
+                  <li>Podcast (edge-tts) + Video (SDXL + ffmpeg)</li>
+                  <li>FastAPI backend, 4,600+ tests</li>
+                  <li>Next.js 15 on Vercel + Cloudflare R2 CDN</li>
                 </ul>
               </div>
 
