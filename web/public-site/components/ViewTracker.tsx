@@ -9,12 +9,12 @@ interface ViewTrackerProps {
 export function ViewTracker({ slug }: ViewTrackerProps) {
   useEffect(() => {
     // Fire once on mount — track this page view
-    // Production API URL hardcoded — no env var dependency.
-    // This is a known, stable endpoint that won't change.
+    // Only fires when a public API URL is configured (not in local-only mode)
     const apiBase =
       process.env.NEXT_PUBLIC_API_BASE_URL ||
-      process.env.NEXT_PUBLIC_FASTAPI_URL ||
-      'http://localhost:8002';
+      process.env.NEXT_PUBLIC_FASTAPI_URL;
+
+    if (!apiBase) return; // No public API — skip tracking (use GA4/Vercel Analytics instead)
 
     const payload = {
       path: window.location.pathname,
