@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicy() {
-  const lastUpdated = new Date('2026-03-31').toLocaleDateString('en-US', {
+  const lastUpdated = new Date('2026-04-08').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -43,7 +43,7 @@ export default function PrivacyPolicy() {
     {
       question: 'How do I contact you about privacy?',
       answer:
-        'Email us at privacy@gladlabs.ai with any privacy questions. We aim to respond within 30 days per GDPR requirements.',
+        'Email us at privacy@gladlabs.io with any privacy questions. We aim to respond within 30 days per GDPR requirements.',
     },
   ];
 
@@ -257,7 +257,7 @@ export default function PrivacyPolicy() {
           >
             Data Request page
           </a>{' '}
-          or by emailing privacy@gladlabs.ai.
+          or by emailing privacy@gladlabs.io.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
@@ -418,7 +418,7 @@ export default function PrivacyPolicy() {
           13 (or 16 in the EU). If we learn we&apos;ve collected data from a
           child under these ages, we&apos;ll delete it promptly. Parents: if you
           believe your child&apos;s information was collected, contact us at
-          privacy@gladlabs.ai.
+          privacy@gladlabs.io.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
@@ -440,10 +440,10 @@ export default function PrivacyPolicy() {
             <br />
             Privacy Email:{' '}
             <a
-              href="mailto:privacy@gladlabs.ai"
+              href="mailto:privacy@gladlabs.io"
               className="text-cyan-400 hover:text-cyan-300"
             >
-              privacy@gladlabs.ai
+              privacy@gladlabs.io
             </a>
             <br />
             General Email: hello@gladlabs.io

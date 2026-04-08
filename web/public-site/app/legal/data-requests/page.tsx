@@ -175,8 +175,9 @@ export default function DataRequests() {
           </h2>
 
           <form
-            action="/api/privacy/data-requests"
+            action="mailto:privacy@gladlabs.io"
             method="POST"
+            encType="text/plain"
             className="space-y-6"
             aria-labelledby="form-title"
           >
@@ -406,10 +407,10 @@ export default function DataRequests() {
             <li>
               📧 <strong>Email:</strong>{' '}
               <a
-                href="mailto:privacy@gladlabs.ai"
+                href="mailto:privacy@gladlabs.io"
                 className="text-cyan-400 hover:text-cyan-300"
               >
-                privacy@gladlabs.ai
+                privacy@gladlabs.io
               </a>
             </li>
             <li>

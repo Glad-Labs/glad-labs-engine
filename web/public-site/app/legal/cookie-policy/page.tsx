@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function CookiePolicy() {
-  const lastUpdated = new Date('2026-04-01').toLocaleDateString('en-US', {
+  const lastUpdated = new Date('2026-04-08').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -82,9 +82,7 @@ export default function CookiePolicy() {
       <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
         3.1 Essential (Always Active)
       </h3>
-      <p>
-        These cannot be disabled because the site needs them to function:
-      </p>
+      <p>These cannot be disabled because the site needs them to function:</p>
       <ul className="list-disc list-inside space-y-2 mb-4">
         <li>
           <strong>Cookie consent state</strong> — stored in{' '}
@@ -101,30 +99,26 @@ export default function CookiePolicy() {
       <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
         3.2 Analytics (Consent Required)
       </h3>
-      <p>
-        These are only loaded if you opt in via the consent banner:
-      </p>
+      <p>These are only loaded if you opt in via the consent banner:</p>
       <ul className="list-disc list-inside space-y-2 mb-4">
         <li>
           <strong>Google Analytics 4 (GA4)</strong> — loaded dynamically after
-          consent. Sets cookies like <code>_ga</code> and{' '}
-          <code>_ga_*</code> to track page views and usage patterns. These
-          cookies last up to 2 years. If you reject analytics, the GA script is
-          never loaded and no GA cookies are set.
+          consent. Sets cookies like <code>_ga</code> and <code>_ga_*</code> to
+          track page views and usage patterns. These cookies last up to 2 years.
+          If you reject analytics, the GA script is never loaded and no GA
+          cookies are set.
         </li>
       </ul>
 
       <h3 className="text-xl font-semibold text-cyan-200 mt-6 mb-3">
         3.3 Advertising (Consent Required)
       </h3>
-      <p>
-        These are only activated if you opt in:
-      </p>
+      <p>These are only activated if you opt in:</p>
       <ul className="list-disc list-inside space-y-2 mb-4">
         <li>
           <strong>Google AdSense</strong> — may serve ads and set cookies for ad
-          personalization. The AdSense script is not loaded unless you consent to
-          advertising cookies.
+          personalization. The AdSense script is not loaded unless you consent
+          to advertising cookies.
         </li>
       </ul>
 
@@ -170,9 +164,7 @@ export default function CookiePolicy() {
                 <code>cookieConsent</code>
               </td>
               <td className="px-3 py-2">Glad Labs (localStorage)</td>
-              <td className="px-3 py-2">
-                Stores your consent preferences
-              </td>
+              <td className="px-3 py-2">Stores your consent preferences</td>
               <td className="px-3 py-2">Persistent</td>
               <td className="px-3 py-2">No (essential)</td>
             </tr>
@@ -181,9 +173,7 @@ export default function CookiePolicy() {
                 <code>cookieConsentDate</code>
               </td>
               <td className="px-3 py-2">Glad Labs (localStorage)</td>
-              <td className="px-3 py-2">
-                Records when consent was given
-              </td>
+              <td className="px-3 py-2">Records when consent was given</td>
               <td className="px-3 py-2">Persistent</td>
               <td className="px-3 py-2">No (essential)</td>
             </tr>
@@ -201,9 +191,7 @@ export default function CookiePolicy() {
                 <code>_ga_*</code>
               </td>
               <td className="px-3 py-2">Google Analytics 4</td>
-              <td className="px-3 py-2">
-                Groups events by measurement ID
-              </td>
+              <td className="px-3 py-2">Groups events by measurement ID</td>
               <td className="px-3 py-2">2 years</td>
               <td className="px-3 py-2">Yes (analytics)</td>
             </tr>
@@ -228,12 +216,8 @@ export default function CookiePolicy() {
           explicitly consent. If you reject all, those scripts never touch your
           browser.
         </li>
-        <li>
-          We do not sell your personal data.
-        </li>
-        <li>
-          We do not use third-party ad networks without your consent.
-        </li>
+        <li>We do not sell your personal data.</li>
+        <li>We do not use third-party ad networks without your consent.</li>
         <li>
           We do not use fingerprinting or any other tracking that bypasses your
           cookie preferences.
@@ -270,10 +254,10 @@ export default function CookiePolicy() {
       </h2>
       <p>
         <strong>If you are in the EU (GDPR):</strong> You have the right to
-        access, rectify, erase, restrict, port, and object to processing of
-        your personal data. You can withdraw consent at any time without
-        affecting the lawfulness of prior processing. You also have the right to
-        lodge a complaint with your local Data Protection Authority.
+        access, rectify, erase, restrict, port, and object to processing of your
+        personal data. You can withdraw consent at any time without affecting
+        the lawfulness of prior processing. You also have the right to lodge a
+        complaint with your local Data Protection Authority.
       </p>
       <p className="mt-4">
         <strong>If you are in California (CCPA):</strong> You have the right to
@@ -315,9 +299,7 @@ export default function CookiePolicy() {
       <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
         10. Contact
       </h2>
-      <p>
-        Questions? Reach out:
-      </p>
+      <p>Questions? Reach out:</p>
       <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
         <p>
           <strong>Glad Labs, LLC</strong>
