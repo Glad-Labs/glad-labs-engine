@@ -22,16 +22,19 @@ import {
 } from '@testing-library/react';
 import NewsletterModal from '../NewsletterModal';
 
-// Mock api-fastapi
-jest.mock('../../lib/api-fastapi', () => ({
-  subscribeToNewsletter: jest.fn(),
+// Mock Sentry to avoid import errors
+jest.mock('@sentry/nextjs', () => ({
+  captureException: jest.fn(),
 }));
 
-import { subscribeToNewsletter } from '../../lib/api-fastapi';
+// Mock global fetch (the component uses fetch('/api/newsletter/subscribe', ...))
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
 
 beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
+  mockFetch.mockReset();
 });
 
 afterEach(() => {
@@ -132,11 +135,12 @@ describe('NewsletterModal validation', () => {
     });
   });
 
-  test('does not call API when email is empty', async () => {
+  test('does not call fetch when email is empty', async () => {
     render(<NewsletterModal {...DEFAULT_PROPS} />);
-    fireEvent.click(screen.getByRole('button', { name: /Get Updates/i }));
+    const form = document.querySelector('form');
+    fireEvent.submit(form);
     await waitFor(() => {
-      expect(subscribeToNewsletter).not.toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 });
@@ -171,7 +175,10 @@ describe('NewsletterModal category toggle', () => {
 
 describe('NewsletterModal submission success', () => {
   test('shows success message after successful API call', async () => {
-    subscribeToNewsletter.mockResolvedValue({ success: true });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
     render(<NewsletterModal {...DEFAULT_PROPS} />);
 
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
@@ -186,8 +193,11 @@ describe('NewsletterModal submission success', () => {
     });
   });
 
-  test('calls subscribeToNewsletter with form data', async () => {
-    subscribeToNewsletter.mockResolvedValue({ success: true });
+  test('calls fetch with form data', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
     render(<NewsletterModal {...DEFAULT_PROPS} />);
 
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
@@ -202,7 +212,15 @@ describe('NewsletterModal submission success', () => {
     });
 
     await waitFor(() => {
-      expect(subscribeToNewsletter).toHaveBeenCalledWith(
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/newsletter/subscribe',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.any(String),
+        })
+      );
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body).toEqual(
         expect.objectContaining({
           email: 'user@test.com',
           first_name: 'Alice',
@@ -213,7 +231,10 @@ describe('NewsletterModal submission success', () => {
 
   test('calls onClose after success timeout', async () => {
     const onClose = jest.fn();
-    subscribeToNewsletter.mockResolvedValue({ success: true });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
     render(<NewsletterModal isOpen={true} onClose={onClose} />);
 
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
@@ -238,7 +259,10 @@ describe('NewsletterModal submission success', () => {
 
 describe('NewsletterModal submission error', () => {
   test('shows error message on API failure', async () => {
-    subscribeToNewsletter.mockRejectedValue(new Error('Network error'));
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'Network error' }),
+    });
     render(<NewsletterModal {...DEFAULT_PROPS} />);
 
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
@@ -255,9 +279,12 @@ describe('NewsletterModal submission error', () => {
   });
 
   test('shows error when API returns success=false', async () => {
-    subscribeToNewsletter.mockResolvedValue({
-      success: false,
-      message: 'Email already subscribed',
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: false,
+        message: 'Email already subscribed',
+      }),
     });
     render(<NewsletterModal {...DEFAULT_PROPS} />);
 
@@ -281,11 +308,11 @@ describe('NewsletterModal submission error', () => {
 
 describe('NewsletterModal loading state', () => {
   test('button text changes to Subscribing... during submission', async () => {
-    let resolveSubscribe;
-    subscribeToNewsletter.mockImplementation(
+    let resolveFetch;
+    mockFetch.mockImplementation(
       () =>
         new Promise((resolve) => {
-          resolveSubscribe = resolve;
+          resolveFetch = resolve;
         })
     );
     render(<NewsletterModal {...DEFAULT_PROPS} />);
@@ -304,16 +331,16 @@ describe('NewsletterModal loading state', () => {
 
     // Resolve the promise to clean up
     await act(async () => {
-      resolveSubscribe({ success: true });
+      resolveFetch({ ok: true, json: async () => ({ success: true }) });
     });
   });
 
   test('submit button is disabled during loading', async () => {
-    let resolveSubscribe;
-    subscribeToNewsletter.mockImplementation(
+    let resolveFetch;
+    mockFetch.mockImplementation(
       () =>
         new Promise((resolve) => {
-          resolveSubscribe = resolve;
+          resolveFetch = resolve;
         })
     );
     render(<NewsletterModal {...DEFAULT_PROPS} />);
@@ -332,7 +359,7 @@ describe('NewsletterModal loading state', () => {
     });
 
     await act(async () => {
-      resolveSubscribe({ success: true });
+      resolveFetch({ ok: true, json: async () => ({ success: true }) });
     });
   });
 });
@@ -405,8 +432,10 @@ describe('NewsletterModal — a11y: status message live region (issue #779)', ()
   });
 
   it('success message container has role="status"', async () => {
-    const { subscribeToNewsletter: sub } = require('../../lib/api-fastapi');
-    sub.mockResolvedValue({ success: true });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
     render(<NewsletterModal isOpen={true} onClose={jest.fn()} />);
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
       target: { value: 'ok@example.com', name: 'email', type: 'email' },
@@ -420,8 +449,10 @@ describe('NewsletterModal — a11y: status message live region (issue #779)', ()
   });
 
   it('success message container has aria-live="polite"', async () => {
-    const { subscribeToNewsletter: sub } = require('../../lib/api-fastapi');
-    sub.mockResolvedValue({ success: true });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
     render(<NewsletterModal isOpen={true} onClose={jest.fn()} />);
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
       target: { value: 'ok2@example.com', name: 'email', type: 'email' },
@@ -435,8 +466,10 @@ describe('NewsletterModal — a11y: status message live region (issue #779)', ()
   });
 
   it('error message container has role="alert"', async () => {
-    const { subscribeToNewsletter: sub } = require('../../lib/api-fastapi');
-    sub.mockRejectedValue(new Error('fail'));
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'fail' }),
+    });
     render(<NewsletterModal isOpen={true} onClose={jest.fn()} />);
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
       target: { value: 'fail@example.com', name: 'email', type: 'email' },
@@ -450,8 +483,10 @@ describe('NewsletterModal — a11y: status message live region (issue #779)', ()
   });
 
   it('error message container has aria-live="assertive"', async () => {
-    const { subscribeToNewsletter: sub } = require('../../lib/api-fastapi');
-    sub.mockRejectedValue(new Error('fail'));
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({ detail: 'fail' }),
+    });
     render(<NewsletterModal isOpen={true} onClose={jest.fn()} />);
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
       target: { value: 'fail2@example.com', name: 'email', type: 'email' },

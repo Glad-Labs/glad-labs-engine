@@ -36,18 +36,12 @@ export default function TopNavigation() {
             >
               About
             </Link>
-            <Link
-              href="/product"
-              className="text-slate-300 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 rounded px-1"
-            >
-              Product
-            </Link>
           </div>
           <Link
-            href="/product"
-            className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950"
+            href="/archive/1"
+            className="px-6 py-2.5 bg-cyan-600 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950"
           >
-            Get Started
+            Explore
           </Link>
         </nav>
       </header>

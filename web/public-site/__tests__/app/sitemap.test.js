@@ -56,6 +56,7 @@ describe('sitemap()', () => {
     const urls = result.map((entry) => entry.url);
     expect(urls).toContain('https://example.com');
     expect(urls).toContain('https://example.com/about');
+    expect(urls).toContain('https://example.com/about');
     expect(urls).toContain('https://example.com/posts');
     expect(urls).toContain('https://example.com/archive/1');
     expect(urls).toContain('https://example.com/legal/privacy');
@@ -109,7 +110,7 @@ describe('sitemap()', () => {
     const sitemap = await loadSitemap();
     const result = await sitemap();
 
-    // Should have exactly 8 static + legal pages (includes /posts)
+    // Should have exactly 9 static + legal pages (includes /posts)
     expect(result.length).toBe(8);
   });
 

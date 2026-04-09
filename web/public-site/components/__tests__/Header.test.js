@@ -22,7 +22,7 @@ describe('Header Component', () => {
 
     expect(screen.getByText('Articles')).toBeInTheDocument();
     expect(screen.getByText('About')).toBeInTheDocument();
-    expect(screen.getByText(/Explore|Read/)).toBeInTheDocument();
+    expect(screen.getByText('Explore')).toBeInTheDocument();
   });
 
   test('renders logo', () => {
@@ -77,7 +77,7 @@ describe('Header Component', () => {
   test('button is accessible with keyboard', () => {
     render(<Header />);
 
-    const button = screen.getByRole('link', { name: /Explore|Read/ });
+    const button = screen.getByRole('link', { name: /Explore/ });
     expect(button).toHaveAttribute('href', '/archive/1');
   });
 });
