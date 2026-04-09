@@ -137,20 +137,20 @@ export default function ProductPage() {
       <section className="relative pt-24 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-sm font-mono text-cyan-500 mb-6 tracking-widest uppercase">
-            Open-Source AI Content Engine
+            The Sovereign Media Stack
           </p>
 
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight font-sora">
-            Your PC is a{' '}
+            AI Operations,{' '}
             <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-400 bg-clip-text text-transparent">
-              content factory.
+              not AI chat.
             </span>
           </h1>
 
           <p className="text-xl md:text-2xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-            One engine that researches, writes, reviews, and publishes —
-            autonomously. Run it on your machine. Own your data. No cloud
-            lock-in.
+            A plug-and-play content engine that would take a senior dev weeks to
+            build from scratch. Researches, writes, reviews, and publishes —
+            autonomously on your hardware. $0 API fees. 100% data privacy.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -271,6 +271,42 @@ export default function ProductPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* WHY SOVEREIGNTY */}
+      {/* ============================================================ */}
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-sm font-mono text-cyan-500 mb-4 tracking-widest uppercase text-center">
+            Why This Exists
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-12 text-center font-sora">
+            You own the{' '}
+            <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              whole stack.
+            </span>
+          </h2>
+          <div className="grid md:grid-cols-2 gap-0 rounded-xl overflow-hidden border border-slate-700/50">
+            <div className="bg-slate-800/60 px-6 py-4 border-b border-slate-700/50 font-mono text-sm text-cyan-400">You get...</div>
+            <div className="bg-slate-800/60 px-6 py-4 border-b border-slate-700/50 font-mono text-sm text-slate-400">Which means...</div>
+
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-200">Local Infrastructure</div>
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-400">$0 API fees and 100% data privacy</div>
+
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-200">Headless Output</div>
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-400">Publish to any frontend — your site, your brand, your rules</div>
+
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-200">Automated Scale</div>
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-400">Content generation that outpaces human capacity, 24/7</div>
+
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-200">Operational Dashboards</div>
+            <div className="px-6 py-4 border-b border-slate-700/30 text-slate-400">Monitor from your phone — Grafana, Telegram alerts, real metrics</div>
+
+            <div className="px-6 py-4 text-slate-200">Integrated Stack</div>
+            <div className="px-6 py-4 text-slate-400">A plug-and-play version of what takes a senior dev weeks to build</div>
           </div>
         </div>
       </section>
