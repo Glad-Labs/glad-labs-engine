@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SITE_NAME } from '@/lib/site.config';
 
 export const metadata: Metadata = {
-  title: 'Legal Documents - Glad Labs',
-  description: 'Privacy Policy and Terms of Service for Glad Labs',
+  title: `Legal Documents - ${SITE_NAME}`,
+  description: `Privacy Policy and Terms of Service for ${SITE_NAME}`,
 };
 
 export default function LegalLayout({

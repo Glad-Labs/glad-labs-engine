@@ -1,4 +1,5 @@
 import logger from './logger';
+import { SITE_NAME, SITE_URL } from './site.config';
 /**
  * SEO Utilities for Glad Labs
  * Helpers for meta tags, Open Graph, Twitter Cards, and more
@@ -23,7 +24,7 @@ export function buildMetaDescription(excerpt, fallback = '') {
  */
 export function buildSEOTitle(
   title,
-  siteName = 'Glad Labs',
+  siteName = SITE_NAME,
   suffix = '| Blog'
 ) {
   const separator = siteName ? ` ${suffix} ` : '';
@@ -43,7 +44,7 @@ export function buildSEOTitle(
  */
 export function generateCanonicalURL(
   slug,
-  baseURL = 'https://www.gladlabs.io'
+  baseURL = SITE_URL
 ) {
   if (!slug) return baseURL;
 
@@ -60,7 +61,7 @@ export function generateCanonicalURL(
 /**
  * Generate Open Graph meta tags object
  */
-export function generateOGTags(post, baseURL = 'https://www.gladlabs.io') {
+export function generateOGTags(post, baseURL = SITE_URL) {
   if (!post) return {};
 
   const { title, excerpt, slug, coverImage } = post;
@@ -76,7 +77,7 @@ export function generateOGTags(post, baseURL = 'https://www.gladlabs.io') {
     'og:image:height': '630',
     'og:url': pageURL,
     'og:type': 'article',
-    'og:site_name': 'Glad Labs',
+    'og:site_name': SITE_NAME,
   };
 }
 
@@ -86,7 +87,7 @@ export function generateOGTags(post, baseURL = 'https://www.gladlabs.io') {
 export function generateTwitterTags(
   post,
   twitterHandle = '@GladLabsAI',
-  baseURL = 'https://www.gladlabs.io'
+  baseURL = SITE_URL
 ) {
   if (!post) return {};
 
@@ -137,7 +138,7 @@ export function generateRobotsTag(options = {}) {
 export function generateHrefLangTags(
   slug,
   languages = ['en'],
-  baseURL = 'https://www.gladlabs.io'
+  baseURL = SITE_URL
 ) {
   return languages.map((lang) => ({
     rel: 'alternate',
@@ -241,8 +242,8 @@ export function generateDNSPrefetchLink(url) {
  */
 export function buildPostSEO(post, options = {}) {
   const {
-    baseURL = 'https://www.gladlabs.io',
-    siteName = 'Glad Labs',
+    baseURL = SITE_URL,
+    siteName = SITE_NAME,
     twitterHandle = '@GladLabsAI',
   } = options;
 

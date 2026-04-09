@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { SITE_NAME, SITE_URL, NEWSLETTER_EMAIL } from '@/lib/site.config';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || '';
@@ -67,13 +68,13 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Glad Labs <newsletter@gladlabs.io>',
+        from: `${SITE_NAME} <${NEWSLETTER_EMAIL}>`,
         to: [email],
-        subject: 'Welcome to Glad Labs',
+        subject: `Welcome to ${SITE_NAME}`,
         html: `
-          <h2>Welcome to Glad Labs!</h2>
+          <h2>Welcome to ${SITE_NAME}!</h2>
           <p>Thanks for subscribing${first_name ? `, ${first_name}` : ''}. You'll receive our latest articles on AI, hardware, and gaming delivered straight to your inbox.</p>
-          <p>In the meantime, check out our latest posts at <a href="https://www.gladlabs.io">gladlabs.io</a>.</p>
+          <p>In the meantime, check out our latest posts at <a href="${SITE_URL}">${SITE_URL.replace('https://', '')}</a>.</p>
           <p style="color: #666; font-size: 12px; margin-top: 32px;">
             You can unsubscribe at any time by replying to this email.
           </p>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getPaginatedPosts } from '../lib/api-fastapi';
 import * as Sentry from '@sentry/nextjs';
+import { SITE_NAME, SUPPORT_EMAIL } from '@/lib/site.config';
 
 interface Post {
   id: string | number;
@@ -133,7 +134,7 @@ export default function NotFound() {
                 href="/"
                 className="text-cyan-400 hover:text-cyan-300 underline"
               >
-                Glad Labs Main Site
+                {SITE_NAME} Main Site
               </Link>
             </div>
           </div>
@@ -146,7 +147,7 @@ export default function NotFound() {
           <p>
             If you believe this is an error, please{' '}
             <a
-              href="mailto:hello@gladlabs.io"
+              href={`mailto:${SUPPORT_EMAIL}`}
               className="text-cyan-400 hover:text-cyan-300"
             >
               contact us

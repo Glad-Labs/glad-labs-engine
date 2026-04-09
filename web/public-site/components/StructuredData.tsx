@@ -3,7 +3,7 @@
  * Schema.org markup for enhanced SEO
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
+import { SITE_NAME, SITE_URL, SUPPORT_EMAIL } from '@/lib/site.config';
 
 /**
  * Breadcrumb Schema
@@ -71,7 +71,7 @@ export function OrganizationSchema() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Glad Labs',
+    name: SITE_NAME,
     description:
       'AI and digital innovation research organization focused on autonomous intelligence',
     url: SITE_URL,
@@ -84,7 +84,7 @@ export function OrganizationSchema() {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',
-      email: 'hello@gladlabs.io',
+      email: SUPPORT_EMAIL,
     },
   };
 
@@ -106,7 +106,7 @@ export function BlogPostingSchema({
   image,
   datePublished,
   dateModified,
-  author = 'Glad Labs',
+  author = SITE_NAME,
 }: {
   headline: string;
   description: string;
@@ -129,7 +129,7 @@ export function BlogPostingSchema({
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Glad Labs',
+      name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
         url: `${SITE_URL}/og-image.jpg`,
@@ -174,7 +174,7 @@ export function NewsArticleSchema({
     dateModified: dateModified || datePublished,
     publisher: {
       '@type': 'Organization',
-      name: 'Glad Labs',
+      name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
         url: `${SITE_URL}/og-image.jpg`,

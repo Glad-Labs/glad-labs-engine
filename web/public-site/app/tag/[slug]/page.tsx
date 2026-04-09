@@ -3,6 +3,7 @@ import logger from '@/lib/logger';
 import Link from 'next/link';
 
 import { getAllPublishedPosts } from '@/lib/posts';
+import { SITE_NAME } from '@/lib/site.config';
 
 interface Post {
   id: string;
@@ -63,8 +64,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const tag = decodeURIComponent(slug);
-  const title = `#${tag} Articles | Glad Labs`;
-  const description = `Browse all articles tagged with "${tag}" on Glad Labs.`;
+  const title = `#${tag} Articles | ${SITE_NAME}`;
+  const description = `Browse all articles tagged with "${tag}" on ${SITE_NAME}.`;
 
   return {
     title,

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getPosts } from '@/lib/posts';
+import { SITE_NAME, SITE_URL } from '@/lib/site.config';
 
 interface ArchivePageProps {
   params: Promise<{
@@ -27,11 +28,11 @@ export async function generateMetadata({
   const pageNum = parseInt(page) || 1;
 
   return {
-    title: `Article Archive — Page ${pageNum} | Glad Labs`,
-    description: `Browse our collection of in-depth articles and insights. Page ${pageNum} of the Glad Labs article archive.`,
-    alternates: { canonical: `https://www.gladlabs.io/archive/${pageNum}` },
+    title: `Article Archive — Page ${pageNum} | ${SITE_NAME}`,
+    description: `Browse our collection of in-depth articles and insights. Page ${pageNum} of the ${SITE_NAME} article archive.`,
+    alternates: { canonical: `${SITE_URL}/archive/${pageNum}` },
     openGraph: {
-      title: `Article Archive — Page ${pageNum} | Glad Labs`,
+      title: `Article Archive — Page ${pageNum} | ${SITE_NAME}`,
       description: `Browse our collection of in-depth articles and insights. Page ${pageNum}.`,
       type: 'website',
     },

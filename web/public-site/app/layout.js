@@ -6,22 +6,21 @@ import TopNavigation from '../components/TopNav.js';
 import WebVitals from '../components/WebVitals';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { SITE_NAME, SITE_URL, SITE_TAGLINE, PODCAST_NAME } from '@/lib/site.config';
 import '../styles/globals.css';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-NJMBCYNDWN';
 
 export const metadata = {
-  title: 'Glad Labs - Technology & Innovation',
+  title: `${SITE_NAME} - ${SITE_TAGLINE}`,
   description:
     'Exploring the future of technology, AI, and digital innovation. In-depth articles on AI agents, cloud infrastructure, and modern development.',
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io'
-  ),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io',
-    title: 'Glad Labs',
+    url: SITE_URL,
+    title: SITE_NAME,
     description:
       'Exploring the future of technology, AI, and digital innovation',
     images: [
@@ -29,7 +28,7 @@ export const metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Glad Labs',
+        alt: SITE_NAME,
       },
     ],
   },
@@ -53,8 +52,8 @@ export const metadata = {
   alternates: {
     types: {
       'application/rss+xml': [
-        { url: '/feed.xml', title: 'Glad Labs Blog' },
-        { url: '/api/podcast', title: 'Glad Labs Podcast' },
+        { url: '/feed.xml', title: `${SITE_NAME} Blog` },
+        { url: '/api/podcast', title: PODCAST_NAME },
       ],
     },
   },
@@ -70,14 +69,14 @@ export default function RootLayout({ children }) {
         <link
           rel="alternate"
           type="application/rss+xml"
-          title="Glad Labs"
-          href="https://www.gladlabs.io/feed.xml"
+          title={SITE_NAME}
+          href={`${SITE_URL}/feed.xml`}
         />
         <link
           rel="alternate"
           type="application/rss+xml"
-          title="Glad Labs Podcast"
-          href="https://www.gladlabs.io/podcast-feed.xml"
+          title={PODCAST_NAME}
+          href={`${SITE_URL}/podcast-feed.xml`}
         />
         {/*
           GDPR COMPLIANCE: Analytics scripts are NOT loaded here.

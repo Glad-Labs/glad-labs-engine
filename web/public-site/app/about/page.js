@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { OrganizationSchema } from '../../components/StructuredData';
+import { SITE_NAME, SITE_URL } from '@/lib/site.config';
 
 export const metadata = {
-  title: 'About Glad Labs',
+  title: `About ${SITE_NAME}`,
   description:
-    'Glad Labs is what happens when one developer, local AI, and relentless automation collide. Built by Matt Gladding — autonomous content systems, real hardware, no corporate theater.',
+    `${SITE_NAME} is what happens when one developer, local AI, and relentless automation collide. Built by Matt Gladding — autonomous content systems, real hardware, no corporate theater.`,
   alternates: {
-    canonical: 'https://www.gladlabs.io/about',
+    canonical: `${SITE_URL}/about`,
   },
   keywords: [
     'AI content operations',
@@ -20,9 +21,9 @@ export const metadata = {
     'Ollama',
   ],
   openGraph: {
-    title: 'About Glad Labs',
+    title: `About ${SITE_NAME}`,
     description:
-      'One person + AI = unlimited scale. Glad Labs is building the future of autonomous content operations.',
+      `One person + AI = unlimited scale. ${SITE_NAME} is building the future of autonomous content operations.`,
     type: 'website',
   },
 };

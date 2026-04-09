@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SITE_NAME } from '@/lib/site.config';
 
 const authorProfiles: Record<string, { name: string; bio: string }> = {
   'poindexter-ai': {
     name: 'Poindexter AI',
-    bio: 'AI Content Generation Engine. Poindexter AI is the intelligent content orchestrator powering Glad Labs, crafting insightful articles on AI, automation, and digital transformation.',
+    bio: `AI Content Generation Engine. Poindexter AI is the intelligent content orchestrator powering ${SITE_NAME}, crafting insightful articles on AI, automation, and digital transformation.`,
   },
   default: {
-    name: 'Glad Labs',
+    name: SITE_NAME,
     bio: 'Where AI meets thoughtful content creation. We explore the intersection of artificial intelligence and human creativity.',
   },
 };
@@ -26,7 +27,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const author = authorProfiles[id] || authorProfiles.default;
-  const title = `${author.name} | Glad Labs`;
+  const title = `${author.name} | ${SITE_NAME}`;
 
   return {
     title,

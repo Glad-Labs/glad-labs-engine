@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SITE_NAME } from '@/lib/site.config';
 
 export async function generateMetadata({
   params,
@@ -9,8 +10,8 @@ export async function generateMetadata({
   const pageNum = parseInt(page) || 1;
   const title =
     pageNum === 1
-      ? 'Article Archive | Glad Labs'
-      : `Article Archive — Page ${pageNum} | Glad Labs`;
+      ? `Article Archive | ${SITE_NAME}`
+      : `Article Archive — Page ${pageNum} | ${SITE_NAME}`;
 
   return {
     title,

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import NewsletterModal from './NewsletterModal';
+import { SITE_NAME } from '@/lib/site.config';
 
 const Footer = () => {
   // currentYear is computed at render time. suppressHydrationWarning on the
@@ -153,7 +154,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <p className="text-sm text-slate-300 font-medium">
-              &copy; {currentYear} Glad Labs. All rights reserved.
+              &copy; {currentYear} {SITE_NAME}. All rights reserved.
             </p>
           </div>
           <div className="flex items-center gap-6">

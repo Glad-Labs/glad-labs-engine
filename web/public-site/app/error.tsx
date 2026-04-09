@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nextjs';
 
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { SUPPORT_EMAIL } from '@/lib/site.config';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -137,7 +138,7 @@ export default function Error({ error, reset }: ErrorProps) {
               </Link>
               <span className="text-gray-600">•</span>
               <a
-                href="mailto:hello@gladlabs.io"
+                href={`mailto:${SUPPORT_EMAIL}`}
                 className="text-cyan-400 hover:text-cyan-300 underline"
               >
                 Contact Support
@@ -153,7 +154,7 @@ export default function Error({ error, reset }: ErrorProps) {
           <p>
             If this problem persists, please{' '}
             <a
-              href="mailto:hello@gladlabs.io?subject=Website%20Error"
+              href={`mailto:${SUPPORT_EMAIL}?subject=Website%20Error`}
               className="text-cyan-400 hover:text-cyan-300"
             >
               report the issue

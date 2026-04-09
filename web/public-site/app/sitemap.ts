@@ -1,5 +1,6 @@
 import logger from '@/lib/logger';
 import type { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/site.config';
 
 /**
  * Type definitions for sitemap content
@@ -81,7 +82,7 @@ async function fetchPublishedContent() {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
+  const baseUrl = SITE_URL;
   const { allPosts, allCategories, allTags } = await fetchPublishedContent();
 
   // Static pages

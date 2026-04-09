@@ -23,8 +23,7 @@ import {
   getAllPublishedPosts,
   type Post,
 } from '../../../lib/posts';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
+import { SITE_NAME, SITE_URL } from '@/lib/site.config';
 
 // #945: Bounded generateStaticParams — pre-generate recent post pages at build time
 // for faster first-hit latency and better SEO indexing. Long-tail slugs still
@@ -61,7 +60,7 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: 'Post Not Found | Glad Labs',
+      title: `Post Not Found | ${SITE_NAME}`,
       description: 'The article you are looking for does not exist.',
     };
   }
@@ -418,7 +417,7 @@ export default async function PostPage({
           <div className="px-4 sm:px-6 lg:px-8 pb-12">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-2xl font-bold text-white mb-6">
-                More from Glad Labs
+                More from {SITE_NAME}
               </h2>
               <div className="grid gap-6 md:grid-cols-3">
                 {relatedPosts.map((rp) => (

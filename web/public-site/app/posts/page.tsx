@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getPosts } from '@/lib/posts';
+import { SITE_NAME, SITE_URL } from '@/lib/site.config';
 
 const POSTS_PER_PAGE = 12;
 
@@ -15,12 +16,12 @@ async function getAllPublishedPosts() {
 }
 
 export const metadata: Metadata = {
-  title: 'All Articles | Glad Labs',
+  title: `All Articles | ${SITE_NAME}`,
   description:
     'Browse our complete collection of in-depth articles on AI, technology, and digital transformation.',
-  alternates: { canonical: 'https://www.gladlabs.io/posts' },
+  alternates: { canonical: `${SITE_URL}/posts` },
   openGraph: {
-    title: 'All Articles | Glad Labs',
+    title: `All Articles | ${SITE_NAME}`,
     description:
       'Browse our complete collection of in-depth articles on AI, technology, and digital transformation.',
     type: 'website',

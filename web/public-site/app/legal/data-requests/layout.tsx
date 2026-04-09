@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import { SITE_NAME } from '@/lib/site.config';
 
 export const metadata: Metadata = {
-  title: 'Data Access Requests - Glad Labs',
+  title: `Data Access Requests - ${SITE_NAME}`,
   description: 'Submit your GDPR data access, deletion, or portability request',
 };
 

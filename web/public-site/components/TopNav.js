@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { SITE_NAME } from '@/lib/site.config';
 
 export default function TopNavigation() {
   return (
@@ -18,7 +19,7 @@ export default function TopNavigation() {
         >
           <Link
             href="/"
-            aria-label="Glad Labs — Home"
+            aria-label={`${SITE_NAME} — Home`}
             className="text-2xl font-bold text-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 rounded"
           >
             GL

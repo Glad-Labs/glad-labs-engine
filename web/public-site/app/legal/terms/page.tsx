@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { SITE_NAME, SITE_URL, COMPANY_NAME, SUPPORT_EMAIL } from '@/lib/site.config';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service - Glad Labs',
-  description: 'Terms of Service for Glad Labs',
+  title: `Terms of Service - ${SITE_NAME}`,
+  description: `Terms of Service for ${SITE_NAME}`,
 };
 
 export default function TermsOfService() {
@@ -53,7 +54,7 @@ export default function TermsOfService() {
       </h2>
       <p>
         Some content on this site is produced or assisted by AI systems. All
-        published content is reviewed and approved by Glad Labs before
+        published content is reviewed and approved by {SITE_NAME} before
         publication. We stand behind what we publish, regardless of how it was
         produced. That said, AI-generated content may contain errors — use your
         judgment.
@@ -73,7 +74,7 @@ export default function TermsOfService() {
         5. Limitations of Liability
       </h2>
       <p>
-        Glad Labs is not liable for any damages arising from your use of (or
+        {SITE_NAME} is not liable for any damages arising from your use of (or
         inability to use) this site or its content. This includes loss of data,
         profit, or business interruption — even if we&apos;ve been told it might
         happen.
@@ -102,7 +103,7 @@ export default function TermsOfService() {
         8. User Content
       </h2>
       <p>
-        If you submit content to Glad Labs (e.g., comments via Giscus), you
+        If you submit content to {SITE_NAME} (e.g., comments via Giscus), you
         represent that it&apos;s your original work, doesn&apos;t violate
         anyone&apos;s rights, and doesn&apos;t contain anything defamatory,
         obscene, or unlawful.
@@ -113,7 +114,7 @@ export default function TermsOfService() {
       </h2>
       <p>
         All content on gladlabs.io — text, graphics, logos, images, and software
-        — is the property of Glad Labs or its content suppliers and is protected
+        — is the property of {SITE_NAME} or its content suppliers and is protected
         by copyright law. You&apos;re not granted any rights beyond normal
         viewing and personal use.
       </p>
@@ -141,11 +142,11 @@ export default function TermsOfService() {
       <p>Questions about these terms? Reach out:</p>
       <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
         <p>
-          <strong>Glad Labs, LLC</strong>
+          <strong>{COMPANY_NAME}</strong>
           <br />
-          Email: hello@gladlabs.io
+          Email: {SUPPORT_EMAIL}
           <br />
-          Website: https://gladlabs.io
+          Website: {SITE_URL}
         </p>
       </div>
     </div>

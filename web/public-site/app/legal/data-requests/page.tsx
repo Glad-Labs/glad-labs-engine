@@ -1,5 +1,7 @@
 'use client';
 
+import { PRIVACY_EMAIL } from '@/lib/site.config';
+
 export default function DataRequests() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pt-32 pb-16">
@@ -175,7 +177,7 @@ export default function DataRequests() {
           </h2>
 
           <form
-            action="mailto:privacy@gladlabs.io"
+            action={`mailto:${PRIVACY_EMAIL}`}
             method="POST"
             encType="text/plain"
             className="space-y-6"
@@ -407,10 +409,10 @@ export default function DataRequests() {
             <li>
               📧 <strong>Email:</strong>{' '}
               <a
-                href="mailto:privacy@gladlabs.io"
+                href={`mailto:${PRIVACY_EMAIL}`}
                 className="text-cyan-400 hover:text-cyan-300"
               >
-                privacy@gladlabs.io
+                {PRIVACY_EMAIL}
               </a>
             </li>
             <li>

@@ -3,6 +3,7 @@ import logger from '@/lib/logger';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAllPublishedPosts } from '@/lib/posts';
+import { SITE_NAME, SITE_URL } from '@/lib/site.config';
 
 const STATIC_URL =
   process.env.NEXT_PUBLIC_STATIC_URL ||
@@ -71,18 +72,18 @@ export async function generateMetadata({
   const category = await getCategory(slug);
 
   if (!category) {
-    return { title: 'Category Not Found | Glad Labs' };
+    return { title: `Category Not Found | ${SITE_NAME}` };
   }
 
-  const title = `${category.name} Articles | Glad Labs`;
+  const title = `${category.name} Articles | ${SITE_NAME}`;
   const description =
     category.description ||
-    `Browse all articles in the ${category.name} category on Glad Labs.`;
+    `Browse all articles in the ${category.name} category on ${SITE_NAME}.`;
 
   return {
     title,
     description,
-    alternates: { canonical: `https://www.gladlabs.io/category/${slug}` },
+    alternates: { canonical: `${SITE_URL}/category/${slug}` },
     openGraph: { title, description },
   };
 }

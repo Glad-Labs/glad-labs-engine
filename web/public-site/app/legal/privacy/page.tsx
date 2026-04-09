@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { FAQSchema } from '../../../components/StructuredData';
+import { SITE_NAME, COMPANY_NAME, SUPPORT_EMAIL, PRIVACY_EMAIL } from '@/lib/site.config';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy - Glad Labs',
-  description: 'Privacy Policy for Glad Labs',
+  title: `Privacy Policy - ${SITE_NAME}`,
+  description: `Privacy Policy for ${SITE_NAME}`,
 };
 
 export default function PrivacyPolicy() {
@@ -43,7 +44,7 @@ export default function PrivacyPolicy() {
     {
       question: 'How do I contact you about privacy?',
       answer:
-        'Email us at privacy@gladlabs.io with any privacy questions. We aim to respond within 30 days per GDPR requirements.',
+        `Email us at ${PRIVACY_EMAIL} with any privacy questions. We aim to respond within 30 days per GDPR requirements.`,
     },
   ];
 
@@ -63,7 +64,7 @@ export default function PrivacyPolicy() {
           1. Introduction
         </h2>
         <p>
-          Glad Labs (&quot;we,&quot; &quot;us,&quot; &quot;our&quot;) respects
+          {COMPANY_NAME} (&quot;we,&quot; &quot;us,&quot; &quot;our&quot;) respects
           your privacy. This policy explains what data we collect when you visit
           gladlabs.io, how we use it, and your rights regarding that data. We
           keep it straightforward because privacy policies shouldn&apos;t
@@ -257,7 +258,7 @@ export default function PrivacyPolicy() {
           >
             Data Request page
           </a>{' '}
-          or by emailing privacy@gladlabs.io.
+          or by emailing {PRIVACY_EMAIL}.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
@@ -418,7 +419,7 @@ export default function PrivacyPolicy() {
           13 (or 16 in the EU). If we learn we&apos;ve collected data from a
           child under these ages, we&apos;ll delete it promptly. Parents: if you
           believe your child&apos;s information was collected, contact us at
-          privacy@gladlabs.io.
+          {PRIVACY_EMAIL}.
         </p>
 
         <h2 className="text-2xl font-bold text-cyan-300 mt-8 mb-4">
@@ -436,17 +437,17 @@ export default function PrivacyPolicy() {
         <p>Questions about privacy? Get in touch:</p>
         <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
           <p>
-            <strong>Glad Labs, LLC</strong>
+            <strong>{COMPANY_NAME}</strong>
             <br />
             Privacy Email:{' '}
             <a
-              href="mailto:privacy@gladlabs.io"
+              href={`mailto:${PRIVACY_EMAIL}`}
               className="text-cyan-400 hover:text-cyan-300"
             >
-              privacy@gladlabs.io
+              {PRIVACY_EMAIL}
             </a>
             <br />
-            General Email: hello@gladlabs.io
+            General Email: {SUPPORT_EMAIL}
             <br />
             Data Requests:{' '}
             <a

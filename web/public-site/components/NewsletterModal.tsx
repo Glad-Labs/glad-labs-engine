@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { useState, useRef, useEffect, ChangeEvent, FormEvent } from 'react';
+import { SITE_NAME } from '@/lib/site.config';
 // Subscribe via local Vercel serverless function (no backend dependency)
 async function subscribeToNewsletter(data: Record<string, unknown>) {
   const response = await fetch('/api/newsletter/subscribe', {
@@ -354,7 +355,7 @@ const NewsletterModal = ({ isOpen, onClose }: NewsletterModalProps) => {
                 />
                 <span className="text-xs text-slate-400">
                   I agree to receive marketing emails and campaign updates from
-                  Glad Labs
+                  {SITE_NAME}
                 </span>
               </label>
 

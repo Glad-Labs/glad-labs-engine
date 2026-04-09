@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { SITE_NAME, SITE_URL, COMPANY_NAME, PRIVACY_EMAIL, OWNER_EMAIL } from '@/lib/site.config';
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy - Glad Labs',
-  description: 'Cookie Policy for Glad Labs',
+  title: `Cookie Policy - ${SITE_NAME}`,
+  description: `Cookie Policy for ${SITE_NAME}`,
 };
 
 export default function CookiePolicy() {
@@ -23,12 +24,12 @@ export default function CookiePolicy() {
       <p>
         This is the cookie policy for{' '}
         <a
-          href="https://www.gladlabs.io"
+          href={SITE_URL}
           className="text-cyan-400 hover:text-cyan-300"
         >
-          www.gladlabs.io
+          {SITE_URL.replace('https://', '')}
         </a>
-        , operated by Glad Labs, LLC. We try to be straightforward here — no
+        , operated by {COMPANY_NAME}. We try to be straightforward here — no
         walls of legalese, just an honest explanation of what cookies and
         third-party services our site uses and why.
       </p>
@@ -163,7 +164,7 @@ export default function CookiePolicy() {
               <td className="px-3 py-2">
                 <code>cookieConsent</code>
               </td>
-              <td className="px-3 py-2">Glad Labs (localStorage)</td>
+              <td className="px-3 py-2">{SITE_NAME} (localStorage)</td>
               <td className="px-3 py-2">Stores your consent preferences</td>
               <td className="px-3 py-2">Persistent</td>
               <td className="px-3 py-2">No (essential)</td>
@@ -172,7 +173,7 @@ export default function CookiePolicy() {
               <td className="px-3 py-2">
                 <code>cookieConsentDate</code>
               </td>
-              <td className="px-3 py-2">Glad Labs (localStorage)</td>
+              <td className="px-3 py-2">{SITE_NAME} (localStorage)</td>
               <td className="px-3 py-2">Records when consent was given</td>
               <td className="px-3 py-2">Persistent</td>
               <td className="px-3 py-2">No (essential)</td>
@@ -240,10 +241,10 @@ export default function CookiePolicy() {
         <li>
           Contact us at{' '}
           <a
-            href="mailto:privacy@gladlabs.io"
+            href={`mailto:${PRIVACY_EMAIL}`}
             className="text-cyan-400 hover:text-cyan-300"
           >
-            privacy@gladlabs.io
+            {PRIVACY_EMAIL}
           </a>{' '}
           if you need help.
         </li>
@@ -302,29 +303,29 @@ export default function CookiePolicy() {
       <p>Questions? Reach out:</p>
       <div className="bg-gray-800 p-4 rounded-lg mt-4 mb-4">
         <p>
-          <strong>Glad Labs, LLC</strong>
+          <strong>{COMPANY_NAME}</strong>
           <br />
           Email:{' '}
           <a
-            href="mailto:matt@gladlabs.io"
+            href={`mailto:${OWNER_EMAIL}`}
             className="text-cyan-400 hover:text-cyan-300"
           >
-            matt@gladlabs.io
+            {OWNER_EMAIL}
           </a>{' '}
           or{' '}
           <a
-            href="mailto:privacy@gladlabs.io"
+            href={`mailto:${PRIVACY_EMAIL}`}
             className="text-cyan-400 hover:text-cyan-300"
           >
-            privacy@gladlabs.io
+            {PRIVACY_EMAIL}
           </a>
           <br />
           Website:{' '}
           <a
-            href="https://www.gladlabs.io"
+            href={SITE_URL}
             className="text-cyan-400 hover:text-cyan-300"
           >
-            https://www.gladlabs.io
+            {SITE_URL}
           </a>
         </p>
       </div>

@@ -2,19 +2,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import * as Sentry from '@sentry/nextjs';
 import { OrganizationSchema } from '../components/StructuredData';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
+import { SITE_NAME, SITE_URL } from '@/lib/site.config';
 
 // SEO Metadata
 export const metadata = {
-  title: 'Glad Labs - AI & Technology Insights',
+  title: `${SITE_NAME} - AI & Technology Insights`,
   description:
     'Deep dives into AI, technology, and digital transformation. Explore our latest insights, expert analysis, and practical guides.',
   alternates: {
     canonical: `${SITE_URL}/`,
   },
   openGraph: {
-    title: 'Glad Labs - AI & Technology Insights',
+    title: `${SITE_NAME} - AI & Technology Insights`,
     description:
       'Deep dives into AI, technology, and digital transformation. Explore our latest insights, expert analysis, and practical guides.',
     type: 'website',
@@ -25,7 +24,7 @@ export const metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Glad Labs - AI & Technology Insights',
+        alt: `${SITE_NAME} - AI & Technology Insights`,
       },
     ],
   },
@@ -66,13 +65,13 @@ export default async function HomePage() {
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Glad Labs',
+    name: SITE_NAME,
     url: SITE_URL,
     description:
       'Deep dives into AI, technology, and digital transformation. Explore our latest insights, expert analysis, and practical guides.',
     publisher: {
       '@type': 'Organization',
-      name: 'Glad Labs',
+      name: SITE_NAME,
       url: SITE_URL,
     },
   };

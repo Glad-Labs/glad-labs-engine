@@ -8,8 +8,7 @@
  */
 
 import { NextResponse } from 'next/server';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.gladlabs.io';
+import { SITE_NAME, SITE_URL } from '@/lib/site.config';
 const STATIC_URL =
   process.env.NEXT_PUBLIC_STATIC_URL ||
   'https://pub-1432fdefa18e47ad98f213a8a2bf14d5.r2.dev/static';
@@ -72,7 +71,7 @@ export async function GET() {
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Glad Labs</title>
+    <title>${SITE_NAME}</title>
     <link>${SITE_URL}</link>
     <description>Technology, AI, and digital innovation — in-depth articles for developers and founders.</description>
     <language>en-us</language>
@@ -80,7 +79,7 @@ export async function GET() {
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
     <image>
       <url>${SITE_URL}/og-image.jpg</url>
-      <title>Glad Labs</title>
+      <title>${SITE_NAME}</title>
       <link>${SITE_URL}</link>
     </image>
 ${items}
@@ -99,7 +98,7 @@ ${items}
       `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Glad Labs</title>
+    <title>${SITE_NAME}</title>
     <link>${SITE_URL}</link>
     <description>Feed temporarily unavailable</description>
   </channel>

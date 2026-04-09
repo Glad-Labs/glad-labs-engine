@@ -2,6 +2,7 @@ import logger from './logger';
 import { formatDateISO } from './content-utils';
 // Image URL utilities for structured data
 import { getImageURL } from './api-fastapi';
+import { SITE_NAME, SITE_URL, SUPPORT_EMAIL } from './site.config';
 
 /**
  * Generate JSON-LD structured data for a blog post
@@ -9,7 +10,7 @@ import { getImageURL } from './api-fastapi';
  */
 export function generateBlogPostingSchema(
   post,
-  siteUrl = 'https://www.gladlabs.io'
+  siteUrl = SITE_URL
 ) {
   if (!post) return null;
 
@@ -44,12 +45,12 @@ export function generateBlogPostingSchema(
     dateModified: formatDateISO(publishDate),
     author: {
       '@type': 'Person',
-      name: 'Glad Labs',
+      name: SITE_NAME,
       url: siteUrl,
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Glad Labs',
+      name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logo.png`,
@@ -73,7 +74,7 @@ export function generateBlogPostingSchema(
  */
 export function generateNewsArticleSchema(
   post,
-  siteUrl = 'https://www.gladlabs.io'
+  siteUrl = SITE_URL
 ) {
   if (!post) return null;
 
@@ -94,7 +95,7 @@ export function generateNewsArticleSchema(
     dateModified: formatDateISO(publishDate),
     author: {
       '@type': 'Organization',
-      name: 'Glad Labs',
+      name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logo.png`,
@@ -110,7 +111,7 @@ export function generateNewsArticleSchema(
  */
 export function generateArticleSchema(
   post,
-  siteUrl = 'https://www.gladlabs.io'
+  siteUrl = SITE_URL
 ) {
   if (!post) return null;
 
@@ -131,7 +132,7 @@ export function generateArticleSchema(
     dateModified: formatDateISO(publishDate),
     author: {
       '@type': 'Organization',
-      name: 'Glad Labs',
+      name: SITE_NAME,
     },
   };
 }
@@ -142,7 +143,7 @@ export function generateArticleSchema(
  */
 export function generateBreadcrumbSchema(
   items = [],
-  siteUrl = 'https://www.gladlabs.io'
+  siteUrl = SITE_URL
 ) {
   if (!Array.isArray(items) || items.length === 0) return null;
 
@@ -175,14 +176,14 @@ export function generateBreadcrumbSchema(
  * Usually included on homepage
  */
 export function generateOrganizationSchema(
-  siteUrl = 'https://www.gladlabs.io',
+  siteUrl = SITE_URL,
   options = {}
 ) {
   const {
-    name = 'Glad Labs',
+    name = SITE_NAME,
     logo = `${siteUrl}/logo.png`,
     description = 'AI-powered content and business intelligence platform',
-    email = 'info@gladlabs.io',
+    email = SUPPORT_EMAIL,
     phone = '',
     sameAs = [],
   } = options;
@@ -204,12 +205,12 @@ export function generateOrganizationSchema(
  * Generate JSON-LD WebSite schema with search action
  * Enables sitelinks search box in SERPs
  */
-export function generateWebsiteSchema(siteUrl = 'https://www.gladlabs.io') {
+export function generateWebsiteSchema(siteUrl = SITE_URL) {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     url: siteUrl,
-    name: 'Glad Labs',
+    name: SITE_NAME,
     description: 'AI Co-Founder Platform',
     potentialAction: {
       '@type': 'SearchAction',
