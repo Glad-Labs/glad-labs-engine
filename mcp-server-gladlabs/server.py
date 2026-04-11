@@ -14,6 +14,14 @@ Both servers share the same local Postgres pool and httpx client. They are
 registered as two distinct entries in the Claude Desktop / Claude Code MCP
 config so the tool surfaces stay clean and non-overlapping.
 
+Discord bridge: Discord posts go through OpenClaw's Tools Invoke HTTP API
+(http://127.0.0.1:18789/tools/invoke) rather than a raw webhook. OpenClaw
+already holds the Discord bot token and exposes the message-send action
+via its `message` tool, so we get full bot capabilities (read + write +
+moderation) instead of a write-only webhook. See
+https://docs.openclaw.ai/gateway/tools-invoke-http-api.md and
+https://docs.openclaw.ai/channels/discord.md
+
 Usage:
     uv --directory mcp-server-gladlabs run server.py
 """
@@ -42,10 +50,17 @@ POINDEXTER_API_TOKEN = (
     or os.getenv("GLADLABS_API_TOKEN", "dev-token")
 )
 
-# Discord webhook URL — populated by setting the GLADLABS_DISCORD_WEBHOOK env
-# var on the MCP entry in claude_desktop_config.json. When unset, discord_post
-# returns a clear "not configured" message rather than failing silently.
-DISCORD_WEBHOOK_URL = os.getenv("GLADLABS_DISCORD_WEBHOOK", "")
+# OpenClaw Gateway — tools/invoke HTTP API. Default Gateway port is 18789.
+# See: https://docs.openclaw.ai/gateway/tools-invoke-http-api.md
+OPENCLAW_GATEWAY_URL = os.getenv(
+    "OPENCLAW_GATEWAY_URL",
+    "http://127.0.0.1:18789",
+)
+OPENCLAW_GATEWAY_TOKEN = os.getenv("OPENCLAW_GATEWAY_TOKEN", "")
+
+# Default Discord channel ID for post/status tools. Falls back to an empty
+# string which makes discord_post require an explicit channel_id arg.
+GLADLABS_DEFAULT_DISCORD_CHANNEL = os.getenv("GLADLABS_DEFAULT_DISCORD_CHANNEL", "")
 
 # Lazy-initialized shared resources
 _pool: asyncpg.Pool | None = None
@@ -66,6 +81,44 @@ async def _get_http() -> httpx.AsyncClient:
     return _http
 
 
+async def _openclaw_invoke(tool: str, action: str, args: dict) -> dict:
+    """Invoke an OpenClaw tool via the Tools Invoke HTTP API.
+
+    Args:
+        tool: The OpenClaw tool name (e.g. "message", "sessions_list").
+        action: The action within the tool (e.g. "send", "json").
+        args: Action-specific arguments as a dict.
+
+    Returns:
+        Parsed JSON response from OpenClaw.
+
+    Raises:
+        RuntimeError: If OPENCLAW_GATEWAY_TOKEN is not set or the HTTP call
+            returns a non-2xx status.
+    """
+    if not OPENCLAW_GATEWAY_TOKEN:
+        raise RuntimeError(
+            "OPENCLAW_GATEWAY_TOKEN is not set. Paste the gateway token into "
+            "the gladlabs MCP entry in ~/.claude.json and restart Claude Code."
+        )
+
+    client = await _get_http()
+    resp = await client.post(
+        f"{OPENCLAW_GATEWAY_URL.rstrip('/')}/tools/invoke",
+        headers={
+            "Authorization": f"Bearer {OPENCLAW_GATEWAY_TOKEN}",
+            "Content-Type": "application/json",
+        },
+        json={"tool": tool, "action": action, "args": args},
+    )
+    if resp.status_code // 100 != 2:
+        raise RuntimeError(
+            f"OpenClaw /tools/invoke returned HTTP {resp.status_code}: "
+            f"{resp.text[:200]}"
+        )
+    return resp.json()
+
+
 mcp = FastMCP("GladLabs", instructions="""
 Glad Labs operator MCP server — private business tools that layer on top of
 Poindexter. Use these tools to run the Glad Labs content business: post to
@@ -77,62 +130,101 @@ Poindexter release.
 
 
 # ============================================================================
-# DISCORD TOOLS
+# DISCORD TOOLS (via OpenClaw gateway bot)
 # ============================================================================
 
 @mcp.tool()
-async def discord_post(message: str, username: str = "Poindexter") -> str:
-    """Post a message to the Glad Labs Discord via webhook.
+async def discord_post(message: str, channel_id: str = "") -> str:
+    """Post a message to the Glad Labs Discord via the OpenClaw bot.
 
-    Requires GLADLABS_DISCORD_WEBHOOK env var to be set on this MCP entry.
-    The webhook URL determines which channel the message lands in.
+    Routes through OpenClaw's Tools Invoke HTTP API so messages go through
+    the existing Discord bot (full bot permissions), not a write-only webhook.
+    Requires OPENCLAW_GATEWAY_TOKEN env var to be set on this MCP entry.
 
     Args:
-        message: The message text to post (Discord supports markdown).
-        username: Display name for the bot post (default "Poindexter").
+        message: The message text to post (Discord markdown supported).
+        channel_id: Target Discord channel ID. When omitted, uses
+            GLADLABS_DEFAULT_DISCORD_CHANNEL if set.
+
+    Returns:
+        A human-readable status line describing the result.
     """
-    if not DISCORD_WEBHOOK_URL:
+    if not OPENCLAW_GATEWAY_TOKEN:
         return (
-            "Discord webhook not configured. Set GLADLABS_DISCORD_WEBHOOK in the "
-            "gladlabs MCP env block in claude_desktop_config.json to enable."
+            "OpenClaw gateway token not configured. Set OPENCLAW_GATEWAY_TOKEN "
+            "in the gladlabs MCP env block in ~/.claude.json (and "
+            "claude_desktop_config.json) and restart Claude Code."
+        )
+
+    target_channel = channel_id or GLADLABS_DEFAULT_DISCORD_CHANNEL
+    if not target_channel:
+        return (
+            "No Discord channel ID provided and GLADLABS_DEFAULT_DISCORD_CHANNEL "
+            "is not set. Pass channel_id explicitly or set the default in the "
+            "MCP config."
         )
 
     if not message or not message.strip():
         return "Refusing to post empty message."
 
     try:
-        client = await _get_http()
-        resp = await client.post(
-            DISCORD_WEBHOOK_URL,
-            json={"content": message[:2000], "username": username},
+        result = await _openclaw_invoke(
+            tool="message",
+            action="send",
+            args={
+                "channel": "discord",
+                "target": f"channel:{target_channel}",
+                "message": message[:2000],  # Discord per-message cap
+            },
         )
-        if resp.status_code in (200, 204):
-            return f"Posted to Discord ({len(message)} chars)."
-        return f"Discord rejected the message: HTTP {resp.status_code} — {resp.text[:200]}"
+        # OpenClaw responses vary — surface the most useful field.
+        detail = result.get("id") or result.get("status") or result.get("ok") or ""
+        return f"Posted to Discord ({len(message)} chars){f' — {detail}' if detail else ''}."
     except Exception as e:
         return f"Discord post failed: {type(e).__name__}: {e}"
 
 
 @mcp.tool()
 async def discord_status() -> str:
-    """Check whether the Discord webhook is configured and responsive.
+    """Check whether the OpenClaw gateway bridge is configured and reachable.
 
-    Returns the webhook URL host (without the secret token) and a configuration
-    status. Does NOT post to the channel.
+    Attempts a lightweight ping against the gateway URL. Does NOT post
+    anything to any channel.
     """
-    if not DISCORD_WEBHOOK_URL:
-        return "Discord webhook NOT configured (GLADLABS_DISCORD_WEBHOOK env var unset)."
+    lines = ["Glad Labs Discord bridge status:"]
+    lines.append(f"  Gateway URL:        {OPENCLAW_GATEWAY_URL}")
+    lines.append(f"  Gateway token:      {'set' if OPENCLAW_GATEWAY_TOKEN else 'NOT set'}")
+    lines.append(
+        f"  Default channel:    {GLADLABS_DEFAULT_DISCORD_CHANNEL or 'NOT set'}"
+    )
 
-    # Strip the secret part of the URL — only show host + the public path prefix
+    if not OPENCLAW_GATEWAY_TOKEN:
+        lines.append("")
+        lines.append(
+            "discord_post will refuse to run until OPENCLAW_GATEWAY_TOKEN is set."
+        )
+        return "\n".join(lines)
+
+    # Probe the gateway — use the status/base URL, not tools/invoke, so we
+    # don't accidentally trigger a tool run. OpenClaw gateway serves a base
+    # page at the gateway URL root.
     try:
-        from urllib.parse import urlparse
-        parsed = urlparse(DISCORD_WEBHOOK_URL)
-        # webhooks/<id>/<token> — show host + 'webhooks/<id>/...redacted'
-        path_parts = parsed.path.split("/")
-        redacted_path = "/".join(path_parts[:-1]) + "/[REDACTED]" if len(path_parts) > 2 else parsed.path
-        return f"Discord webhook configured: {parsed.scheme}://{parsed.netloc}{redacted_path}"
-    except Exception:
-        return "Discord webhook configured (URL parse failed, but env var is set)."
+        client = await _get_http()
+        resp = await client.get(OPENCLAW_GATEWAY_URL.rstrip("/") + "/", timeout=5.0)
+        if resp.status_code // 100 == 2 or resp.status_code == 404:
+            lines.append("")
+            lines.append(f"  Gateway reachable:  yes (HTTP {resp.status_code})")
+        else:
+            lines.append("")
+            lines.append(
+                f"  Gateway reachable:  no — HTTP {resp.status_code}: "
+                f"{resp.text[:100]}"
+            )
+    except Exception as e:
+        lines.append("")
+        lines.append(f"  Gateway reachable:  no — {type(e).__name__}: {e}")
+
+    return "\n".join(lines)
 
 
 # ============================================================================
@@ -146,14 +238,20 @@ async def operator_status() -> str:
     Useful as a one-shot check that the operator MCP layer is wired correctly.
     """
     lines = ["Glad Labs operator MCP status:"]
-    lines.append(f"  Local DB DSN: {'set' if LOCAL_DB_DSN else 'unset'}")
-    lines.append(f"  Poindexter API URL: {POINDEXTER_API_URL}")
-    lines.append(f"  Poindexter API token: {'set' if POINDEXTER_API_TOKEN else 'unset'}")
-    lines.append(f"  Discord webhook: {'configured' if DISCORD_WEBHOOK_URL else 'NOT configured'}")
+    lines.append(f"  Local DB DSN:          {'set' if LOCAL_DB_DSN else 'unset'}")
+    lines.append(f"  Poindexter API URL:    {POINDEXTER_API_URL}")
+    lines.append(f"  Poindexter API token:  {'set' if POINDEXTER_API_TOKEN else 'unset'}")
+    lines.append(f"  OpenClaw gateway URL:  {OPENCLAW_GATEWAY_URL}")
+    lines.append(
+        f"  OpenClaw gateway token: {'set' if OPENCLAW_GATEWAY_TOKEN else 'NOT set'}"
+    )
+    lines.append(
+        f"  Default Discord channel: {GLADLABS_DEFAULT_DISCORD_CHANNEL or 'NOT set'}"
+    )
     lines.append("")
     lines.append("Tools available in this server:")
-    lines.append("  - discord_post(message, username) — post to Glad Labs Discord")
-    lines.append("  - discord_status() — webhook configuration check")
+    lines.append("  - discord_post(message, channel_id) — post via OpenClaw bot")
+    lines.append("  - discord_status() — gateway configuration + reachability check")
     lines.append("  - operator_status() — this tool")
     lines.append("")
     lines.append("Future tools (placeholders, not yet implemented):")
